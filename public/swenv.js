@@ -1,0 +1,12 @@
+
+ const process = {
+          env: {
+            NEXT_PUBLIC_FIREBASE_API_KEY: 'AIzaSyAezEQxURuC9P_lBv-uLZQCBcmMijc62P8',
+            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'wapp-f36bd.firebaseapp.com',
+            NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'wapp-f36bd',
+            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: 'wapp-f36bd.appspot.com',
+            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: '302748399981',
+            NEXT_PUBLIC_FIREBASE_APP_ID: '1:302748399981:web:9605b8ff0019655836c264',
+            NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: 'G-XP0EBXP4FR'
+  }
+ }

@@ -1,0 +1,20 @@
+import * as React from 'react';
+import { GridFilterOperator } from '../../models/gridFilterOperator';
+import { GridFilterItem } from '../../models/gridFilterItem';
+import { GridColDef } from '../../models/colDef/GridColDef';
+
+declare function GridHeaderFilterMenuContainer(props: {
+    operators: GridFilterOperator<any, any, any>[];
+    field: GridColDef['field'];
+    item: GridFilterItem;
+    applyFilterChanges: (item: GridFilterItem) => void;
+    headerFilterMenuRef: React.MutableRefObject<HTMLButtonElement | null>;
+    buttonRef: React.Ref<HTMLButtonElement>;
+    disabled?: boolean;
+}): React.JSX.Element | null;
+declare namespace GridHeaderFilterMenuContainer {
+    var propTypes: any;
+}
+export { GridHeaderFilterMenuContainer };
+
+

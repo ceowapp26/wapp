@@ -1,0 +1,15 @@
+# Environment variables
+.env
+.env.development.local
+.env.local
+.env.production
+
+# Node modules
+node_modules
+
+# Vercel configuration
+.vercel
+
+#Next configuration
+.next
+.env.local
