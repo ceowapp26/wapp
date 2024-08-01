@@ -33,7 +33,7 @@
     "@hookform/resolvers": "^3.4.2",
     "@mui/icons-material": "^5.15.19",
     "@mui/material": "^5.15.19",
-    "@mui/styles": "^5.16.4",
+    "@mui/styles": "^5.16.6",
     "@nanostores/react": "github:ai/react",
     "@next/third-parties": "^14.2.4",
     "@nextui-org/navbar": "^2.0.32",
