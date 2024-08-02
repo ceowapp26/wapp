@@ -1,13 +1,20 @@
 /** @type {import('next').NextConfig} */
 
-const nextConfig = {
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+const nextConfig = withBundleAnalyzer({
   experimental: {
     serverActions: true,
   },
   images: {
     domains: [
-      "files.edgestore.dev"
-    ]
+      "files.edgestore.dev",
+      'http://localhost:3000',
+      'www.gravatar.com',
+      'images.ctfassets.net',
+    ],
   },
   typescript: {
     // !! WARN !!
@@ -18,9 +25,6 @@ const nextConfig = {
   },
   reactStrictMode: true,
   swcMinify: true,
-  images: {
-    domains: ['http://localhost:3000', 'www.gravatar.com', 'images.ctfassets.net'],
-  },
   webpack(config, { isServer }) {
     config.experiments = {
       asyncWebAssembly: true,
@@ -29,6 +33,6 @@ const nextConfig = {
 
     return config;
   },
-};
+});
 
 module.exports = nextConfig;

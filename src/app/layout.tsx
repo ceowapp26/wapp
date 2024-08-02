@@ -12,7 +12,6 @@ import { DocumentModalProvider } from '@/components/apps/document/providers/moda
 import { EdgeStoreProvider } from '@/lib/edgestore';
 import { ReduxProvider } from '@/redux/ReduxProvider';
 import { NextUIProvider } from '@nextui-org/react';
-import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -75,7 +74,6 @@ export default function RootLayout({
             </ConvexClientProvider>
           </ReduxProvider>
         </React.StrictMode>
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
       </body>
     </html>
   );
