@@ -64,7 +64,7 @@ const DocumentMetadataModal = () => {
     if (!selectedDocument || !title) return;
     const extractedTitle = title.trim().replace(/^"(.*)"$/, '$1');
     updateDocument({
-      id: currentDocument,
+      id: selectedDocument,
       title: extractedTitle
     });
   };

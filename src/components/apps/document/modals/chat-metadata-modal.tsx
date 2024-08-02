@@ -29,12 +29,12 @@ const ChatMetadataModal = () => {
   const setInputContext = useStore((state) => state.setInputContext);
   const setInputModel = useStore((state) => state.setInputModel);
   const setChats = useStore((state) => state.setChats);
-  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedDocument } = useGeneralContext();
+  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedChat } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ setIsLoading: setIsLoading, setError: setError, setTitle: setTitle, setDescription: setDescription, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
 
   const handleUpdateCloudChat = async (id, chatIndex, chat) => {
     try {
-      await updateChat({ id:id , chatIndex: chatIndex, chat });
+      await updateChat({ id:id , chatIndex: chatIndex, chat: chat });
     } catch (error) {
       console.error(error);
       throw error;
@@ -72,11 +72,10 @@ const ChatMetadataModal = () => {
 
   const editTitle = (title) => {
     const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
-    updatedChats[chatIndex].chatTitle = title;
+    const currentChat = updatedChats.find(chat => chat.cloudChatId === selectedChat);
+    currentChat.chatTitle = title;
     setChats(updatedChats);
-    const chatId = updatedChats[chatIndex].chatId;
-    const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === selectedDocument);
-    handleUpdateCloudChat(updatedChats[chatIndex].cloudChatId, newChatIndex, updatedChats[chatIndex]);
+    handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
   };
 
   const handleUpdateTitle = () => {

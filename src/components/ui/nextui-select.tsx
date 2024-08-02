@@ -48,7 +48,7 @@ export const Select: React.FC<SelectComponentProps> = ({
         onChange={handleSelectionChange}
         selectorIcon={<ChevronDown className="text-purple-500 transition-transform duration-300 group-data-[open=true]:rotate-180" />}
         classNames={{
-          base: "w-full min-w-[142px] max-w-xs", 
+          base: "w-full min-w-[142px] max-w-[150px]", 
           trigger: "group bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600",
           label: "text-purple-600 dark:text-purple-300 font-semibold",
           value: "text-gray-800 dark:text-gray-100",

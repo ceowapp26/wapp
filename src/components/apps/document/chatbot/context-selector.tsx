@@ -52,7 +52,7 @@ const ContextSelector = React.memo(
       <div ref={dropDownRef}>
         <Select 
           options={AIContextOptions} 
-          label={"Context"}
+          label="Context"
           selectedOption={inputContext} 
           setSelectedOption={setInputContext} 
           handleAsyncStore={handleAsyncStore} 
