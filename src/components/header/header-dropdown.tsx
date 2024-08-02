@@ -30,8 +30,8 @@ export default function HeaderDropdown() {
         <NavbarItem key={index} className="relative">
           <Button
             disableRipple
-            className={`p-2 transition-all duration-200 hover:scale-105 ${
-              theme === 'dark' ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-100'
+            className={`p-2 transition-all text-sm font-medium duration-200 hover:scale-105 ${
+              theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'
             }`}
             endContent={
               <motion.div

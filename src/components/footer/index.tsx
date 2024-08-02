@@ -59,7 +59,7 @@ const Footer = () => {
               CONTACT
             </Typography>
             <Link className="text-gray-400 hover:text-white transition-colors duration-300" href="mailto:ceowapp@gmail.com">
-              thenguyenfiner@gmail.com
+              ceowapp@gmail.com
             </Link>
             <Box className="flex justify-start space-x-4 mt-6">
               <motion.div whileHover={{ y: -5 }}>
