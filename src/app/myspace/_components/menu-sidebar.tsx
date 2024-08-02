@@ -54,7 +54,7 @@ const Header = () => {
           <IconButton onClick={handleReturnBack} size="small">
             <ChevronLeft />
           </IconButton>
-          <Typography variant="h6" fontWeight="bold">Settings</Typography>
+          <Typography variant="h6" fontWeight="bold">Menu</Typography>
           <Box width={24} />
         </Stack>
       </Box>
@@ -172,15 +172,16 @@ export const MenuSidebar = () => {
                 }
                 endContent={
                   searchTerm && (
-                    <Button
-                      size="sm"
-                      variant="light"
-                      isIconOnly
-                      onClick={() => handleSearch('')}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    <button 
+                      aria-label="cancel"
+                      className="absolute right-4 top-2 flex items-center justify-center rounded-full w-4 h-4 bg-slate-200 hover:bg-slate-400"
+                      onClick={() => {
+                        handleSearch('');
+                      }}
+                      type="button"
                     >
-                      <CloseIcon />
-                    </Button>
+                      <X className="w-3 h-3 text-gray-800 cursor-pointer" />
+                    </button>
                   )
                 }
               />
@@ -245,15 +246,16 @@ export const MenuSidebar = () => {
                 }
                 endContent={
                   searchTerm && (
-                    <Button
-                      size="sm"
-                      variant="light"
-                      isIconOnly
-                      onClick={() => handleSearch('')}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    <button 
+                      aria-label="cancel"
+                      className="absolute right-4 top-2 flex items-center justify-center rounded-full w-4 h-4 bg-slate-200 hover:bg-slate-400"
+                      onClick={() => {
+                        handleSearch('');
+                      }}
+                      type="button"
                     >
-                      <CloseIcon />
-                    </Button>
+                      <X className="w-3 h-3 text-gray-800 cursor-pointer" />
+                    </button>
                   )
                 }
               />
@@ -318,15 +320,16 @@ export const MenuSidebar = () => {
                 }
                 endContent={
                   searchTerm && (
-                    <Button
-                      size="sm"
-                      variant="light"
-                      isIconOnly
-                      onClick={() => handleSearch('')}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    <button 
+                      aria-label="cancel"
+                      className="absolute right-4 top-2 flex items-center justify-center rounded-full w-4 h-4 bg-slate-200 hover:bg-slate-400"
+                      onClick={() => {
+                        handleSearch('');
+                      }}
+                      type="button"
                     >
-                      <CloseIcon />
-                    </Button>
+                      <X className="w-3 h-3 text-gray-800 cursor-pointer" />
+                    </button>
                   )
                 }
               />
@@ -391,15 +394,16 @@ export const MenuSidebar = () => {
                 }
                 endContent={
                   searchTerm && (
-                    <Button
-                      size="sm"
-                      variant="light"
-                      isIconOnly
-                      onClick={() => handleSearch('')}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                    <button 
+                      aria-label="cancel"
+                      className="absolute right-4 top-2 flex items-center justify-center rounded-full w-4 h-4 bg-slate-200 hover:bg-slate-400"
+                      onClick={() => {
+                        handleSearch('');
+                      }}
+                      type="button"
                     >
-                      <CloseIcon />
-                    </Button>
+                      <X className="w-3 h-3 text-gray-800 cursor-pointer" />
+                    </button>
                   )
                 }
               />

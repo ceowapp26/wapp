@@ -84,6 +84,7 @@ export const ModelSelector = ({ _model, _setModel }: { _model: ModelOption; _set
       showArrow
       classNames={{
         wrapper: "p-4 mb-4",
+        trigger: 'mb-2',
         base: "before:bg-default-200 mb-2",
         content: "py-1 px-1 border border-default-200 bg-gradient-to-br from-white to-default-200 dark:from-default-50 dark:to-black",
       }}

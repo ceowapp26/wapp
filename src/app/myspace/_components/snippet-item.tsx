@@ -311,17 +311,6 @@ const SnippetItem = React.memo(
               </Tooltip>
             </React.Fragment>
           )}
-          <Tooltip title={isExpanded ? "Collapse" : "Expand"}>
-            <motion.button 
-              className='p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200' 
-              onClick={toggleExpanded}
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <ChevronDown className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-            </motion.button>
-          </Tooltip>
         </div>
       </div>
       <AnimatePresence>
