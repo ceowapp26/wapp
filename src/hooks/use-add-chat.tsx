@@ -43,7 +43,7 @@ export const useAddChat = () => {
       const title = getUniqueTitle(allChats);
       const newChat: ChatInterface = {
         ...generateDefaultChat(title, folderId),
-        userId: currentUser._id,
+        userId: currentUser.userId,
         metaData: {
           documents: activeDocument ? [activeDocument] : [],
           orgs: activeOrg ? [{

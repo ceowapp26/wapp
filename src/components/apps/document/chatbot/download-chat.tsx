@@ -1,51 +1,81 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import PopupModal from './popup-modal';
+import { useStore } from '@/redux/features/apps/document/store';
 import {
   chatToMarkdown,
   downloadImg,
   downloadMarkdown,
   htmlToImg,
 } from '@/utils/chat';
-import ImageIcon from '@/icons/ImageIcon';
-import MarkdownIcon from '@/icons/MarkdownIcon';
-import JsonIcon from '@/icons/JsonIcon';
+import PopupModal from './popup-modal';
 import downloadFile from '@/utils/downloadFile';
+import { Button, useDisclosure } from "@nextui-org/react";
+import { Download, Image, FileText, Code } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
-const DownloadChat = React.memo(({ saveRef }: { saveRef: React.RefObject<HTMLDivElement> }) => {
+const DownloadChat = React.memo(({ saveRef }) => {
   const { t } = useTranslation();
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const downloadChatModal = useDisclosure();
 
   const downloadOptions = [
     {
       label: 'Image',
-      icon: <ImageIcon className="w-5 h-5" />,
+      icon: <Image className="w-6 h-6" />,
       onClick: async () => {
         if (saveRef?.current) {
-          const imgData = await htmlToImg(saveRef.current);
-          downloadImg(imgData, `${useStore.getState().chats?.[useStore.getState().currentChatIndex].title.trim() ?? 'download'}.png`);
+          toast.promise(
+            htmlToImg(saveRef.current).then(imgData => {
+              const title = useStore.getState().chats?.[useStore.getState().currentChatIndex].title.trim() ?? 'download';
+              downloadImg(imgData, `${title}.png`);
+            }),
+            {
+              loading: 'Generating image...',
+              success: 'Image downloaded successfully!',
+              error: 'Failed to download image',
+            }
+          );
         }
       },
     },
     {
       label: 'Markdown',
-      icon: <MarkdownIcon className="w-5 h-5" />,
+      icon: <FileText className="w-6 h-6" />,
       onClick: async () => {
         const chats = useStore.getState().chats;
         if (chats && saveRef?.current) {
-          const markdown = chatToMarkdown(chats[useStore.getState().currentChatIndex]);
-          downloadMarkdown(markdown, `${chats[useStore.getState().currentChatIndex].title.trim() ?? 'download'}.md`);
+          toast.promise(
+            Promise.resolve().then(() => {
+              const markdown = chatToMarkdown(chats[useStore.getState().currentChatIndex]);
+              const title = chats[useStore.getState().currentChatIndex].title.trim() ?? 'download';
+              downloadMarkdown(markdown, `${title}.md`);
+            }),
+            {
+              loading: 'Generating Markdown...',
+              success: 'Markdown downloaded successfully!',
+              error: 'Failed to download Markdown',
+            }
+          );
         }
       },
     },
     {
       label: 'JSON',
-      icon: <JsonIcon className="w-5 h-5" />,
+      icon: <Code className="w-6 h-6" />,
       onClick: async () => {
         const chats = useStore.getState().chats;
         if (chats) {
-          const chat = chats[useStore.getState().currentChatIndex];
-          downloadFile([chat], chat.title);
+          toast.promise(
+            Promise.resolve().then(() => {
+              const chat = chats[useStore.getState().currentChatIndex];
+              downloadFile([chat], chat.title);
+            }),
+            {
+              loading: 'Generating JSON...',
+              success: 'JSON downloaded successfully!',
+              error: 'Failed to download JSON',
+            }
+          );
         }
       },
     },
@@ -53,38 +83,52 @@ const DownloadChat = React.memo(({ saveRef }: { saveRef: React.RefObject<HTMLDiv
 
   return (
     <>
-      <button
-        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
-        aria-label={t('downloadChat') as string}
-        onClick={() => setIsModalOpen(true)}
+      <Button
+        auto
+        color="primary"
+        startContent={<Download size={20} />}
+        onClick={downloadChatModal.onOpen}
+        className="font-semibold"
       >
         {t('downloadChat')}
-      </button>
-      {isModalOpen && (
-        <PopupModal
-          setIsModalOpen={setIsModalOpen}
-          title={t('downloadChat') as string}
-          cancelButton={false}
-        >
-          <div className="p-6 space-y-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Select a format to download your chat:
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {downloadOptions.map((option) => (
-                <button
-                  key={option.label}
-                  className="flex items-center justify-center p-4 space-x-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
-                  onClick={option.onClick}
+      </Button>
+      <PopupModal
+        isModalOpen={downloadChatModal.isOpen}
+        setIsModalOpen={downloadChatModal.onOpenChange}
+        title={t('downloadChat') as string}
+        cancelButton={false}
+      >
+        <p className="text-lg text-gray-50/80 dark:text-gray-50/80 mb-4 ml-1">
+          Select a format to download your chat:
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <AnimatePresence>
+            {downloadOptions.map((option) => (
+              <motion.div
+                key={option.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Button
+                  auto
+                  color="secondary"
+                  startContent={option.icon}
+                  onClick={() => {
+                    option.onClick();
+                    downloadChatModal.onClose();
+                  }}
+                  size="md"
+                  className="w-full h-full py-6 text-md font-medium"
                 >
-                  {option.icon}
-                  <span>{option.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </PopupModal>
-      )}
+                  {option.label}
+                </Button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </PopupModal>
     </>
   );
 });

@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "node swEnvBuild.js && next dev",
-    "build": "next build && node swEnvBuild.js",
+    "build": "cross-env NODE_OPTIONS='--max_old_space_size=4096' next build && node swEnvBuild.js",
     "start": "next start",
-    "lint": "next lint",
+     "lint": "next lint --cache",
     "vercel-install": "npm install --legacy-peer-deps",
     "analyze": "ANALYZE=true npm run build"
   },
@@ -103,6 +103,7 @@
     "codemirror": "^5.65.16",
     "contentful": "^10.11.12",
     "convex": "^1.12.1",
+    "cross-env": "^7.0.3",
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "emoji-picker-react": "^4.9.4",

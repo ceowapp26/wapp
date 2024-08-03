@@ -14,8 +14,13 @@ import {
   FileSearch,
   ScanText,
   BookText,
-  Images, 
+  Images,
+  Search, 
+  RefreshCw, 
+  Copy, 
+  Send, 
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEditor } from '../core/index';
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { GradientLoadingCircle } from '@/components/gradient-loading-circle';
@@ -44,6 +49,11 @@ interface AIImageSelectorProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isGemini: boolean; 
+}
+
+interface DialogWrapperProps {
+  children: React.ReactNode;
+  isLoading: boolean;
 }
 
 const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, isGemini }) => {
@@ -82,12 +92,12 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
     setPrompt(text);
   }, [editor, isGemini, setAiContext, setAiModel, setSelectedOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
 
-  const handleAIGenerate = useCallback(() => {
+  const handleAIGenerate = useCallback(async() => {
     if (aiContext === "image" && prompt && selectedOption && !isLoading) {
+      setIsLoading(true);
+      setOpenDialog(true);
       try {
-        setIsLoading(true);
-        setOpenDialog(true);
-        handleAIDynamicFunc();
+        await handleAIDynamicFunc();
       } catch (error) {
         setOpenDialog(false);
         onOpenChange(false);
@@ -95,17 +105,14 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
         toast.error("Failed to generate image. Please try again.");
       } finally {
         setIsLoading(false);
-        setOpenDialog(false);
-        onOpenChange(false);
       }
     }
   }, [prompt, aiContext, isLoading, selectedOption, setIsLoading, setOpenDialog, onOpenChange, handleAIDynamicFunc]);
 
   const handleSubmit = useCallback((selectedOption: string) => {
     handleSetup(selectedOption);
-    setSelectedOption(selectedOption);
     handleAIGenerate();
-  }, [setSelectedOption, handleSetup, handleAIGenerate]);
+  }, [handleSetup, handleAIGenerate]);
 
   let imageOptions = [];
 
@@ -205,46 +212,101 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
 
   const CommandButtonGroups: React.FC = () => {
     return (
-      <div className="group flex w-full justify-center">
-        <div className="flex justify-center mt-2">
-          <div className="flex items-center gap-2">
-            <InsertButton onClick={handleInsert} />
-            <RefreshButton onClick={() => handleSubmit(selectedOption)} />
-            <CopyButton onClick={handleCopy} />
-          </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="w-full px-4 py-3 bg-gray-50 rounded-b-lg shadow-lg"
+      >
+        <div className="flex justify-center items-center space-x-4">
+          <AnimatedButton icon={<Send size={18} />} onClick={handleInsert} tooltip="Insert">
+            Insert
+          </AnimatedButton>
+          <AnimatedButton icon={<RefreshCw size={18} />} onClick={() => handleSubmit({ value: selectedOption })} tooltip="Refresh">
+            Refresh
+          </AnimatedButton>
+          <AnimatedButton icon={<Copy size={18} />} onClick={handleCopy} tooltip="Copy">
+            Copy
+          </AnimatedButton>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
-  const DialogWrapper: React.FC = () => (
-    <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
-      <DialogContent>
-        <DialogHeader className="border-b pb-3">
-          <h2 className="text-lg font-medium">Details</h2>
-        </DialogHeader>
-        <div className="flex flex-col w-full overflow-auto max-h-[500px] items-center justify-between">
-          {isLoading && <GradientLoadingCircle />}
-          {!isLoading && (
-            <>
-              <SearchBar handleChange={handleSearch} disabled={isLoading} />
-              {(selectedOption === 'generate' || selectedOption === 'extract') && resData && (
-                <div className="flex flex-wrap justify-center gap-2 mt-2">
-                  <Suspense fallback={<GradientLoadingCircle />}>
-                    <LazyAIImage url={resData} alt="Generated Image" className="max-h-48 max-w-full" />
-                  </Suspense>
-                </div>
-              )}
-              {(!selectedOption === 'generate' || !selectedOption === 'extract') && resData && (
-                <h1 className="text-xl font-bold text-center text-blue-600 my-8">{resData}</h1>
-              )}
-            </>
-          )}
-        </div>
-        {resData && !isLoading && <CommandButtonGroups />}
-      </DialogContent>
-    </Dialog>
+  const AnimatedButton: React.FC<{ icon: React.ReactNode; onClick: () => void; tooltip: string; children: React.ReactNode }> = ({ icon, onClick, tooltip, children }) => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50 cursor-pointer"
+      onClick={onClick}
+      title={tooltip}
+    >
+      {icon}
+      <span className="ml-2 font-medium">{children}</span>
+    </motion.button>
   );
+
+  const DialogWrapper: React.FC<DialogWrapperProps> = ({ children, isLoading }) => {
+    return (
+      <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
+        <DialogContent>
+          <DialogHeader className="border-b pb-3">
+            <motion.h2 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-bold text-gray-800"
+            >
+              AI-Generated Details
+            </motion.h2>
+          </DialogHeader>
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex-grow flex items-center w-full max-h-[500px justify-center p-8 overflow-auto"
+              >
+                <GradientLoadingCircle size={60} thickness={4} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-grow flex flex-col space-y-4 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-200"
+              >
+                <SearchBar 
+                  handleChange={handleSearch} 
+                  disabled={isLoading} 
+                  placeholder="Search keywords..."
+                  icon={<Search className="text-gray-400" size={20} />}
+                />
+                {/*
+                {searchResults.length === 0 ? (
+                  <p className="text-center text-gray-500 italic">
+                    No items found. Try a different search term.
+                  </p>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <KeywordDetail keyword={searchResults[0]} />
+                  </motion.div>
+                )}*/}
+                {children}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {resData && !isLoading && <CommandButtonGroups />}
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <React.Fragment>
@@ -287,8 +349,8 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
           </Command>
         </PopoverContent>
       </Popover>
-      <DialogWrapper />
-     {showWarning && (
+      <DialogWrapper isLoading={isLoading} />
+      {showWarning && (
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}

@@ -3,25 +3,30 @@ import { useTranslation } from 'react-i18next';
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import { useStore } from '@/redux/features/apps/document/store';
-import { useSubmit } from '@/hooks/use-submit';
 import { ChatInterface } from '@/types/chat';
 import PopupModal from './popup-modal';
 import TokenCount from './token-count';
 import CharacterCount from './character-count';
 import CommandPrompt from './command-prompt';
-import contexts from '@/types/chat';
-import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround } from 'lucide-react';
+import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCw, Send, StopCircle } from 'lucide-react';
 import { Textarea, Tooltip, ScrollShadow, Button, Popover, PopoverTrigger, PopoverContent, useDisclosure } from '@nextui-org/react';
 import { useMutation, useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { useSubmit } from "@/hooks/use-submit";
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { APP_STATUS } from "@/constants/app";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiSave, FiX, FiZap } from 'react-icons/fi';
 import UnreleasePopover from "./unrelease-popover";
 import { useGeneralContext } from "@/context/general-context-provider";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
+
+interface GenerateButtonProps {
+  isGenerating: boolean;
+  stop: () => void;
+  generate: () => void;
+}
 
 const ChatView = ({
   content,
@@ -63,6 +68,7 @@ const ChatView = ({
   const { rightSidebarWidth } = useMyspaceContext();
   const [isVertical, setIsVertical] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const { stop } = useSubmit();
   const { handleAIDynamicFunc } = useDynamicSubmit();
   const popupModal = useDisclosure();
   const isMediumScreen = useMemo(() => rightSidebarWidth < MEDIUM_SCREEN_THRESHOLD, [rightSidebarWidth]); 
@@ -175,7 +181,7 @@ const ChatView = ({
       currentChat.chatIndex,
       currentChat
     );
-    handleAIDynamicFunc();
+    await handleAIDynamicFunc();
   }, [
     _content,
     aiContext,
@@ -207,11 +213,63 @@ const ChatView = ({
     }
   }, []);
 
+      console.log("generating state", useStore.getState().generating);
+
+  const GenerateButton: React.FC<GenerateButtonProps> = ({ isGenerating, stop, generate }) => (
+    <motion.div whileTap={{ scale: 0.95 }}>
+      <Button
+        isIconOnly
+        variant="faded"
+        color="default"
+        color={isGenerating ? "danger" : "primary"}
+        size="sm"
+        onClick={isGenerating ? () => stop : generate}
+        aria-label={isGenerating ? "Stop Generating" : "Generate"}
+        className="relative overflow-hidden"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {isGenerating ? (
+            <motion.div
+              key="stop"
+              initial={{ opacity: 0, rotate: 180 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: -180 }}
+              transition={{ duration: 0.3 }}
+            >
+              <StopCircle />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="send"
+              initial={{ opacity: 0, rotate: -180 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: 180 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Send />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {isGenerating && (
+          <motion.div
+            className="absolute inset-0 bg-danger-300 opacity-30"
+            animate={{
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        )}
+      </Button>
+    </motion.div>
+  );
+
   const endContent = useMemo(() => (
-    <div className="flex gap-4 justify-center items-center px-2 h-full">
-      <Button isIconOnly variant="faded" color="default" size="sm" onClick={handleGenerate} aria-label="Send">
-        <ArrowUp />        
-      </Button>  
+    <div className="flex gap-4 justify-center items-center px-2 py-2 h-full">
+      <GenerateButton isGenerating={useStore.getState().generating} stop={stop} generate={handleGenerate} />
       {isVertical && 
         <Popover>
           <PopoverTrigger>
@@ -368,7 +426,7 @@ const EditViewButtons: React.FC<EditViewButtonsProps> = memo(({
             color="primary"
             icon={<FiZap />}
             disabled={generating}
-            onClick={sticky ? handleGenerate : () => setIsModalOpen()}
+            onClick={sticky ? handleGenerate : () => setIsModalOpen(true)}
           >
             {t('generate')}
           </Button>
@@ -403,10 +461,8 @@ const EditViewButtons: React.FC<EditViewButtonsProps> = memo(({
           setCharacterCount={setCharacterCount} 
         />
       </div>
-      {advancedMode && !isMediumScreen && (
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {t('tokenCount')}: {characterCount}
-        </div>
+      {sticky && advancedMode && !isMediumScreen && (
+        <TokenCount />
       )}
     </motion.div>
   );

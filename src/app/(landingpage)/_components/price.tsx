@@ -51,7 +51,7 @@ const ApiLimits = ({ data }: { data: Model[] }) => (
       </TableHeader>
       <TableBody>
         {data.map((model, index) => (
-          <TableRow key={index}>
+          <TableRow key={`model-${model.model}-${index}`}>
             <TableCell>{model.model}</TableCell>
             <TableCell>{model.RPM}</TableCell>
             <TableCell>{model.RPD}</TableCell>
@@ -139,13 +139,13 @@ const PricingCard = ({
         ) : (
           <>
             <h3 className="font-semibold text-xl mb-3">App Access</h3>
-            {Object.values(apps).map((app) => (
-              <CheckItem key={app.name} text={app.name} />
-            ))}
+              {Object.values(apps).map((app, index) => (
+                <CheckItem key={`app-${app.name}-${index}`} text={app.name} />
+              ))}
             <h3 className="font-semibold text-xl mt-6 mb-3">Features</h3>
-            {Object.values(features).map((feature) => (
-              <CheckItem key={feature.name} text={`${feature.name} (${feature.app})`} />
-            ))}
+              {Object.values(features).map((feature, index) => (
+                <CheckItem key={`feature-${feature.name}-${feature.app}-${index}`} text={`${feature.name} (${feature.app})`} />
+              ))}
             <h3 className="font-semibold text-xl mt-6 mb-3">API Limits</h3>
             <ApiLimits data={models} />
           </>
@@ -182,7 +182,7 @@ const PriceSection = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const numOfUsers = allUsers ? allUsers.length : 0;
+        const numOfUsers = allUsers ? allUsers.length : 1;
         const data = await Promise.all(
           PLANS.map(async (plan) => {
             const [features, apps, models] = await Promise.all([
@@ -239,7 +239,7 @@ const PriceSection = () => {
           >
             {planData.map((plan, index) => (
               <motion.div 
-                key={plan.title} 
+                key={`plan-${plan.title}-${index}`} 
                 initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 transition={{ duration: 0.5, delay: 0.1 * index }}

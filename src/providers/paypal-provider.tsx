@@ -4,11 +4,11 @@ import * as React from "react";
 import { PayPalScriptProvider, ReactPayPalScriptOptions } from "@paypal/react-paypal-js";
 
 const orderOptions: ReactPayPalScriptOptions = {
-    "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+    "client-id": process.env.PAYPAL_CLIENT_ID!,
 };
 
 const subscriptionOptions: ReactPayPalScriptOptions = {
-    "client-id": process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+    "client-id": process.env.PAYPAL_CLIENT_ID!,
     intent: "subscription",
     vault: true
 };

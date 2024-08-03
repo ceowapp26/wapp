@@ -18,6 +18,7 @@ export type Context = 'general' | 'selection' | 'document' | 'q&a';
 export const useSubmit = () => {  
   const { t, i18n } = useTranslation('api');
   const currentState = useStore.getState();
+  const error = useStore((state) => state.error);
   const setError = useStore((state) => state.setError);
   const setGenerating = useStore((state) => state.setGenerating);
   const setChats = useStore((state) => state.setChats);
@@ -124,15 +125,10 @@ export const useSubmit = () => {
       const hasCompletion = completion.length > 0;
       
       if (hasCompletion) {
-        while (useStore.getState().generating) {
-          currentChat.messages[currentChat.messages.length - 1].content += completion;
-          await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
-          setChats(updatedChats);
-          return completion;
-        }
-        if (useStore.getState().generating) {
-          await stop();
-        }
+        currentChat.messages[currentChat.messages.length - 1].content += completion;
+        await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
+        setChats(updatedChats);
+        return completion;
       }
     } catch (e: unknown) {
       const err = (e as Error).message;
@@ -167,6 +163,6 @@ export const useSubmit = () => {
       }
     }
   };
-  return { handleSubmit };
+  return { handleSubmit, stop, error };
 };
 

@@ -44,7 +44,7 @@ const TextEditor = ({ initialContent }) => {
           </Button>
         </React.Fragment>
       ) : (
-        <GradientLoadingCircle />
+        <GradientLoadingCircle size={60} thickness={4} />
       )}
     </Container>
   );

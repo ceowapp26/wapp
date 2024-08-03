@@ -21,8 +21,13 @@ import {
   Waypoints,
   FolderTree, 
   FileSpreadsheet,
-  BrainCircuit
+  BrainCircuit,
+  Search, 
+  RefreshCw, 
+  Copy, 
+  Send,
 } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEditor } from "../core/index";
 import { GradientLoadingCircle } from "@/components/gradient-loading-circle";
 import {
@@ -89,6 +94,11 @@ interface AIAdvancedSelectorProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface DialogWrapperProps {
+  children: React.ReactNode;
+  isLoading: boolean;
+}
+
 const AIAdvancedSelector = ({
   open,
   onOpenChange,
@@ -120,12 +130,12 @@ const AIAdvancedSelector = ({
     setPrompt(text);
   }, [editor, setAiContext, setAiModel, _setOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
 
-  const handleAIGenerate = useCallback(() => {
+  const handleAIGenerate = useCallback(async () => {
     if (aiContext === "advanced" && prompt && _option && !isLoading) {
+      setIsLoading(true);
+      setOpenDialog(true);
       try {
-        setIsLoading(true);
-        setOpenDialog(true);
-        handleAIDynamicFunc();
+        await handleAIDynamicFunc();
       } catch (error) {
         setOpenDialog(false);
         onOpenChange(false);
@@ -135,7 +145,7 @@ const AIAdvancedSelector = ({
         setIsLoading(false);
       }
     }
-  }, [prompt, aiContext, _option, isLoading, setOpenDialog, setIsLoading, onOpenChange]);
+  }, [prompt, aiContext, _option, isLoading, setOpenDialog, setIsLoading, onOpenChange, handleAIDynamicFunc]);
 
   const handleSubmit = useCallback((selectedOption: string) => {
     handleSetup(selectedOption);
@@ -161,31 +171,25 @@ const AIAdvancedSelector = ({
     setSearchResults(filteredResults);
   };
 
-  const handleInsert = () => {
-    if (selectedOption) {
-      switch (selectedOption) {
-        case "treenode":
-          editor.chain().focus().insertAITreeNode().run();
-          break;
-        case "graphnode":
-          editor.chain().focus().insertAIGraphNode().run();
-          break;
-        case "dashboard":
-          editor.chain().focus().insertAIDashboardNode().run();
-          break;
-        case "keywordtree":
-          editor.chain().focus().insertAIKeywordTreeNode().run();
-          break;
-        case "icon":
-          editor.chain().focus().insertIconNode().run();
-          break;
-        default:
-          break;
-      }
+  const nodeTypeToCommandMap: Record<string, keyof EditorCommands> = {
+    treenode: 'insertAITreeNode',
+    graphnode: 'insertAIGraphNode',
+    dashboard: 'insertAIDashboardNode',
+    keywordtree: 'insertAIKeywordTreeNode',
+    icon: 'insertIconNode',
+  };
+
+  const handleInsert = useCallback(() => {
+    if (!selectedOption) return;
+    const command = nodeTypeToCommandMap[selectedOption];
+    if (command) {
+      editor.chain().focus()[command]().run();
       setOpenDialog(false);
       onOpenChange(false);
+    } else {
+      console.warn(`Unsupported node type: ${selectedOption}`);
     }
-  };
+  }, [selectedOption, editor, setOpenDialog, onOpenChange]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(resData || "");
@@ -193,49 +197,102 @@ const AIAdvancedSelector = ({
 
   const CommandButtonGroups: React.FC = () => {
     return (
-      <div className="group flex w-full justify-center">
-        <div className="flex justify-center mt-2">
-          <div className="flex items-center gap-2">
-            <InsertButton onClick={() => handleInsert()} />
-            <RefreshButton onClick={() => handleSubmit({ value: selectedOption })} />
-            <CopyButton onClick={handleCopy} />
-          </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 20 }}
+        className="w-full px-4 py-3 bg-gray-50 rounded-b-lg shadow-lg"
+      >
+        <div className="flex justify-center items-center space-x-4">
+          <AnimatedButton icon={<Send size={18} />} onClick={handleInsert} tooltip="Insert">
+            Insert
+          </AnimatedButton>
+          <AnimatedButton icon={<RefreshCw size={18} />} onClick={() => handleSubmit({ value: selectedOption })} tooltip="Refresh">
+            Refresh
+          </AnimatedButton>
+          <AnimatedButton icon={<Copy size={18} />} onClick={handleCopy} tooltip="Copy">
+            Copy
+          </AnimatedButton>
         </div>
-      </div>
+      </motion.div>
     );
   };
 
-  const DialogWrapper: React.FC<{ children: React.ReactNode }> = ({
-      children,
-    }) => {
-      return (
-        <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
-          <DialogContent>
-            <DialogHeader className="border-b pb-3">
-              <h2 className="text-lg font-medium">Details</h2>
-            </DialogHeader>
-            <div className="flex flex-col w-full overflow-auto max-h-[500px] items-center justify-between">
-              {isLoading && <GradientLoadingCircle />}
-              {!isLoading && resData && (
-                <>
-                  <SearchBar handleChange={handleSearch} disabled={isLoading} />
-                  {searchResults.length === 0 ? (
-                    <p className="hidden last:block text-xs text-center text-muted-foreground pb-2">
-                      No items found.
-                    </p>
-                  ) : (
+  const AnimatedButton: React.FC<{ icon: React.ReactNode; onClick: () => void; tooltip: string; children: React.ReactNode }> = ({ icon, onClick, tooltip, children }) => (
+    <motion.button
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50 cursor-pointer"
+      onClick={onClick}
+      title={tooltip}
+    >
+      {icon}
+      <span className="ml-2 font-medium">{children}</span>
+    </motion.button>
+  );
+
+  const DialogWrapper: React.FC<DialogWrapperProps> = ({ children, isLoading }) => {
+    return (
+      <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
+        <DialogContent>
+          <DialogHeader className="border-b pb-3">
+            <motion.h2 
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-2xl font-bold text-gray-800"
+            >
+              AI-Generated Details
+            </motion.h2>
+          </DialogHeader>
+          <AnimatePresence mode="wait">
+            {isLoading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="flex-grow flex items-center w-full max-h-[500px justify-center p-8 overflow-auto"
+              >
+                <GradientLoadingCircle size={60} thickness={4} />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex-grow flex flex-col space-y-4 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500 scrollbar-track-gray-200"
+              >
+                <SearchBar 
+                  handleChange={handleSearch} 
+                  disabled={isLoading} 
+                  placeholder="Search keywords..."
+                  icon={<Search className="text-gray-400" size={20} />}
+                />
+                {/*
+                {searchResults.length === 0 ? (
+                  <p className="text-center text-gray-500 italic">
+                    No items found. Try a different search term.
+                  </p>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
                     <KeywordDetail keyword={searchResults[0]} />
-                  )}
-                  {children}
-                </>
-              )}
-            </div>
-            {resData ? <CommandButtonGroups /> : null}
-          </DialogContent>
-        </Dialog>
-      );
-    };
-    
+                  </motion.div>
+                )}*/}
+                {children}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {resData && !isLoading && <CommandButtonGroups />}
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <React.Fragment>
       <Popover modal={true} open={open} onOpenChange={onOpenChange}>
@@ -382,37 +439,19 @@ const AIAdvancedSelector = ({
           </Command>
         </PopoverContent>
       </Popover>
-      {selectedOption === "treenode" && (
-        <DialogWrapper>
-          <AITreeNodeView data={resData} />
-        </DialogWrapper>
+      <DialogWrapper isLoading={isLoading}>
+        {selectedOption === "treenode" && <AITreeNodeView data={resData} />}
+        {selectedOption === "graphnode" && <AIGraphNodeView data={resData} />}
+        {selectedOption === "dashboard" && <AIDashboardNodeView data={resData} />}
+        {selectedOption === "keywordtree" && <AIKeywordTreeNodeView data={resData} />}
+        {selectedOption === "icon" && <AIIconNode data={resData} />}
+      </DialogWrapper>
+      {showWarning && (
+        <Warning
+          type={warningType}
+          nextTimeUsage={nextTimeUsage}
+        />
       )}
-      {selectedOption === "graphnode" && (
-        <DialogWrapper>
-          <AIGraphNodeView data={resData} />
-        </DialogWrapper>
-      )}
-      {selectedOption === "dashboard" && (
-        <DialogWrapper>
-          <AIDashboardNodeView data={resData} />
-        </DialogWrapper>
-      )}
-      {selectedOption === "keywordtree" && (
-        <DialogWrapper>
-          <AIKeywordTreeNodeView data={resData} />
-        </DialogWrapper>
-      )}
-      {selectedOption === "icon" && (
-        <DialogWrapper>
-          <AIIconNode data={resData} />
-        </DialogWrapper>
-      )}    
-    {showWarning && (
-      <Warning
-        type={warningType}
-        nextTimeUsage={nextTimeUsage}
-      />
-    )}
     </React.Fragment>
   );
 };

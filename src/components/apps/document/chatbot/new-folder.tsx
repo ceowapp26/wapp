@@ -49,7 +49,7 @@ const NewFolder = () => {
       return;
     }
     const newFolder: FolderInterface = {
-      userId: currentUser._id,
+      userId: currentUser.userId,
       folderId,
       cloudFolderId: undefined,
       folderName,

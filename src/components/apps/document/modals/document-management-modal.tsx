@@ -310,7 +310,7 @@ const EditPopover = ({ item, roles, handleRoleSelect, handleRemoveRole, permissi
       permissions: permissions,
       users: validEmails.map(email => {
         const user = allUsers.find(user => user.email === email);
-        return user._id;
+        return user.userId;
       }),
     };
     await onUpdate(newRecord);
@@ -906,7 +906,7 @@ const DocumentManagementModal = () => {
             organization: userMemberships.data?.find(mem => mem.organization?.id === org.orgId)?.organization?.name ?? 'Unknown',
             roles: org.roles?.join(", ") || "",
             users: org.users?.map(userId => 
-              allUsers?.find(user => user._id === userId)?.userInfo?.email
+              allUsers?.find(user => user.userId === userId)?.userInfo?.email
             ).filter(Boolean).join(", ") || "",      
             permissions: Object.entries(org.permissions || {})
               .filter(([_, value]) => value)
@@ -1094,7 +1094,7 @@ const DocumentManagementModal = () => {
         }, {}),
         users: validEmails.map(email => {
           const user = allUsers.find(user => user.userInfo.email === email);
-          return user._id;
+          return user.userId;
         }),
       };
 

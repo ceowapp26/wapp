@@ -62,11 +62,11 @@ const AITreeNodeView: React.FC<> = ({ data }: any) => {
   const foreignObjectProps = { width: 180, height: 60, x: -90, y: -30 };
 
   const onNodeClick = (nodeData: any) => {
-    setClickedNode(nodeData.attributes);
-    setNodeTitle(nodeData.name);
+    setClickedNode(nodeData.data.attributes);
+    setNodeTitle(nodeData.data.name);
     setShowAttributes((prevAttributes) => ({
       ...prevAttributes,
-      [nodeData.name]: !prevAttributes[nodeData.name],
+      [nodeData.data.name]: !prevAttributes[nodeData.data.name],
     }));
   };
 

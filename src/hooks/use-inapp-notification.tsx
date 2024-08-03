@@ -19,14 +19,15 @@ export const useInAppNotification = () => {
     const fetchData = async () => {
       try {
         await deleteUnusedRecords();
-        await retrieveToken();
+        if (!fcmToken) {
+          await retrieveToken();
+        }
       } catch (error) {
         console.error('Error deleting unused records or retrieving token:', error);
       }
     };
-
     fetchData();
-  }, []);
+  }, [fcmToken]);
 
   useEffect(() => {
     const messaging = getMessaging();

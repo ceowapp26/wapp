@@ -7,12 +7,10 @@ import { createJSONStorage } from 'zustand/middleware';
 
 const GoogleSyncButton = ({ loginHandler }: { loginHandler?: () => void }) => {
   const { t } = useTranslation(['drive']);
-
   const setGoogleAccessToken = useGStore((state) => state.setGoogleAccessToken);
   const setSyncStatus = useGStore((state) => state.setSyncStatus);
   const setCloudSync = useGStore((state) => state.setCloudSync);
   const cloudSync = useGStore((state) => state.cloudSync);
-
   const setToastStatus = useStore((state) => state.setToastStatus);
   const setToastMessage = useStore((state) => state.setToastMessage);
   const setToastShow = useStore((state) => state.setToastShow);

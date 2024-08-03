@@ -87,12 +87,12 @@ const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
     }
   }, [setPrompt, _setIsPromptValid]);
 
-  const handleAIGenerate = useCallback(() => {
+  const handleAIGenerate = useCallback(async() => {
     handleSetup();
     if (aiContext === "portal" && prompt && option && !isLoading) {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        handleAIDynamicFunc();
+        await handleAIDynamicFunc();
       } catch (error) {
         toast.error("Failed to generate image. Please try again.");
       } finally {
@@ -100,7 +100,7 @@ const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
       }
     }
   }, [aiContext, isLoading, prompt, option, handleAIDynamicFunc]);
-
+  
   return (
     <Container>
       <div className="flex flex-col h-full max-h-[50vh] gap-y-4 p-4 bg-gray-100 rounded-lg overflow-y-auto">

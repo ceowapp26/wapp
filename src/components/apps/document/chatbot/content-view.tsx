@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo, useMemo } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { CodeProps, ReactMarkdownProps } from 'react-markdown/lib/ast-to-react';
 import rehypeKatex from 'rehype-katex';
@@ -6,16 +6,17 @@ import rehypeHighlight from 'rehype-highlight';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import { useStore } from '@/redux/features/apps/document/store';
-import { useSubmit } from '@/hooks/use-submit';
+import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { ChatInterface } from '@/types/chat';
 import { codeLanguageSubset } from '@/constants/chat';
-import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Tooltip, Button, ScrollShadow } from "@nextui-org/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ButtonGroup, ActionButtons } from './action-buttons';
+import { useMyspaceContext } from "@/context/myspace-context-provider";
+import { useGeneralContext } from "@/context/general-context-provider";
 import TickIcon from '@/icons/TickIcon';
 import CrossIcon from '@/icons/CrossIcon';
 import MagicIcon from "@/icons/MagicIcon";
@@ -85,7 +86,6 @@ const ContentView = memo(
     setIsEdit: React.Dispatch<React.SetStateAction<boolean>>;
     messageIndex: number;
   }) => {
-    const { handleSubmit } = useSubmit();
     const { rightSidebarWidth } = useMyspaceContext();
     const [isDelete, setIsDelete] = useState<boolean>(false);
     const currentChatIndex = useStore((state) => state.currentChatIndex);
@@ -93,11 +93,14 @@ const ContentView = memo(
     const lastMessageIndex = useStore((state) =>
       state.chats ? state.chats[state.currentChatIndex].messages.length - 1 : 0
     );
+    const inputContext = useStore((state) => state.inputContext);
+    const setInputContext = useStore((state) => state.setInputContext);
     const inlineLatex = useStore((state) => state.inlineLatex);
     const markdownMode = useStore((state) => state.markdownMode);
     const updateChat = useMutation(api.chats.updateChat);
     const MEDIUM_SCREEN_THRESHOLD = 540;
     const isMediumScreen = useMemo(() => rightSidebarWidth < MEDIUM_SCREEN_THRESHOLD, [rightSidebarWidth]); 
+    const { aiContext, setAiContext, setAiModel, setInputType, setOutputType } = useGeneralContext();
     
     const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
       try {
@@ -110,16 +113,16 @@ const ContentView = memo(
 
     const handleDelete = () => {
       const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
-      updatedChats[currentChatIndex].messages.splice(messageIndex, 1);
+      const currentChat = updatedChats[currentChatIndex];
+      currentChat.messages.splice(messageIndex, 1);
       setChats(updatedChats);
-      const chatId = updatedChats[currentChatIndex].chatId;
-      const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === chatId);
-      handleUpdateCloudChat(updatedChats[currentChatIndex].cloudChatId, newChatIndex, updatedChats[currentChatIndex]);
+      handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
     };
 
     const handleMove = (direction: 'up' | 'down') => {
       const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
-      const updatedMessages = updatedChats[currentChatIndex].messages;
+      const currentChat = updatedChats[currentChatIndex];
+      const updatedMessages = currentChat.messages;
       const temp = updatedMessages[messageIndex];
       if (direction === 'up') {
         updatedMessages[messageIndex] = updatedMessages[messageIndex - 1];
@@ -129,23 +132,32 @@ const ContentView = memo(
         updatedMessages[messageIndex + 1] = temp;
       }
       setChats(updatedChats);
-      const chatId = updatedChats[currentChatIndex].chatId;
-      const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === chatId);
-      handleUpdateCloudChat(updatedChats[currentChatIndex].cloudChatId, newChatIndex, updatedChats[currentChatIndex]);
+      handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
     };
 
     const handleMoveUp = () => handleMove('up');
     const handleMoveDown = () => handleMove('down');
 
+    const handleSetup = useCallback(() => {
+      setAiContext("basic");
+      setInputContext("general");
+      setInputType("text-only");
+      setOutputType("text");
+    }, [setAiContext, setInputContext, setInputType, setOutputType]);
+
+    const handleGenerate = () => {
+      handleSetup();
+      handleAIDynamicFunc();
+    }; 
+    
     const handleRefresh = () => {
       const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
-      const updatedMessages = updatedChats[currentChatIndex].messages;
+      const currentChat = updatedChats[currentChatIndex];
+      const updatedMessages = currentChat.messages;
       updatedMessages.splice(updatedMessages.length - 1, 1);
       setChats(updatedChats);
-      const chatId = updatedChats[currentChatIndex].chatId;
-      const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === chatId);
-      handleUpdateCloudChat(updatedChats[currentChatIndex].cloudChatId, newChatIndex, updatedChats[currentChatIndex]);
-      handleSubmit();
+      handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
+      handleGenerate();
     };
 
     const handleCopy = () => navigator.clipboard.writeText(content);

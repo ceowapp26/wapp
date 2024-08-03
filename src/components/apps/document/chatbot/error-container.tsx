@@ -2,9 +2,9 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle } from 'lucide-react';
 
-const ErrorContainer = ({ error, onClose }) => {
+const ErrorContainer = ({ error, setError }) => {
   if (!error) return null;
-
+  
   return (
     <AnimatePresence>
       <motion.div
@@ -41,7 +41,7 @@ const ErrorContainer = ({ error, onClose }) => {
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-            onClick={onClose}
+            onClick={() => setError(null)}
             className="absolute top-2 right-2 text-white hover:text-red-100"
           >
             <X className="h-5 w-5" />

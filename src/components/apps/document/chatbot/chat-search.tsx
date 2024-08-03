@@ -12,7 +12,6 @@ const ChatSearch = ({
 }) => {
   const [_filter, _setFilter] = useState<string>(filter);
   const generating = useStore((state) => state.generating);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     _setFilter(e.target.value);
   };

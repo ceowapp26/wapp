@@ -11,5 +11,12 @@
   ],
   "rules": {
     "@typescript-eslint/no-unsafe-assignment": "error"
-  }
+  },
+  "ignorePatterns": ["node_modules/", "dist/", ".next/", "out/"],
+  "overrides": [
+    {
+      "files": ["*.js", "*.jsx"],
+      "parser": "espree"
+    }
+  ]
 }

@@ -9,8 +9,8 @@ const ScheduleEmailForm = () => {
   const [schedule, setSchedule] = useState(new Date());
   const [template, setTemplate] = useState('reminderEmail'); // Default template or a way to select a template
 
-  const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
-    cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  const pusher = new Pusher(process.env.PUSHER_KEY, {
+    cluster: process.env.PUSHER_CLUSTER,
     // Add any other configuration options here
   });
 

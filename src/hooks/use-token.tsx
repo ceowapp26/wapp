@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useGeneralContext } from "@/context/general-context-provider";
 import { TotalTokenUsed, TimeLimitTokenUsed, Model } from "@/app/types/ai";
+import { modelMaxToken } from '@/constants/ai';
 import { toast } from "sonner";
 const TIME_LIMIT = 60000;
 const MIN_TOKEN_THRESHOLD = 50;
@@ -61,10 +62,7 @@ export const useToken = () => {
   ): TimeLimitTokenUsed => {
     const now = Date.now();
     if (!inputModelData) return currentUsage;
-    console.log("this is time difference", (now - currentUsage.lastTokenUpdateTime))
     if ((now - currentUsage.lastTokenUpdateTime) > TIME_LIMIT) {
-          console.log("this is time difference 2", (now - currentUsage.lastTokenUpdateTime))
-
       return {
         inputTokens: [],
         outputTokens: [],
@@ -125,7 +123,10 @@ export const useToken = () => {
       max_RPM: inputModelData.max_inputTokens / inputModelData.max_tokens,
       timeLimitTokenUsed: updatedUsage,
       totalTokenUsed: totalTokenUsed[inputModel],
-      max_tokens: autoAdjustToken ? tokenLimit : inputModelData.max_tokens,
+      max_tokens: autoAdjustToken ? Math.min(
+        (modelMaxToken[inputModelData.model] || 4096),
+        tokenLimit
+      ) : inputModelData.max_tokens,
     };
     await updateModel({ id: inputModelData.cloudModelId, data: updatedModelData });
     setTimeLimitTokenUsed({ ...timeLimitTokenUsed, [inputModel]: updatedUsage });

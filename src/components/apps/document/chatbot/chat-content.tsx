@@ -6,7 +6,7 @@ import Message from './message';
 import NewMessageButton from './new-message-button';
 import { useStore } from '@/redux/features/apps/document/store';
 import { ChevronDown, Plus } from 'lucide-react';
-import { useSubmit } from '@/hooks/use-submit';
+import { useSubmit } from "@/hooks/use-submit";
 import { useGeneralContext } from '@/context/general-context-provider';
 import DownloadChat from './download-chat';
 import CloneChat from './clone-chat';
@@ -40,14 +40,13 @@ const ChatContent = () => {
   const hideSideMenu = useStore((state) => state.hideSideMenu);
   const { showWarning, warningType, nextTimeUsage } = useGeneralContext();
   const saveRef = useRef<HTMLDivElement>(null);
+  const { error } = useSubmit();
 
   useEffect(() => {
     if (generating) {
-      setError('');
+      setError(null);
     }
   }, [generating]);
-
-  const { error } = useSubmit();
 
   return (
     <div className='flex-1 overflow-hidden'>
@@ -82,7 +81,7 @@ const ChatContent = () => {
             messageIndex={stickyIndex}
             sticky
           />
-          {/*<ErrorContainer error={"This is the test message for the error container"} setError={setError} /> */}
+          {error && <ErrorContainer error={error} setError={setError} />}
           <div
             className={`mt-4 w-full m-auto flex justify-center ${
               hideSideMenu

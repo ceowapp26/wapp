@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect } from 'react';
 import { Box, Grid, Typography } from '@mui/material';
-import FcmTokenComp from "@/components/firebase-foreground";
 import { registerServiceWorker } from "@/lib/registerServiceWorker";
 
 type MyspaceProps = {

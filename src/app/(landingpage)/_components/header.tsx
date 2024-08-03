@@ -86,10 +86,12 @@ return (
   >
     <div className="flex max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full h-16 items-center">
       <div className="flex-shrink-0 absolute w-10 h-10">
-        <a href="/" className="text-gray-800 font-semibold text-lg"><Logo width={500} height={500} /></a>
+       <div className="text-gray-800 font-semibold text-lg">
+          <Logo width={500} height={500} />
+        </div>
       </div>
       <div className="flex w-full relative pl-24 tablet:hidden justify-between items-center">
-        <a
+        <Link
            ref={el => itemRefs.current[0] = el}
           onFocus={(event) => focusMenu(0, event)}
           onMouseEnter={(event) => focusMenu(0, event)}
@@ -97,8 +99,8 @@ return (
           className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
         >
           Products
-        </a>
-        <a 
+        </Link>
+        <Link 
           ref={el => itemRefs.current[1] = el}
           onFocus={(event) => focusMenu(1, event)}
           onMouseEnter={(event) => focusMenu(1, event)}
@@ -106,8 +108,8 @@ return (
           className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
         >
           Solutions
-        </a>
-        <a 
+        </Link>
+        <Link 
           ref={el => itemRefs.current[2] = el}
           onFocus={(event) => focusMenu(2, event)}
           onMouseEnter={(event) => focusMenu(2, event)}
@@ -115,8 +117,10 @@ return (
           className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
         >
           Resources
-        </a>
-        <a href="/pricing" className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200">Pricing</a>
+        </Link>
+        <Link href="/pricing" className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200">
+          Pricing
+        </Link>
         <div className="flex items-center">
           <ModeToggle />
           <div className="ml-4 flex">
@@ -192,8 +196,12 @@ return (
     </div>
     <div className={`${isOpen ? 'tablet:block' : 'hidden'} hidden relative h-screen w-full`}>
       <div className="px-2 pt-2 pb-3 sm:px-3">
-        <a href="/pricing" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">Pricing</a>
-        <a href="/features" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">Features</a>
+        <Link href="/pricing" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
+          Pricing
+        </Link>
+        <Link href="/features" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
+          Features
+        </Link>
         <div className="relative group">
         {Object.keys(NavbarItemsDropdown).map((key, index) => (
           <Disclosure as={motion.div} key={index} className="mt-4">
@@ -268,3 +276,4 @@ return (
 };
 
 export default Header;
+

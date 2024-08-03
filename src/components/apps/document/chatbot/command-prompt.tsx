@@ -48,7 +48,7 @@ const CommandPrompt = ({
         <Command size={18} className="text-gray-600 dark:text-gray-300" />
       </button>
       {dropDown && (
-        <div className='absolute top-full mt-2 right-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden'>
+        <div className='absolute top-full mt-2 right-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-[99999]'>
           <div className='px-4 py-3 bg-gray-100 dark:bg-gray-750 border-b border-gray-200 dark:border-gray-700'>
             <h3 className='text-sm font-medium text-gray-700 dark:text-gray-200'>{t('promptLibrary')}</h3>
           </div>

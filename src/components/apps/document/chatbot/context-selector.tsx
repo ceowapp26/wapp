@@ -27,6 +27,15 @@ const ContextSelector = React.memo(
     const [dropDown, setDropDown, dropDownRef] = useHideOnOutsideClick();
     const updateChat = useMutation(api.chats.updateChat);
 
+    const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
+      try {
+        await updateChat({ id: id, chatIndex: chatIndex, chat: chat });
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    };
+
     const handleAsyncStore = () => {
       if (!sticky) {
         const updatedChats: ChatInterface[] = JSON.parse(
@@ -39,15 +48,6 @@ const ContextSelector = React.memo(
       }
     };
 
-    const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
-      try {
-        await updateChat({ id: id, chatIndex: chatIndex, chat: chat });
-      } catch (error) {
-        console.error(error);
-        throw error;
-      }
-    };
-    
     return (
       <div ref={dropDownRef}>
         <Select 

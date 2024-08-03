@@ -1,9 +1,9 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Box, Grid } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Typography, Box, Grid, useMediaQuery } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { styled } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
 
 const StyledAccordion = styled(Accordion)(({ theme }) => ({
   background: 'rgba(255, 255, 255, 0.05)',
@@ -30,7 +30,7 @@ const StyledAccordionSummary = styled(AccordionSummary)(({ theme }) => ({
 }));
 
 const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
-  padding: theme.spacing(3),
+  padding: theme.spacing(2),
 }));
 
 const faqItems = [
@@ -96,52 +96,78 @@ const faqItems = [
   }
 ];
 
-const FaqItem = ({ sectionTitle, question, answer, details }) => (
-  <StyledAccordion>
-    <StyledAccordionSummary
-      expandIcon={<ExpandMoreIcon sx={{ color: 'primary.main' }} />}
-    >
-      <Typography variant="h6" color="primary" fontWeight="bold">
-        {sectionTitle}
-      </Typography>
-    </StyledAccordionSummary>
-    <StyledAccordionDetails>
-      <Box>
-        <Typography variant="h6" color="secondary" gutterBottom>
-          {question}
+const FaqItem = ({ sectionTitle, question, answer, details }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  return (
+    <StyledAccordion>
+      <StyledAccordionSummary
+        expandIcon={<ExpandMoreIcon sx={{ color: 'primary.main' }} />}
+      >
+        <Typography 
+          variant={isMobile ? "subtitle1" : "h6"} 
+          color="primary" 
+          fontWeight="bold"
+        >
+          {sectionTitle}
         </Typography>
-        <Typography variant="body1" paragraph>
-          {answer}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {details}
-        </Typography>
-      </Box>
-    </StyledAccordionDetails>
-  </StyledAccordion>
-);
+      </StyledAccordionSummary>
+      <StyledAccordionDetails>
+        <Box>
+          <Typography 
+            variant={isMobile ? "subtitle1" : "h6"} 
+            color="secondary" 
+            gutterBottom
+          >
+            {question}
+          </Typography>
+          <Typography variant="body1" paragraph>
+            {answer}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {details}
+          </Typography>
+        </Box>
+      </StyledAccordionDetails>
+    </StyledAccordion>
+  );
+};
 
 const FaqSection = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="relative bg-white dark:bg-black overflow-hidden min-h-screen rounded-b-3xl rounded-t-3xl p-8 md:p-16 mt-20"
+      className={`relative bg-white dark:bg-black overflow-hidden min-h-screen rounded-b-3xl rounded-t-3xl ${isMobile ? 'p-4' : 'p-8 md:p-16'} mt-20`}
     >
       <motion.div
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2, duration: 0.5 }}
       >
-        <Typography variant="h2" align="center" color="primary" gutterBottom>
+        <Typography 
+          variant={isMobile ? "h3" : "h2"} 
+          align="center" 
+          color="primary" 
+          gutterBottom
+        >
           Frequently Asked Questions
         </Typography>
-        <Typography variant="h5" align="center" color="text.secondary" paragraph>
+        <Typography 
+          variant={isMobile ? "body1" : "h5"} 
+          align="center" 
+          color="text.secondary" 
+          paragraph
+        >
           Explore the world of AI through our comprehensive FAQ
         </Typography>
       </motion.div>
-      <Grid container justifyContent="center" alignItems="stretch" spacing={3}>
+      <Grid container justifyContent="center" alignItems="stretch" spacing={isMobile ? 2 : 3}>
         {faqItems.map((item, index) => (
           <Grid item xs={12} md={6} key={index}>
             <motion.div
@@ -164,3 +190,5 @@ const FaqSection = () => {
 };
 
 export default FaqSection;
+
+

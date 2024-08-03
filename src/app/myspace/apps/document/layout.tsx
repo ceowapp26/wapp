@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useConvexAuth } from "convex/react";
 import { redirect } from "next/navigation";
 import { Spinner } from "@/components/spinner";
@@ -13,13 +13,13 @@ import { useMutation, useQuery } from "convex/react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { debounce } from 'lodash';
 import { SnippetInterface } from '@/types/snippet';
 import { ChatInterface, FolderInterface } from '@/types/chat';
 import Warning from "@/components/apps/document/modals/warning-modal";
 import { usePathname } from 'next/navigation';
-import { calculateFloorMAR } from '@/utils/APILimitUtils';
-import { UserCreditInfo, CloudModel } from '@/types/users';
 import dynamic from 'next/dynamic';
+
 const DocumentMetadataModal = dynamic(() => import('@/components/apps/document/modals/document-metadata-modal'), { ssr: false });
 const DocumentManagementModal = dynamic(() => import('@/components/apps/document/modals/document-management-modal'), { ssr: false });
 const ChatMetadataModal = dynamic(() => import('@/components/apps/document/modals/chat-metadata-modal'), { ssr: false });
@@ -38,7 +38,6 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
   const currentChatIndex = useStore((state) => state.currentChatIndex);
   const [syncWithCloudWarning, setSyncWithCloudWarning] = useState(false);
   const { isAppbarCollapsed, activeDocument, setActiveDocument } = useMyspaceContext();
-  const removeAllChats = useMutation(api.chats.removeAllChats);
   const createChat = useMutation(api.chats.createChat);
   const createFolder = useMutation(api.chats.createFolder);
   const createSnippet = useMutation(api.snippets.createSnippet);
@@ -47,7 +46,6 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
   const cloudActiveFolders = useQuery(api.chats.getActiveFolders);
   const cloudArchivedFolders = useQuery(api.chats.getArchivedFolders);
   const cloudSnippets = useQuery(api.snippets.getSnippets);
-  const currentUser = useQuery(api.users.getCurrentUser);
   const currentHref = usePathname();
 
   useEffect(() => {
@@ -55,7 +53,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
     if (!activeDocument && isValidDocumentId(extractedId)) {
       setActiveDocument(extractedId);
     }
-  }, [currentHref, activeDocument]);
+  }, [currentHref, activeDocument, setActiveDocument]);
 
   const isValidDocumentId = (document: string) => {
     const idRegex = /^[a-zA-Z0-9]{32}$/; 
@@ -69,55 +67,53 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleCreateCloudChat = async (chat: ChatInterface) => {
     try {
-      const result = await createChat({ chat: chat });
-      return result;
+      return await createChat({ chat: chat });
     } catch (error) {
-      console.error(error);
+      console.error("Error creating cloud chat:", error);
+      toast.error("Failed to create cloud chat. Please try again.");
       throw error;
     }
   };
 
   const handleCreateCloudFolder = async (folderId: string, folderData: FolderInterface, isArchived: boolean) => {
     try {
-      const result = await createFolder({ folderId: folderId, folderData: folderData, isArchived: isArchived });
-      return result;
+      return await createFolder({ folderId: folderId, folderData: folderData, isArchived: isArchived });
     } catch (error) {
-      console.error(error);
+      console.error("Error creating cloud folder:", error);
+      toast.error("Failed to create cloud folder. Please try again.");
       throw error;
     }
   };
 
   const handleCreateCloudSnippet = async (snippet: SnippetInterface) => {
     try {
-      const result = await createSnippet({ snippet: snippet });
-      return result;
+      return await createSnippet({ snippet: snippet });
     } catch (error) {
-      console.error(error);
+      console.error("Error creating cloud snippet:", error);
+      toast.error("Failed to create cloud snippet. Please try again.");
       throw error;
     }
   };
 
-  useEffect(() => {
-    const syncActiveChats = async () => {
+  const syncActiveChats = useCallback(debounce(async () => {
+    try {
       const localData = localStorage.getItem('wapp');
       if (!localData) return;
-      const parsedLocalActiveChats = JSON.parse(localData).state.chats || null;
+      const parsedLocalActiveChats = JSON.parse(localData).state.chats || [];
       if (cloudActiveChats && cloudActiveChats.length > 0) {
-        if (!parsedLocalActiveChats) {
+        if (parsedLocalActiveChats.length === 0) {
           setChats(cloudActiveChats);
           setCurrentChatIndex(0);
         } else if (JSON.stringify(parsedLocalActiveChats) !== JSON.stringify(cloudActiveChats)) {
           setSyncWithCloudWarning(true);
         }
-      } else if (!cloudActiveChats || cloudActiveChats.length === 0) {
-        if (parsedLocalActiveChats && parsedLocalActiveChats.length > 0) {
-          setChats(parsedLocalActiveChats);
-          setCurrentChatIndex(0);
-          const createChatPromises = parsedLocalActiveChats.map(chat => handleCreateCloudChat(chat));
-          await Promise.all(createChatPromises);
-        } else {
-          initializeNewChat();
-        }
+      } else if ((!cloudActiveChats || cloudActiveChats.length === 0) && parsedLocalActiveChats && parsedLocalActiveChats.length > 0) {
+        setChats(parsedLocalActiveChats);
+        setCurrentChatIndex(0);
+        const createChatPromises = parsedLocalActiveChats
+          .filter(chat => !chat.cloudChatId)
+          .map(chat => handleCreateCloudChat(chat));
+        await Promise.all(createChatPromises);
       } else {
         const storedChats = useStore.getState().chats;
         if (!storedChats || storedChats.length === 0) {
@@ -126,40 +122,38 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
           setCurrentChatIndex(0);
         }
       }
-    };
-
-    if (cloudActiveChats !== undefined) {
-      syncActiveChats();
+    } catch (error) {
+      console.error("Error syncing active chats:", error);
+      toast.error("Failed to sync active chats. Please try again.");
     }
-  }, [cloudActiveChats, initializeNewChat]);
+  }, 300), [cloudActiveChats, initializeNewChat, currentChatIndex, setChats, setCurrentChatIndex]);
 
-  useEffect(() => {
-    const syncArchivedChats = async () => {
+  const syncArchivedChats = useCallback(debounce(async () => {
+    try {
       const localData = localStorage.getItem('wapp');
       if (!localData) return;
-      const parsedLocalArchivedChats = JSON.parse(localData).state.archivedChats || null;
+      const parsedLocalArchivedChats = JSON.parse(localData).state.archivedChats || [];
       if (cloudArchivedChats && cloudArchivedChats.length > 0) {
-        if (!parsedLocalArchivedChats || parsedLocalArchivedChats.length === 0) {
+        if (parsedLocalArchivedChats.length === 0) {
           setArchivedChats(cloudArchivedChats);
         } else if (JSON.stringify(parsedLocalArchivedChats) !== JSON.stringify(cloudArchivedChats)) {
           setSyncWithCloudWarning(true);
         }
-      } else if (!cloudArchivedChats || cloudArchivedChats.length === 0) {
-        if (parsedLocalArchivedChats && parsedLocalArchivedChats.length > 0) {
-          setArchivedChats(parsedLocalArchivedChats);
-          const createChatPromises = parsedLocalArchivedChats.map(chat => handleCreateCloudChat(chat));
-          await Promise.all(createChatPromises);
-        }
+      } else if ((!cloudArchivedChats || cloudArchivedChats.length === 0) && parsedLocalArchivedChats && parsedLocalArchivedChats.length > 0) {
+        setArchivedChats(parsedLocalArchivedChats);
+        const createChatPromises = parsedLocalArchivedChats
+          .filter(chat => !chat.cloudChatId)
+          .map(chat => handleCreateCloudChat(chat));
+        await Promise.all(createChatPromises);
       }
-    };
-
-    if (cloudArchivedChats !== undefined) {
-      syncArchivedChats();
+    } catch (error) {
+      console.error("Error syncing archived chats:", error);
+      toast.error("Failed to sync archived chats. Please try again.");
     }
-  }, [cloudArchivedChats]);
+  }, 300), [cloudArchivedChats, setArchivedChats]);
 
-  useEffect(() => {
-    const syncActiveFolders = async () => {
+  const syncActiveFolders = useCallback(debounce(async () => {
+    try {
       const localData = localStorage.getItem('wapp');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
@@ -177,15 +171,14 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
           await Promise.all(createFolderPromises);
         }
       }
-    };
-
-    if (cloudActiveFolders !== undefined) {
-      syncActiveFolders();
+    } catch (error) {
+      console.error("Error syncing active folders:", error);
+      toast.error("Failed to sync active folders. Please try again.");
     }
-  }, [cloudActiveFolders]);
+  }, 300), [cloudActiveFolders, setFolders]);
 
-  useEffect(() => {
-    const syncArchivedFolders = async () => {
+  const syncArchivedFolders = useCallback(debounce(async () => {
+    try {
       const localData = localStorage.getItem('wapp');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
@@ -196,60 +189,116 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
         } else if (JSON.stringify(parsedLocalArchivedFolders) !== JSON.stringify(cloudArchivedFolders)) {
           setSyncWithCloudWarning(true);
         }
-      } else if (!cloudArchivedFolders || cloudArchivedFolders.length === 0) {
+     } else if (!cloudArchivedFolders || cloudArchivedFolders.length === 0) {
         if (parsedLocalArchivedFolders && parsedLocalArchivedFolders.length > 0) {
           setArchivedFolders(parsedLocalArchivedFolders);
           const createFolderPromises = parsedLocalArchivedFolders.map(folder => handleCreateCloudFolder(folder.id, folder, true));
           await Promise.all(createFolderPromises);
         }
       }
-    };
-
-    if (cloudArchivedFolders !== undefined) {
-      syncArchivedFolders();
+    } catch (error) {
+      console.error("Error syncing archived folders:", error);
+      toast.error("Failed to sync archived folders. Please try again.");
     }
-  }, [cloudArchivedFolders]);
+  }, 300), [cloudArchivedFolders, setArchivedFolders]);
 
-  useEffect(() => {
-    const syncSnippets = async () => {
+  const syncSnippets = useCallback(debounce(async () => {
+    try {
       const localData = localStorage.getItem('wapp');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
-      const parsedLocalSnippets = parsedLocalData.state.snippets || null;
+      const parsedLocalSnippets = parsedLocalData.state.snippets || [];
+      
       if (cloudSnippets && cloudSnippets.length > 0) {
-        if (!parsedLocalSnippets) {
+        if (parsedLocalSnippets.length === 0) {
           setSnippets(cloudSnippets);
         } else if (JSON.stringify(parsedLocalSnippets) !== JSON.stringify(cloudSnippets)) {
           setSyncWithCloudWarning(true);
         }
-      } else if (!cloudSnippets || cloudSnippets.length === 0) {
-        if (parsedLocalSnippets && parsedLocalSnippets.length > 0) {
-          setSnippets(parsedLocalSnippets);
-          const createSnippetPromises = parsedLocalSnippets.map(snippet => handleCreateCloudSnippet(snippet));
-          await Promise.all(createSnippetPromises);
-        }
+      } else if ((!cloudSnippets || cloudSnippets.length === 0) && parsedLocalSnippets && parsedLocalSnippets.length > 0) {
+        setSnippets(parsedLocalSnippets);
+        const createSnippetPromises = parsedLocalSnippets
+          .filter(snippet => !snippet.cloudSnippetId)
+          .map(snippet => handleCreateCloudSnippet(snippet));
+        await Promise.all(createSnippetPromises);
       }
-    };
+    } catch (error) {
+      console.error("Error syncing snippets:", error);
+      toast.error("Failed to sync snippets. Please try again.");
+    }
+  }, 300), [cloudSnippets, setSnippets]);
 
+  useEffect(() => {
+    if (cloudActiveChats !== undefined) {
+      syncActiveChats();
+    }
+    return () => {
+      syncActiveChats.cancel();
+    };
+  }, [cloudActiveChats, syncActiveChats]);
+
+  useEffect(() => {
+    if (cloudArchivedChats !== undefined) {
+      syncArchivedChats();
+    }
+    return () => {
+      syncArchivedChats.cancel();
+    };
+  }, [cloudArchivedChats, syncArchivedChats]);
+
+  useEffect(() => {
+    if (cloudActiveFolders !== undefined) {
+      syncActiveFolders();
+    }
+    return () => {
+      syncActiveFolders.cancel();
+    };
+  }, [cloudActiveFolders, syncActiveFolders]);
+
+  useEffect(() => {
+    if (cloudArchivedFolders !== undefined) {
+      syncArchivedFolders();
+    }
+    return () => {
+      syncArchivedFolders.cancel();
+    };
+  }, [cloudArchivedFolders, syncArchivedFolders]);
+
+  useEffect(() => {
     if (cloudSnippets !== undefined) {
       syncSnippets();
     }
-  }, [cloudSnippets]);
+    return () => {
+      syncSnippets.cancel();
+    };
+  }, [cloudSnippets, syncSnippets]);
 
   const handleKeepLocalStorage = () => {
     setSyncWithCloudWarning(false);
   };
 
-  const handleKeepCloudStorage = () => {
+  const handleKeepCloudStorage = useCallback(() => {
     setChats(cloudActiveChats);
     setArchivedChats(cloudArchivedChats);
     setFolders(cloudActiveFolders);
     setArchivedFolders(cloudArchivedFolders);
     setSnippets(cloudSnippets);
     setSyncWithCloudWarning(false);
-  };
+  }, [
+    cloudActiveChats, 
+    cloudArchivedChats, 
+    cloudActiveFolders, 
+    cloudArchivedFolders, 
+    cloudSnippets, 
+    setChats, 
+    setArchivedChats, 
+    setFolders, 
+    setArchivedFolders, 
+    setSnippets, 
+    setSyncWithCloudWarning
+  ]);
 
-   if (isLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen h-full flex items-center justify-center">
         <Spinner size="lg" />
@@ -287,8 +336,3 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default DocumentLayout;
-
-
-
-
-

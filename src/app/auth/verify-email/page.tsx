@@ -52,7 +52,7 @@ const EmailVerification = (props: Props) => {
 
   switch (verificationStatus) {
     case "loading":
-      content = <GradientLoadingCircle />;
+      content = <GradientLoadingCircle size={70} thickness={5} />;
       break;
     case "failed":
     case "expired":

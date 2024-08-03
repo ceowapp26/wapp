@@ -32,7 +32,7 @@ export const useInitializeNewChat = () => {
     try {
       const initialData: ChatInterface = {
         ...generateDefaultChat(),
-        userId: currentUser._id,
+        userId: currentUser.userId,
         metaData: {
           documents: activeDocument ? [activeDocument] : [],
           orgs: activeOrg ? [{

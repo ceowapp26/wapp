@@ -26,6 +26,7 @@ import { useStore } from '@/redux/features/apps/document/store';
 import { CloudModelConfigInterface, CloudModelConfigCollectionInterface, LocalModelConfigInterface } from "@/types/ai";
 import { useModelContextHook } from '@/context/model-context-provider';
 import { calculateFloorMAR } from '@/utils/APILimitUtils';
+import { modelMaxToken } from '@/constants/ai';
 import { PLAN_TYPE } from '@/types/app';
 import { useRouter } from 'next/navigation';
 
@@ -163,7 +164,10 @@ export const useModel = () => {
           max_outputTokens: 0,
           ceiling_outputTokens: 0,
           floor_outputTokens: 0,
-          max_tokens: calculateFloorMAR(values.floorTPM, totalUsers) / 2,
+          max_tokens:  Math.min(
+            (modelMaxToken[values.name] || 4096),
+            (calculateFloorMAR(values.floorTPM, totalUsers) / 2)
+          ),
         };
       }
       const { model, base_RPM, base_RPD, base_TPM, base_TPD } = initialLimits;

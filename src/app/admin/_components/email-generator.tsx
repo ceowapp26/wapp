@@ -10,7 +10,6 @@ import { today, getLocalTimeZone, startOfWeek, startOfMonth } from "@internation
 import { useLocale } from "@react-aria/i18n";
 import { Grid, Container, Typography } from '@mui/material';
 import { Mail, X } from 'lucide-react';
-import { GradientLoadingCircle } from "@/components/gradient-loading-circle";
 import { useCompletion } from "ai/react";
 import MagicIcon from "@/icons/MagicIcon";
 import CrazySpinnerIcon from "@/icons/CrazySpinnerIcon";
@@ -101,12 +100,12 @@ const EmailGenerator = () => {
     setOutputType("text");
   }, [setAiContext, setAiModel, setInputContext, setInputModel, setInputType, setOutputType]);
 
-  const handleAIGenerate = useCallback(() => {
+  const handleAIGenerate = useCallback(async () => {
     handleSetup();
     if (aiContext === "email" && prompt && !isLoading) {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        handleAIDynamicFunc();
+        await handleAIDynamicFunc();
       } catch (error) {
         console.error("Error generating image:", error);
         toast.error("Failed to generate image. Please try again.");
@@ -114,7 +113,7 @@ const EmailGenerator = () => {
         setIsLoading(false);
       }
     }
-  }, [aiContext, isLoading, prompt, handleAIDynamicFunc, handleSetup]);
+  }, [aiContext, isLoading, prompt, setIsLoading, handleSetup, handleAIDynamicFunc]);
 
   const handleAddUserEmails = () => {
     if (allUsers && allUsers.length > 0) {

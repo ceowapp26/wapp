@@ -11,6 +11,8 @@ import { toast } from "sonner";
 
 const NewMessageButton = React.memo(
   ({ messageIndex }: { messageIndex: number }) => {
+    const inputModel = useStore((state) => state.inputModel);
+    const inputContext = useStore((state) => state.inputContext);
     const setChats = useStore((state) => state.setChats);
     const currentChatIndex = useStore((state) => state.currentChatIndex);
     const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
@@ -59,7 +61,7 @@ const NewMessageButton = React.memo(
         const title = getUniqueTitle(allChats);
         const newChat: ChatInterface = {
           ...generateDefaultChat(title),
-          userId: currentUser._id,
+          userId: currentUser.userId,
           metaData: {
             documents: activeDocument ? [activeDocument] : [],
             orgs: activeOrg ? [{
@@ -92,14 +94,16 @@ const NewMessageButton = React.memo(
         const updatedChats: ChatInterface[] = JSON.parse(
           JSON.stringify(useStore.getState().chats)
         );
-        updatedChats[currentChatIndex].messages.splice(messageIndex + 1, 0, {
+        const currentChat = updatedChats[currentChatIndex];
+        currentChat.messages.splice(messageIndex + 1, 0, {
           content: '',
           role: 'user',
+          command: "zap",
+          context: inputContext,
+          model: inputModel,
         });
         setChats(updatedChats);
-        const chatId = updatedChats[currentChatIndex].chatId;
-        const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === chatId);
-        handleUpdateCloudChat(updatedChats[currentChatIndex].cloudChatId, newChatIndex, updatedChats[currentChatIndex]);
+        handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
       }
     };
 

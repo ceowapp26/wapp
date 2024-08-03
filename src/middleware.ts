@@ -17,7 +17,7 @@ export default authMiddleware({
     }
 
     if (isProtectedRoute(req) && auth?.sessionClaims?.role.role !== 'admin') {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_BASE_URL}`);
+      return NextResponse.redirect(`${process.env.BASE_URL}`);
     }
 
     return NextResponse.next();

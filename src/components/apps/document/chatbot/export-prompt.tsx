@@ -4,6 +4,7 @@ import { useStore } from '@/redux/features/apps/document/store';
 import { exportPrompts } from '@/utils/prompt';
 import { Button, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/react';
 import { Download, CheckCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const ExportPrompt = () => {
   const { t } = useTranslation();
@@ -26,7 +27,15 @@ const ExportPrompt = () => {
   return (
     <>
       <Card className="w-full max-w-sm">
-        <CardBody>
+        <CardBody className="min-h-[136px] justify-end">
+          <motion.h4 
+            className="text-md font-bold mb-6 ml-3"
+            initial={{ y: -20 }}
+            animate={{ y: 0 }}
+            transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
+          >
+            Export Prompts
+          </motion.h4>
           <Button
             auto
             color="primary"

@@ -154,7 +154,7 @@ export const UnsplashImageSkeleton = ({ handleClose, handleUpdate }: UnSplashIma
         <div ref={ref}> 
           <Box sx={{ position: 'relative', display: 'flex', top: '40px', justifyContent: 'center', width: '100%' }}>
             {loading ? (
-              <GradientLoadingCircle />
+              <GradientLoadingCircle size={60} thickness={4} />
             ) : (
               <Link sx={{ cursor: 'pointer', p: '10px' }} onClick={loadMore}>
                 Load more

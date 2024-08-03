@@ -36,7 +36,7 @@ const PopupModal = ({
     else _handleClose();
   };
 
-  const handleKeyDown = (event: KeyboardEvent) => {
+  /*const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === 'Escape') {
       if (handleClickBackdrop) handleClickBackdrop();
       else handleClose ? handleClose() : setIsModalOpen(false);
@@ -50,7 +50,7 @@ const PopupModal = ({
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleConfirm, handleClose, handleClickBackdrop]);
+  }, [handleConfirm, handleClose, handleClickBackdrop]);*/
 
   return (
     <Modal
@@ -124,7 +124,7 @@ const PopupModal = ({
             {handleConfirm && (
               <Button
                 auto
-                onClick={async () => await handleConfirm()}
+                onClick={() => handleConfirm()}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors duration-150 ease-in-out"
               >
                 {t('confirm')}

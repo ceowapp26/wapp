@@ -11,8 +11,9 @@ import { useMyspaceContext } from "@/context/myspace-context-provider";
 
 const CloneChat: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const setChats = useStore((state) => state.setChats);
+  const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
   const { activeDocument, activeOrg } = useMyspaceContext();
-  const { setChats, setCurrentChatIndex, chats, currentChatIndex } = useStore();
   const createChat = useMutation(api.chats.createChat);
   const [cloned, setCloned] = useState<boolean>(false);
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -27,6 +28,7 @@ const CloneChat: React.FC = React.memo(() => {
   }, [createChat]);
 
   const getUniqueTitle = useCallback((baseTitle: string): string => {
+    const chats = useStore.getState().chats;
     let title = `Copy of ${baseTitle}`;
     let i = 0;
     while (chats.some((chat) => chat.chatTitle === title)) {
@@ -34,9 +36,11 @@ const CloneChat: React.FC = React.memo(() => {
       title = `Copy ${i} of ${baseTitle}`;
     }
     return title;
-  }, [chats]);
+  }, []);
 
   const cloneChat = useCallback(async () => {
+    const chats = useStore.getState().chats;
+    const currentChatIndex = useStore.getState().currentChatIndex;
     if (!chats || currentChatIndex === undefined || currentChatIndex < 0 || currentChatIndex >= chats.length) {
       toast.error('No chats available or invalid current chat index');
       return;
@@ -49,7 +53,7 @@ const CloneChat: React.FC = React.memo(() => {
     const clonedChat: ChatInterface = {
       ...JSON.parse(JSON.stringify(sourceChat)),
       chatTitle: getUniqueTitle(sourceChat.chatTitle),
-      userId: currentUser._id,
+      userId: currentUser.userId,
       metaData: {
         documents: activeDocument ? [activeDocument] : [],
         orgs: activeOrg ? [{
@@ -78,7 +82,7 @@ const CloneChat: React.FC = React.memo(() => {
       console.error('Failed to create cloud chat:', error);
       toast.error("Failed to clone chat");
     }
-  }, [chats, currentChatIndex, currentUser, activeDocument, activeOrg, handleCreateCloudChat, getUniqueTitle, setChats, setCurrentChatIndex]);
+  }, [currentUser, activeDocument, activeOrg, handleCreateCloudChat, getUniqueTitle, setChats, setCurrentChatIndex]);
 
   return (
     <button

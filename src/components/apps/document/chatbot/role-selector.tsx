@@ -23,7 +23,7 @@ const RoleSelector: React.FC<{
 
   const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
     try {
-      await updateChat({ id, chatIndex, chat });
+      await updateChat({ id:id, chatIndex: chatIndex, chat: chat });
     } catch (error) {
       console.error(error);
       throw error;

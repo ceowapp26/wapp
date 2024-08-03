@@ -157,7 +157,6 @@ const TokenSettings = () => {
   const [memberEmails, setMemberEmails] = useState([]);
   const [emails, setEmails] = useState([]);
   const [email, setEmail] = useState("");
-
   const currentUser = useQuery(api.users.getCurrentUser);
   const getAllUsers = useMutation(api.users.getAllUsers);
   const updateUser = useMutation(api.users.updateUser);

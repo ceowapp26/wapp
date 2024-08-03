@@ -126,7 +126,7 @@ export const useAdvancedSubmit = ({
       setIsLoading && setIsLoading(false);
       if (countTotalTokens && promptMessage && outputMessage) {
         const completionMessage: MessageInterface = convertToMessageInterface("assistant", "", outputMessage, inputContext, inputModel);
-         updateTotalTokenUsed({
+         await updateTotalTokenUsed({
           model: inputModel,
           promptMessages: [promptMessage],
           completionMessage: completionMessage,
