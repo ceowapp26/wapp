@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
           }
         ],
         mode: 'payment',
-        success_url: `${process.env.NEXT_BASE_URL}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_BASE_URL}/settings/billing`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/settings/billing`,
       };
     } else if (event.type === "BILLING.PAYMENT.SUBSCRIPTION") {
       const { priceId, quantity, trial_period_days } = params;
@@ -36,8 +36,8 @@ export async function POST(request: NextRequest) {
           trial_end: trial_period_days
         },
         mode: 'subscription',
-        success_url: `${process.env.NEXT_BASE_URL}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.NEXT_BASE_URL}/settings/billing`,
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/settings/billing?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/settings/billing`,
       };
     }
 
