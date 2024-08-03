@@ -1,445 +1,214 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
-import { useConvexAuth } from "convex/react";
-import { redirect } from "next/navigation";
-import { Spinner } from "@/components/spinner";
-import { FilterCommand } from "@/components/apps/document/filter-command";
-import { SearchCommand } from "@/components/apps/document/search-command";
-import { SwitchLeftSidebar } from './_components/switch-sidebar';
-import { useInitializeNewChat } from '@/hooks/use-initialize-newchat';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '@/redux/features/apps/document/store';
-import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { useMutation, useQuery } from "convex/react";
-import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
-import { debounce } from 'lodash';
-import { SnippetInterface } from '@/types/snippet';
-import { ChatInterface, FolderInterface } from '@/types/chat';
-import Warning from "@/components/apps/document/modals/warning-modal";
-import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import { calculateFloorMAR } from '@/utils/APILimitUtils';
+import { getPlanAIModelsByPlan } from '@/actions/ai';
+import { useInAppNotification } from "@/hooks/use-inapp-notification";
+import NotificationWrapper from "@/components/notifications/notification-wrapper";
+import { modelMapping, NormalizedModelOption, ModelOption, CloudModelConfigInterface, TimeLimitTokenUsed } from "@/types/ai";
+import { UserModelInfo } from "@/types/user";
+import debounce from 'lodash/debounce';
 
-const DocumentMetadataModal = dynamic(() => import('@/components/apps/document/modals/document-metadata-modal'), { ssr: false });
-const DocumentManagementModal = dynamic(() => import('@/components/apps/document/modals/document-management-modal'), { ssr: false });
-const ChatMetadataModal = dynamic(() => import('@/components/apps/document/modals/chat-metadata-modal'), { ssr: false });
-const ChatManagementModal = dynamic(() => import('@/components/apps/document/modals/chat-management-modal'), { ssr: false });
-const FolderManagementModal = dynamic(() => import('@/components/apps/document/modals/folder-management-modal'), { ssr: false });
+const convertModelName = (normalizedModelName: NormalizedModelOption): ModelOption => modelMapping[normalizedModelName];
 
-const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useConvexAuth();
-  const initializeNewChat = useInitializeNewChat();
-  const setChats = useStore((state) => state.setChats);
-  const setFolders = useStore((state) => state.setFolders);
-  const setSnippets = useStore((state) => state.setSnippets);
-  const setArchivedChats = useStore((state) => state.setArchivedChats);
-  const setArchivedFolders = useStore((state) => state.setArchivedFolders);
-  const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
-  const [syncWithCloudWarning, setSyncWithCloudWarning] = useState(false);
-  const { isAppbarCollapsed, activeDocument, setActiveDocument } = useMyspaceContext();
-  const createChat = useMutation(api.chats.createChat);
-  const createFolder = useMutation(api.chats.createFolder);
-  const createSnippet = useMutation(api.snippets.createSnippet);
-  const cloudActiveChats = useQuery(api.chats.getActiveChats);
-  const cloudArchivedChats = useQuery(api.chats.getArchivedChats);
-  const cloudActiveFolders = useQuery(api.chats.getActiveFolders);
-  const cloudArchivedFolders = useQuery(api.chats.getArchivedFolders);
-  const cloudSnippets = useQuery(api.snippets.getSnippets);
-  const currentHref = usePathname();
+type AppProps = {
+  children: React.ReactNode;
+};
 
-  useEffect(() => {
-    const extractedId = extractDocumentIdFromUrl(currentHref);
-    if (!activeDocument && isValidDocumentId(extractedId)) {
-      setActiveDocument(extractedId);
-    }
-  }, [currentHref, activeDocument, setActiveDocument]);
-
-  const isValidDocumentId = (document: string) => {
-    const idRegex = /^[a-zA-Z0-9]{32}$/; 
-    return idRegex.test(document);
-  };
-
-  const extractDocumentIdFromUrl = (url: string) => {
-    const parts = url.split('/');
-    return parts[parts.length - 1]; 
-  };
-
-  const handleCreateCloudChat = async (chat: ChatInterface) => {
+const AppLayout: React.FC<AppProps> = ({ children }) => {
+  const [shouldSync, setShouldSync] = useState(true);
+  const { isModalOpen, closeModal, notification } = useInAppNotification();
+  const registeredConvexModels = useQuery(api.models.getAllModels);
+  const createModel = useMutation(api.models.createModel);
+  const updateModel = useMutation(api.models.updateModel);
+  const allUsers = useQuery(api.users.getAllUsers);
+  const currentUser = useQuery(api.users.getCurrentUser);
+  const updateMultipleModelsInfo = useMutation(api.users.updateMultipleModelsInfo);
+  const AIConfig = useStore((state) => state.AIConfig);
+  const setAIConfig = useStore((state) => state.setAIConfig);
+  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
+  const setTotalTokenUsed = useStore((state) => state.setTotalTokenUsed);
+  const timeLimitTokenUsed = useStore((state) => state.timeLimitTokenUsed);
+  const setTimeLimitTokenUsed = useStore((state) => state.setTimeLimitTokenUsed);
+  
+  const handleUpdateMultipleModelsInfo = useCallback(async (id: Id<"users">, data: UserModelInfo[]) => {
     try {
-      return await createChat({ chat: chat });
+      await updateMultipleModelsInfo({ id: id, data: data });
     } catch (error) {
-      console.error("Error creating cloud chat:", error);
-      toast.error("Failed to create cloud chat. Please try again.");
+      console.error("Error updating model info:", error);
+    }
+  }, [updateMultipleModelsInfo]);
+
+  const handleModelOperation = useCallback(async (operation: 'create' | 'update', data: Partial<CloudModelConfigInterface>, id?: Id<"models">) => {
+    try {
+      if (operation === 'create') {
+        await createModel({ data: data as CloudModelConfigInterface });
+      } else if (id) {
+        await updateModel({ id: id, data: data });
+      }
+    } catch (error) {
+      console.error(`Error ${operation}ing model:`, error);
+      if (error instanceof Error) {
+        console.error('Error details:', error.message, error.stack);
+      }
       throw error;
     }
-  };
+  }, [createModel, updateModel]);
 
-  const handleCreateCloudFolder = async (folderId: string, folderData: FolderInterface, isArchived: boolean) => {
-    try {
-      return await createFolder({ folderId: folderId, folderData: folderData, isArchived: isArchived });
-    } catch (error) {
-      console.error("Error creating cloud folder:", error);
-      toast.error("Failed to create cloud folder. Please try again.");
-      throw error;
-    }
-  };
-
-  const handleCreateCloudSnippet = async (snippet: SnippetInterface) => {
-    try {
-      return await createSnippet({ snippet: snippet });
-    } catch (error) {
-      console.error("Error creating cloud snippet:", error);
-      toast.error("Failed to create cloud snippet. Please try again.");
-      throw error;
-    }
-  };
-
-  const areChatsEqual = (localChats: ChatInterface[], cloudChats: ChatInterface[]) => {
-    if (localChats.length !== cloudChats.length) return false;
-    const cloudChatMap = new Map(cloudChats.map(c => [c.chatId || c.cloudChatId, c]));
-    for (const localChat of localChats) {
-      const cloudChat = cloudChatMap.get(localChat.chatId) || cloudChatMap.get(localChat.cloudChatId);
-      if (!cloudChat) return false;
-      const keysToCompare = ['chatTitle', 'titleSet', 'tokenUsed', 'isInitialChat', 'isArchived'];
-      for (const key of keysToCompare) {
-        if (localChat[key] !== cloudChat[key]) return false;
+  const syncCloudModels = useCallback(async () => {
+    if (!currentUser?.subscriptionInfo?.plan || !allUsers) return;
+    const userCurrentPlan = currentUser.subscriptionInfo.plan;
+    const registeredPrismaModels = await getPlanAIModelsByPlan(userCurrentPlan);
+    if (!registeredPrismaModels) return;
+    const totalUsers = allUsers.length;
+    if (!registeredConvexModels || registeredConvexModels.length === 0) {
+      for (const prismaModel of registeredPrismaModels) {
+        const data = {
+          model: convertModelName(prismaModel.name),
+          base_RPM: calculateFloorMAR(prismaModel.floorRPM, totalUsers),
+          base_RPD: calculateFloorMAR(prismaModel.floorRPD, totalUsers),
+          base_TPM: calculateFloorMAR(prismaModel.floorTPM, totalUsers),
+          base_TPD: calculateFloorMAR(prismaModel.floorTPD, totalUsers),
+        };
+        await handleModelOperation('create', data);
       }
-      if (!areMessagesEqual(localChat.messages, cloudChat.messages)) return false;
-      if (!areMetaDataEqual(localChat.metaData, cloudChat.metaData)) return false;
+      return; 
     }
-    return true;
-  };
-
-  const areArchivedChatsEqual = (localArchivedChats, cloudArchivedChats) => {
-    if (localArchivedChats.length !== cloudArchivedChats.length) return false;
-    const cloudChatMap = new Map(cloudArchivedChats.map(c => [c.chatId || c.cloudChatId, c]));
-    for (const localArchivedChat of localArchivedChats) {
-      const localChat = localArchivedChat.chat;
-      const cloudChat = cloudChatMap.get(localChat.chatId || localChat.cloudChatId);
-      if (!cloudChat) return false;
-      const keysToCompare = ['chatTitle', 'titleSet', 'isInitialChat', 'isArchived', 'folderId'];
-      for (const key of keysToCompare) {
-        if (localChat[key] !== cloudChat[key]) return false;
-      }
-      if (!areMessagesEqual(localChat.messages, cloudChat.messages)) return false;
-      if (!areMetaDataEqual(localChat.metaData, cloudChat.metaData)) return false;
-      if (JSON.stringify(localChat.tokenUsed) !== JSON.stringify(cloudChat.tokenUsed)) return false;
-    }
-    return true;
-  };
-
-  const areMessagesEqual = (localMessages, cloudMessages) => {
-    if (localMessages.length !== cloudMessages.length) return false;
-    for (let i = 0; i < localMessages.length; i++) {
-      const localMsg = localMessages[i];
-      const cloudMsg = cloudMessages[i];
-      if (localMsg.role !== cloudMsg.role ||
-          localMsg.content !== cloudMsg.content ||
-          localMsg.command !== cloudMsg.command ||
-          localMsg.context !== cloudMsg.context ||
-          localMsg.model !== cloudMsg.model) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const areMetaDataEqual = (localMetaData, cloudMetaData) => {
-    if (!localMetaData || !cloudMetaData) return localMetaData === cloudMetaData;
-    if (JSON.stringify(localMetaData.documents) !== JSON.stringify(cloudMetaData.documents)) return false;
-    if (localMetaData.orgs.length !== cloudMetaData.orgs.length) return false;
-    for (let i = 0; i < localMetaData.orgs.length; i++) {
-      const localOrg = localMetaData.orgs[i];
-      const cloudOrg = cloudMetaData.orgs[i];
-      if (localOrg.orgId !== cloudOrg.orgId ||
-          JSON.stringify(localOrg.roles) !== JSON.stringify(cloudOrg.roles) ||
-          JSON.stringify(localOrg.users) !== JSON.stringify(cloudOrg.users) ||
-          JSON.stringify(localOrg.permissions) !== JSON.stringify(cloudOrg.permissions)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const areSnippetsEqual = (localSnippet: SnippetInterface, cloudSnippet: SnippetInterface): boolean => {
-    const keysToCompare = ['snippetName', 'isArchived', 'isPublished', 'content', 'order'];
-    for (const key of keysToCompare) {
-      if (localSnippet[key] !== cloudSnippet[key]) {
-        return false;
-      }
-    }
-    if ((localSnippet.cloudSnippetId && !cloudSnippet.cloudSnippetId) || 
-        (!localSnippet.cloudSnippetId && cloudSnippet.cloudSnippetId)) {
-      return false;
-    }
-    if (localSnippet.cloudSnippetId && cloudSnippet.cloudSnippetId) {
-      if (localSnippet.cloudSnippetId !== cloudSnippet.cloudSnippetId) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const areSnippetsArraysEqual = (localSnippets: SnippetInterface[], cloudSnippets: SnippetInterface[]): boolean => {
-    if (localSnippets.length !== cloudSnippets.length) return false;
-    const cloudSnippetMap = new Map(cloudSnippets.map(s => [s.snippetId || s.cloudSnippetId, s]));
-    for (const localSnippet of localSnippets) {
-      const cloudSnippet = cloudSnippetMap.get(localSnippet.snippetId) || cloudSnippetMap.get(localSnippet.cloudSnippetId);
-      if (!cloudSnippet || !areSnippetsEqual(localSnippet, cloudSnippet)) {
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const syncActiveChats = useCallback(debounce(async () => {
-    try {
-      const localData = localStorage.getItem('wapp');
-      if (!localData) return;
-      const parsedLocalActiveChats = JSON.parse(localData).state.chats || [];
-      if (cloudActiveChats && cloudActiveChats.length > 0) {
-        if (parsedLocalActiveChats.length === 0) {
-          setChats(cloudActiveChats);
-          setCurrentChatIndex(0);
-        } else {
-          const needsSync = !areChatsEqual(parsedLocalActiveChats, cloudActiveChats);
-          if (needsSync) {
-            setSyncWithCloudWarning(true);
-          }
-        }
-      } else if ((!cloudActiveChats || cloudActiveChats.length === 0) && parsedLocalActiveChats.length > 0) {
-        setChats(parsedLocalActiveChats);
-        setCurrentChatIndex(0);
-        const createChatPromises = parsedLocalActiveChats
-          .filter(chat => !chat.cloudChatId)
-          .map(chat => handleCreateCloudChat(chat));
-        await Promise.all(createChatPromises);
+    const convexModelMap = new Map(registeredConvexModels.map(model => [model.model, model]));
+    for (const prismaModel of registeredPrismaModels) {
+      const convexModel = convexModelMap.get(convertModelName(prismaModel.name));
+      const newData = {
+        model: convertModelName(prismaModel.name),
+        base_RPM: calculateFloorMAR(prismaModel.floorRPM, totalUsers),
+        base_RPD: calculateFloorMAR(prismaModel.floorRPD, totalUsers),
+        base_TPM: calculateFloorMAR(prismaModel.floorTPM, totalUsers),
+        base_TPD: calculateFloorMAR(prismaModel.floorTPD, totalUsers),
+      };
+      if (!convexModel) {
+        await handleModelOperation('create', newData);
       } else {
-        const storedChats = useStore.getState().chats;
-        if (!storedChats || storedChats.length === 0) {
-          initializeNewChat();
-        } else if (storedChats && !(currentChatIndex >= 0 && currentChatIndex < storedChats.length)) {
-          setCurrentChatIndex(0);
+        const hasChanges = Object.entries(newData).some(
+          ([key, value]) => convexModel[key as keyof typeof convexModel] !== value
+        );
+        if (hasChanges) {
+          const updatedData = { ...convexModel, ...newData };
+          await handleModelOperation('update', updatedData, convexModel.cloudModelId);
         }
       }
-    } catch (error) {
-      console.error("Error syncing active chats:", error);
-      toast.error("Failed to sync active chats. Please try again.");
     }
-  }, 300), [cloudActiveChats, initializeNewChat, currentChatIndex, setChats, setCurrentChatIndex]);
+  }, [currentUser, registeredConvexModels, allUsers, handleModelOperation]);
 
-  const syncArchivedChats = useCallback(debounce(async () => {
-    try {
-      const localData = localStorage.getItem('wapp');
-      if (!localData) return;
-      const parsedLocalArchivedChats = JSON.parse(localData).state.archivedChats || [];
-      if (cloudArchivedChats && cloudArchivedChats.length > 0) {
-        if (parsedLocalArchivedChats.length === 0) {
-          setArchivedChats(cloudArchivedChats);
-        } else {
-          const needsSync = !areArchivedChatsEqual(parsedLocalArchivedChats, cloudArchivedChats);
-          if (needsSync) {
-            setSyncWithCloudWarning(true);
-          }
+  const syncUserModels = useCallback(async () => {
+    if (!currentUser || !registeredConvexModels) return;
+    let updatedModels: UserModelInfo[] = [];
+    if (!currentUser.modelInfo || currentUser.modelInfo.length === 0) {
+      updatedModels = registeredConvexModels.map(convexModel => ({
+        model: convexModel.model,
+        cloudModelId: convexModel.cloudModelId, 
+        RPM: convexModel.base_RPM,
+        RPD: convexModel.base_RPD,
+        TPM: convexModel.base_TPM,
+        TPD: convexModel.base_TPD,
+      }));
+    } else {
+      const userModelMap = new Map(currentUser.modelInfo.map(model => [model.model, model]));
+      updatedModels = registeredConvexModels.reduce((acc: UserModelInfo[], convexModel) => {
+        const userModel = userModelMap.get(convexModel.model);
+        if (!userModel || ['RPM', 'RPD', 'TPM', 'TPD'].some(key => convexModel[`base_${key}`] !== userModel[key])) {
+          acc.push({
+            model: convexModel.model,
+            cloudModelId: convexModel.cloudModelId, 
+            RPM: convexModel.base_RPM,
+            RPD: convexModel.base_RPD,
+            TPM: convexModel.base_TPM,
+            TPD: convexModel.base_TPD,
+          });
         }
-      } else if ((!cloudArchivedChats || cloudArchivedChats.length === 0) && parsedLocalArchivedChats.length > 0) {
-        setArchivedChats(parsedLocalArchivedChats);
-        const createChatPromises = parsedLocalArchivedChats
-          .filter(chat => !chat.cloudChatId)
-          .map(chat => handleCreateCloudChat(chat));
-        await Promise.all(createChatPromises);
+        return acc;
+      }, []);
+    }
+
+    if (updatedModels.length > 0) {
+      await handleUpdateMultipleModelsInfo(currentUser._id, updatedModels);
+    }
+  }, [registeredConvexModels, currentUser, handleUpdateMultipleModelsInfo]);  
+
+  const syncLocalModels = useCallback(async () => {
+    if (!registeredConvexModels) return;
+    const updatedAIConfig = { ...AIConfig };
+    const updatedTimeLimitTokenUsed = { ...timeLimitTokenUsed };
+    const updatedTotalTokenUsed = { ...totalTokenUsed };
+    let hasChanges = false;
+
+    for (const convexModel of registeredConvexModels) {
+      const localAIConfig = updatedAIConfig[convexModel.model] || {};
+      const configKeys = ['base_RPM', 'base_RPD', 'base_TPM', 'base_TPD', 'max_tokens'];
+      if (configKeys.some(key => localAIConfig[key] !== convexModel[key])) {
+        updatedAIConfig[convexModel.model] = {
+          ...localAIConfig,
+          model: convexModel.model,
+          ...Object.fromEntries(configKeys.map(key => [key, convexModel[key]]))
+        };
+        hasChanges = true;
       }
-    } catch (error) {
-      console.error("Error syncing archived chats:", error);
-      toast.error("Failed to sync archived chats. Please try again.");
-    }
-  }, 300), [cloudArchivedChats, setArchivedChats]);
-
-  const syncActiveFolders = useCallback(debounce(async () => {
-    try {
-      const localData = localStorage.getItem('wapp');
-      if (!localData) return;
-      const parsedLocalData = JSON.parse(localData);
-      const parsedLocalActiveFolders = parsedLocalData.state.folders || null;
-      if (cloudActiveFolders && cloudActiveFolders.length > 0) {
-        if (!parsedLocalActiveFolders) {
-          setFolders(cloudActiveFolders);
-        } else if (JSON.stringify(parsedLocalActiveFolders) !== JSON.stringify(cloudActiveFolders)) {
-          setSyncWithCloudWarning(true);
-        }
-      } else if (!cloudActiveFolders || cloudActiveFolders.length === 0) {
-        if (parsedLocalActiveFolders && parsedLocalActiveFolders.length > 0) {
-          setFolders(parsedLocalActiveFolders);
-          const createFolderPromises = parsedLocalActiveFolders.map(folder => handleCreateCloudFolder(folder.id, folder, false));
-          await Promise.all(createFolderPromises);
-        }
+      const localTimeLimitTokenUsed = updatedTimeLimitTokenUsed[convexModel.model];
+      if (localTimeLimitTokenUsed !== convexModel.timeLimitTokenUsed) {
+        updatedTimeLimitTokenUsed[convexModel.model] = convexModel.timeLimitTokenUsed;
+        hasChanges = true;
       }
-    } catch (error) {
-      console.error("Error syncing active folders:", error);
-      toast.error("Failed to sync active folders. Please try again.");
-    }
-  }, 300), [cloudActiveFolders, setFolders]);
-
-  const syncArchivedFolders = useCallback(debounce(async () => {
-    try {
-      const localData = localStorage.getItem('wapp');
-      if (!localData) return;
-      const parsedLocalData = JSON.parse(localData);
-      const parsedLocalArchivedFolders = parsedLocalData.state.archivedFolders || null;
-      if (cloudArchivedFolders && cloudArchivedFolders.length > 0) {
-        if (!parsedLocalArchivedFolders || parsedLocalArchivedFolders.length === 0) {
-          setArchivedFolders(cloudArchivedFolders);
-        } else if (JSON.stringify(parsedLocalArchivedFolders) !== JSON.stringify(cloudArchivedFolders)) {
-          setSyncWithCloudWarning(true);
-        }
-     } else if (!cloudArchivedFolders || cloudArchivedFolders.length === 0) {
-        if (parsedLocalArchivedFolders && parsedLocalArchivedFolders.length > 0) {
-          setArchivedFolders(parsedLocalArchivedFolders);
-          const createFolderPromises = parsedLocalArchivedFolders.map(folder => handleCreateCloudFolder(folder.id, folder, true));
-          await Promise.all(createFolderPromises);
-        }
+      const localTotalTokenUsed = updatedTotalTokenUsed[convexModel.model];
+      if (localTotalTokenUsed !== convexModel.totalTokenUsed) {
+        updatedTotalTokenUsed[convexModel.model] = convexModel.totalTokenUsed;
+        hasChanges = true;
       }
-    } catch (error) {
-      console.error("Error syncing archived folders:", error);
-      toast.error("Failed to sync archived folders. Please try again.");
     }
-  }, 300), [cloudArchivedFolders, setArchivedFolders]);
 
-  const syncSnippets = useCallback(debounce(async () => {
-    try {
-      const localData = localStorage.getItem('wapp');
-      if (!localData) return;
-      const parsedLocalData = JSON.parse(localData);
-      const parsedLocalSnippets = parsedLocalData.state.snippets || [];
-      
-      if (cloudSnippets && cloudSnippets.length > 0) {
-        if (parsedLocalSnippets.length === 0) {
-          setSnippets(cloudSnippets);
-        } else {
-          const needsSync = !areSnippetsArraysEqual(parsedLocalSnippets, cloudSnippets);
-          if (needsSync) {
-            setSyncWithCloudWarning(true);
-          }
-        }
-      } else if ((!cloudSnippets || cloudSnippets.length === 0) && parsedLocalSnippets.length > 0) {
-        setSnippets(parsedLocalSnippets);
-        const createSnippetPromises = parsedLocalSnippets
-          .filter(snippet => !snippet.cloudSnippetId)
-          .map(snippet => handleCreateCloudSnippet(snippet));
-        await Promise.all(createSnippetPromises);
-      }
-    } catch (error) {
-      console.error("Error syncing snippets:", error);
-      toast.error("Failed to sync snippets. Please try again.");
+    if (hasChanges) {
+      setAIConfig(updatedAIConfig);
+      setTimeLimitTokenUsed(updatedTimeLimitTokenUsed);
+      setTotalTokenUsed(updatedTotalTokenUsed);
     }
-  }, 300), [cloudSnippets, setSnippets]);
+  }, [registeredConvexModels, AIConfig, timeLimitTokenUsed, totalTokenUsed, setAIConfig, setTimeLimitTokenUsed, setTotalTokenUsed]);
+
+  const debouncedSyncAll = useMemo(
+    () => debounce(async () => {
+      await syncCloudModels();
+      await syncUserModels();
+      await syncLocalModels();
+      setShouldSync(false);
+    }, 1000),
+    [syncCloudModels, syncUserModels, syncLocalModels]
+  );
 
   useEffect(() => {
-    if (cloudActiveChats !== undefined) {
-      syncActiveChats();
+    if (shouldSync && registeredConvexModels && currentUser && allUsers) {
+      debouncedSyncAll();
     }
     return () => {
-      syncActiveChats.cancel();
+      debouncedSyncAll.cancel();
     };
-  }, [cloudActiveChats, syncActiveChats]);
+  }, [shouldSync, registeredConvexModels, currentUser, allUsers, debouncedSyncAll]);
 
   useEffect(() => {
-    if (cloudArchivedChats !== undefined) {
-      syncArchivedChats();
-    }
-    return () => {
-      syncArchivedChats.cancel();
-    };
-  }, [cloudArchivedChats, syncArchivedChats]);
-
-  useEffect(() => {
-    if (cloudActiveFolders !== undefined) {
-      syncActiveFolders();
-    }
-    return () => {
-      syncActiveFolders.cancel();
-    };
-  }, [cloudActiveFolders, syncActiveFolders]);
-
-  useEffect(() => {
-    if (cloudArchivedFolders !== undefined) {
-      syncArchivedFolders();
-    }
-    return () => {
-      syncArchivedFolders.cancel();
-    };
-  }, [cloudArchivedFolders, syncArchivedFolders]);
-
-  useEffect(() => {
-    if (cloudSnippets !== undefined) {
-      syncSnippets();
-    }
-    return () => {
-      syncSnippets.cancel();
-    };
-  }, [cloudSnippets, syncSnippets]);
-
-  const handleKeepLocalStorage = () => {
-    setSyncWithCloudWarning(false);
-  };
-
-  const handleKeepCloudStorage = useCallback(() => {
-    setChats(cloudActiveChats);
-    setArchivedChats(cloudArchivedChats);
-    setFolders(cloudActiveFolders);
-    setArchivedFolders(cloudArchivedFolders);
-    setSnippets(cloudSnippets);
-    setSyncWithCloudWarning(false);
-  }, [
-    cloudActiveChats, 
-    cloudArchivedChats, 
-    cloudActiveFolders, 
-    cloudArchivedFolders, 
-    cloudSnippets, 
-    setChats, 
-    setArchivedChats, 
-    setFolders, 
-    setArchivedFolders, 
-    setSnippets, 
-    setSyncWithCloudWarning
-  ]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen h-full flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    redirect("/");
-  }
+    setShouldSync(true);
+  }, [registeredConvexModels, currentUser, allUsers, AIConfig, totalTokenUsed, timeLimitTokenUsed]);
 
   return (
     <React.Fragment>
-      {syncWithCloudWarning && (
-        <Warning
-          handleKeepLocalStorage={handleKeepLocalStorage}
-          handleKeepCloudStorage={handleKeepCloudStorage}
+      {notification && 
+        <NotificationWrapper
+          isModalOpen={isModalOpen}
+          closeModal={closeModal}
+          type={notification.type}
+          notification={notification}
         />
-      )}
-      <div className="h-full flex dark:bg-[#1F1F1F]">
-        <SwitchLeftSidebar />
-        <main className={`relative flex-1 h-full max-h-[100vh] overflow-y-auto ${isAppbarCollapsed ? 'top-[110px]' : 'top-[210px]'}`}>
-          <SearchCommand />
-          <FilterCommand />
-          <DocumentMetadataModal />
-          <ChatMetadataModal />
-          <DocumentManagementModal />
-          <ChatManagementModal />
-          <FolderManagementModal />
-          {children}
-        </main>
-      </div>
+      }
+      {children}
     </React.Fragment>
   );
-};
+}
 
-export default DocumentLayout;
+export default AppLayout;
