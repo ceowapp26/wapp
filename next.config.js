@@ -8,7 +8,7 @@ const nextConfig = withBundleAnalyzer({
   images: {
     domains: [
       "files.edgestore.dev",
-      'http://localhost:3000',
+      'https://wapp-wappadmins-projects.vercel.app',
       'www.gravatar.com',
       'images.ctfassets.net',
     ],

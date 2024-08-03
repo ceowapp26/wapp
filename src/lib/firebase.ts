@@ -59,5 +59,5 @@ export const getOrRegisterServiceWorker = () => {
 };
 
 export { messaging, getToken, onMessage };
-export const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_KEY;
+export const vapidKey = process.env.FIREBASE_MESSAGING_KEY;
 export default firebaseApp;

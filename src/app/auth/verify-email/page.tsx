@@ -22,8 +22,8 @@ const EmailVerification = (props: Props) => {
     async function verify() {
       try {
         await handleEmailLinkVerification({
-          redirectUrl: "http://localhost:3000/auth/sign-in",
-          redirectUrlComplete: "http://localhost:3000/home",
+          redirectUrl: "https://wapp-wappadmins-projects.vercel.app/auth/sign-in",
+          redirectUrlComplete: "https://wapp-wappadmins-projects.vercel.app/home",
         });
         setVerificationStatus("verified");
       } catch (err) {

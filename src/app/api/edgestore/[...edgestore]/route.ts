@@ -13,8 +13,7 @@ type Context = {
 };
  
 async function createContext({ req }: CreateContextOptions): Promise<Context> {
-  const { id, role } = await getUserSession(req); // replace with your own session logic
- 
+  const { id, role } = await getUserSession(req); 
   return {
     userId: '123',
     userRole: 'admin',
@@ -51,9 +50,10 @@ export const edgeStoreRouter = es.router({
  
 const handler = createEdgeStoreNextHandler({
   router: edgeStoreRouter,
+  createContext
 });
  
-export { handler as GET, handler as POST };
+export { handler as GET, handler as POST }
  
 /**
  * This type is used to create the type-safe client for the frontend.
