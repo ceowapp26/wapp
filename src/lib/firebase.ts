@@ -21,7 +21,6 @@ let messaging;
 
 if (typeof window !== 'undefined') {
   firebaseApp = initializeApp(firebaseConfig);
-  
   messaging = (async () => {
     try {
       const isSupportedBrowser = await isSupported();

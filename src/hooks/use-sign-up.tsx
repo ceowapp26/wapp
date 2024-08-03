@@ -40,7 +40,7 @@ export const useSignUpForm = () => {
       const test = await signUp.create(userFormData);
       router.push('/auth/post-signup');
       const su = await startEmailLinkFlow({
-        redirectUrl: 'https://wapp-wappadmins-projects.vercel.app/auth/verify-email',
+        redirectUrl: 'https://wapp-pi.vercel.app/auth/verify-email',
       });
       const verification = su.verifications.emailAddress;
       if (verification.verifiedFromTheSameClient()) {

@@ -41,7 +41,7 @@ export const useSignInForm = () => {
       router.push("/auth/post-signin");
       const res = await startEmailLinkFlow({
         emailAddressId: emailAddressId,
-        redirectUrl: "https://wapp-wappadmins-projects.vercel.app/home",
+        redirectUrl: "https://wapp-pi.vercel.app/home",
       });
 
       const verification = res.firstFactorVerification;
