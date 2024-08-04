@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { useStore } from '@/redux/features/apps/document/store';
@@ -9,35 +9,22 @@ import SnippetItem from './snippet-item';
 export const SnippetSidebar: React.FC = () => {
   const currentSnippetIndex = useStore((state) => state.currentSnippetIndex);
   const snippets = useStore((state) => state.snippets);
-
-  const [snippetItems, setSnippetItems] = useState<SnippetInterface[]>([]);
   const [filterSnippets, setFilterSnippets] = useState<string>('');
-
   const snippetsRef = useRef<SnippetInterface[]>(snippets || []);
   const filterSnippetsRef = useRef<string>(filterSnippets);
 
-  const updateSnippets = () => {
-    const _snippetsArr: SnippetInterface[] = [];
-    const _snippets = useStore.getState().snippets;
-    if (!_snippets) return;
-    _snippets.forEach((snippet, index) => {
-      const _filterLowerCase = filterSnippetsRef.current.toLowerCase();
-      const _snippetName = snippet.snippetName.toLowerCase();
-      if (!_snippetName.includes(_filterLowerCase)) return;
-      _snippetsArr.push({
-        snippetId: snippet.snippetId,
-        cloudSnippetId: snippet.cloudSnippetId,
-        snippetName: snippet.snippetName,
-        content: snippet.content,
-        expanded: snippet.expanded,
-        color: snippet.color,
-        order: snippet.order,
-        isArchived: snippet.isArchived,
-        index: index,
-      });
-    });
-    setSnippetItems(_snippetsArr);
-  };
+  const updateSnippets = useCallback(() => {
+    if (!snippets) return [];
+    const _filterLowerCase = filterSnippetsRef.current.toLowerCase();
+    return snippets.filter(snippet => 
+      snippet.snippetName.toLowerCase().includes(_filterLowerCase)
+    ).map((snippet, index) => ({
+      ...snippet,
+      index,
+    }));
+  }, [snippets]);
+
+  const snippetItems = useMemo(() => updateSnippets(), [updateSnippets, filterSnippets]);
 
   useEffect(() => {
     updateSnippets();
@@ -84,3 +71,4 @@ export const SnippetSidebar: React.FC = () => {
 };
 
 export default SnippetSidebar;
+
