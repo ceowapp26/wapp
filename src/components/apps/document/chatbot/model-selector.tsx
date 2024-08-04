@@ -5,6 +5,7 @@ import { ChatInterface, Model } from '@/types/chat';
 import { useHideOnOutsideClick } from '@/hooks/use-hideon-outside-click';
 import { useMutation } from "convex/react";
 import { Select } from "@/components/ui/nextui-select";
+import { ModelOption } from "@/types/ai";
 import { AIModelOptions, APIEndpointOptions } from "@/constants/ai";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -29,26 +30,17 @@ const ModelSelector = React.memo(
     const setApiEndpoint = useStore((state) => state.setApiEndpoint);
     const [dropDown, setDropDown, dropDownRef] = useHideOnOutsideClick();
     const updateChat = useMutation(api.chats.updateChat);
-    const { setAiModel } = useGeneralContext();
 
-    const handleAsyncStore = async () => {
-      if (!sticky) {
-        const selectedModelKey = Array.from(inputModel)[0];
-        setInputModel(selectedModelKey);
-        const updatedChats: ChatInterface[] = JSON.parse(
-          JSON.stringify(useStore.getState().chats)
-        );
-        const currentChat = updatedChats[currentChatIndex];
-        switch (true) {
-          case selectedModelKey.includes("gpt"):
-            setApiEndpoint(APIEndpointOptions.find(option => option.key === "openAI")?.value || "");
-            break;
-          case selectedModelKey.includes("gemini"):
-            setApiEndpoint(APIEndpointOptions.find(option => option.key === "gemini")?.value || "");
-            break;
-          default:
-            break;
-        }
+    const handleAsyncConfig = async (selectedModelKey: ModelOption) => {
+      if (!selectedModelKey) return;
+      const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const currentChat = updatedChats[currentChatIndex];
+      if (selectedModelKey.includes("gpt")) {
+        setApiEndpoint(APIEndpointOptions.find(option => option.key === "openAI")?.value || "");
+      } else if (selectedModelKey.includes("gemini")) {
+        setApiEndpoint(APIEndpointOptions.find(option => option.key === "gemini")?.value || "");
+      }
+      if (currentChat && currentChat.messages[messageIndex]) {
         currentChat.messages[messageIndex].model = selectedModelKey;
         setChats(updatedChats);
         await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
@@ -71,7 +63,7 @@ const ModelSelector = React.memo(
           label="Model"
           selectedOption={inputModel} 
           setSelectedOption={setInputModel} 
-          handleAsyncStore={handleAsyncStore} 
+          handleAsyncConfig={handleAsyncConfig} 
         />
       </div>
     );

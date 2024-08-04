@@ -87,126 +87,126 @@ export async function POST(req: Request): Promise<Response> {
       );
     }
 
-    let { prompt, command, model, contextContent, config } = await req.json();
+    const { prompt, command, model, contextContent, config } = await req.json();
 
     const rateLimitResponse = await checkRateLimit(req, config);
     
     if (rateLimitResponse) return rateLimitResponse;
-
-    const messages = match(option)
-      .with("continue", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that continues existing text based on context from prior text. " +
-            "Give more weight/priority to the later characters than the beginning ones. " +
-            "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ])
-      .with("complete", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that complete existing text." +
-            "Always make sure to construct complete sentences." +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("improve", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that improves existing text. " +
-            "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("shorter", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that shortens existing text. " +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("longer", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that lengthens existing text. " +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("adjust", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that fine-tunes the tone of existing text according to its context. " +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("feedback", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that provides feedback on existing text. " +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("rephrase", () => [
-        {
-          role: "system",
-          content:
-            "You're an AI writing assistant that rephrases existing text." +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
-      .with("fix", () => [
-        {
-          role: "system",
-          content:
-            "You are an AI writing assistant that fixes grammar and spelling errors in existing text. " +
-            "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
-            "Use Markdown formatting when appropriate.",
-        },
-        {
-          role: "user",
-          content: `The existing text is: ${prompt}`,
-        },
-      ])
+    
+    const messages = match(command)
+    .with("continue", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that continues existing text based on context from prior text. " +
+          "Give more weight/priority to the later characters than the beginning ones. " +
+          "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ])
+    .with("complete", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that complete existing text." +
+          "Always make sure to construct complete sentences." +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("improve", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that improves existing text. " +
+          "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("shorter", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that shortens existing text. " +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("longer", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that lengthens existing text. " +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("adjust", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that fine-tunes the tone of existing text according to its context. " +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("feedback", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that provides feedback on existing text. " +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("rephrase", () => [
+      {
+        role: "system",
+        content:
+          "You're an AI writing assistant that rephrases existing text." +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
+    .with("fix", () => [
+      {
+        role: "system",
+        content:
+          "You are an AI writing assistant that fixes grammar and spelling errors in existing text. " +
+          "Limit your response to no more than 200 characters, but make sure to construct complete sentences." +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `The existing text is: ${prompt}`,
+      },
+    ])
     .with("zap", () => [
       {
         role: "system",
@@ -234,6 +234,44 @@ export async function POST(req: Request): Promise<Response> {
       {
         role: "user",
         content: `User Input: ${prompt}`,
+      },
+    ])
+    .with("selection", () => [
+      {
+        role: "system",
+        content: 
+          `Here is the context: \`${contextContent}\` for you as an AI assistant to answer the user's question. ` + 
+          "Please answer the question within this context." +
+          `If the answer cannot be found based on the provided context, simply inform the user that "The answer could not be found based on the provided context." Use Markdown formatting when appropriate.`,
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ])
+    .with("title", () => [
+      {
+        role: "system",
+        content: 
+          `Here is the context: \`${contextContent}\` for you as an AI assistant to generate a title.` + 
+          "Please provide title with less than 20 words.", 
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ])
+    .with("", () => [
+      {
+        role: "system",
+        content:
+          "You area an AI writing assistant that generates text based on a prompt. " +
+          "You take an input from the user and a command for generating the text" +
+          "Use Markdown formatting when appropriate.",
+      },
+      {
+        role: "user",
+        content: `For this text: ${prompt}. You have to respect the command: ${command}`,
       },
     ])
     .run() as Message[];

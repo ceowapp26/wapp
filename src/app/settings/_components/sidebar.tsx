@@ -51,7 +51,7 @@ const SidebarWrapper = () => {
           Sidebar({
             collapsed: collapsed,
           }),
-          collapsed && "mobileL:w-full mobileL:top-16"
+          collapsed && "mobileL:w-full mobileL:top-14 pt-16"
         )}
       >
         <div className="mobileL:flex hidden justify-end items-center w-full">

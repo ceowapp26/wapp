@@ -14,7 +14,7 @@ interface SelectComponentProps {
   label: string;
   selectedOption: string;
   setSelectedOption: (value: string) => void;
-  handleAsyncStore?: () => void;
+  handleAsyncConfig?: () => void;
 }
 
 export const Select: React.FC<SelectComponentProps> = ({
@@ -22,14 +22,14 @@ export const Select: React.FC<SelectComponentProps> = ({
   label,
   selectedOption,
   setSelectedOption,
-  handleAsyncStore
+  handleAsyncConfig
 }) => {
 
   const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = Array.from(new Set([e.target.value]))[0];
     setSelectedOption(selectedValue);
-    if (handleAsyncStore) {
-      handleAsyncStore();
+    if (handleAsyncConfig) {
+      handleAsyncConfig(selectedValue);
     }
   };
 

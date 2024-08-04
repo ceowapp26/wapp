@@ -36,15 +36,14 @@ const ContextSelector = React.memo(
       }
     };
 
-    const handleAsyncStore = () => {
-      if (!sticky) {
-        const updatedChats: ChatInterface[] = JSON.parse(
-          JSON.stringify(useStore.getState().chats)
-        );
-        const currentChat = updatedChats[currentChatIndex];
-        currentChat.messages[messageIndex].context = inputContext;
+    const handleAsyncConfig = async (selectedContextKey: Context) => {
+      if (!selectedContextKey) return;
+      const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const currentChat = updatedChats[currentChatIndex];
+      if (currentChat && currentChat.messages[messageIndex]) {
+        currentChat.messages[messageIndex].context = selectedContextKey;
         setChats(updatedChats);
-        handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
+        await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
       }
     };
 
@@ -55,7 +54,7 @@ const ContextSelector = React.memo(
           label="Context"
           selectedOption={inputContext} 
           setSelectedOption={setInputContext} 
-          handleAsyncStore={handleAsyncStore} 
+          handleAsyncConfig={handleAsyncConfig} 
         />
       </div>
     );

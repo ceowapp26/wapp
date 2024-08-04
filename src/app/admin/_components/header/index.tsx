@@ -16,7 +16,16 @@ export default function Header() {
   const showSettingsToggle = isMobile && currentPath.includes('/settings');
 
   return (
-    <Navbar maxWidth="full" height={72} isBordered>
+    <Navbar 
+      maxWidth="full" 
+      height={72} 
+      isBordered
+      classNames={{
+        menu: [
+          "backdrop-blur-sm bg-gray-500/50 top-12 z-[99999]",
+        ],
+      }}
+    >
       <NavbarContent justify="start">
         {isMobile ? (
           <>

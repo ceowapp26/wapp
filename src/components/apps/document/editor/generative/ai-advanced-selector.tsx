@@ -110,7 +110,7 @@ const AIAdvancedSelector = ({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string | null>(null);
-  const [openDialog, setOpenDialog] = useState<boolean>(true);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const setInputContext = useStore((state) => state.setInputContext);
   const setInputModel = useStore((state) => state.setInputModel);

@@ -2,7 +2,6 @@
 import OpenAI from "openai";
 import { kv } from "@vercel/kv";
 import { Ratelimit } from "@upstash/ratelimit";
-import fetch from "node-fetch";
 import fs from "fs";
 import path from "path";
 import { NextApiResponse } from "next";

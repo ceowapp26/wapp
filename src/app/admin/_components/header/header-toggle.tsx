@@ -32,8 +32,8 @@ export default function HeaderToggle() {
   const isMobile = useMediaQuery("(max-width: 768px)");
   return (
     <React.Fragment>
-      <NavbarMenuToggle />
-      <NavbarMenu className="backdrop-blur-sm bg-white/30">
+      <NavbarMenuToggle className="z-[99999] min-h-8" />
+      <NavbarMenu className="backdrop-blur-sm bg-gray-500/50 top-12">
         {NavbarItemsNoDropdown.map((item, index) => (
           <NavbarMenuItem key={index}>
             <MotionLink
