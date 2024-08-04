@@ -12,9 +12,7 @@ const StyleWrapper = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin: 2rem 0;
-  overflow: hidden;
   transition: all 0.3s ease;
-
   &:hover {
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
   }
@@ -35,6 +33,7 @@ const MainTitle = styled.h2`
 
 const ContentSection = styled.div`
   padding: 2rem;
+  overflow: auto;  
 `;
 
 const SectionTitle = styled.h3`
@@ -63,7 +62,6 @@ const StyledTable = styled(Table)`
 
   .nextui-table-container {
     border-radius: 8px;
-    overflow: hidden;
   }
 
   .nextui-table-header-column {

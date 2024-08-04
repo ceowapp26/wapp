@@ -229,7 +229,7 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
       </Popover>
       {showWarning && (
         <Warning
-          type={waringType}
+          type={warningType}
           nextTimeUsage={nextTimeUsage}
         />
       )}

@@ -28,7 +28,7 @@ const SettingsMenu = () => {
 
     <>
       <button
-        className='flex items-center w-full gap-4 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-400 rounded-md shadow-sm hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200'
+        className='flex items-center w-full gap-4 px-4 py-4 text-md font-medium text-gray-700 bg-gray-400 rounded-md shadow-sm hover:bg-gray-500 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200 mb-2'
         onClick={settingModal.onOpen}
       >
         <SettingIcon className='w-5 h-5' />

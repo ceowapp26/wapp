@@ -67,18 +67,23 @@ export const useAdvancedSubmit = ({
   const { complete } = useCompletion({
     api: defaultAdvancedAPIEndPoint,
     onResponse: (response) => {
-      if (response.status === 429) {
+      if (response.status === 429 || response.status === 403) {
+        setShowWarning && setShowWarning(true);
         response.json().then(data => {
-          setShowWarning && setShowWarning(true);
-          setWarningType && setWarningType("CURRENT");
-          setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
-          toast.error(data.error);
-        }).catch(e => {
-          toast.error("Failed to parse response");
+          if (response.status === 429) {
+            setWarningType && setWarningType('CURRENT');
+            setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
+          } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
+            setWarningType && setWarningType('UNSUPPORTED');
+          }
+          setError && setError(data.error);
+        }).catch(() => {
+          toast.error('Failed to parse response');
         });
-        return null; 
+
+        return null;
       }
-      return response; 
+      return response;
     },
     onError: (e) => {
       setError && setError(e.message);
@@ -120,33 +125,42 @@ export const useAdvancedSubmit = ({
       await complete(prompt, { body: requestOption });
     } catch (e: unknown) {
       const err = (e as Error).message;
-      console.log(err);
-      setError && setError(err);
+      if (err.includes('Country, region, or territory not supported')) {
+        setError('Your region is not supported. Please try again later or contact support.');
+      } else if (err.includes('You have reached your request limit for the day.')) {
+        setError('You have reached your request limit for the day.');
+      } else if (err.includes('You have reached your request limit for the minute.')) {
+        setError('You have reached your request limit for the minute.');
+      } else {
+        setError(err);
+      }
     } finally {
       setIsLoading && setIsLoading(false);
       if (countTotalTokens && promptMessage && outputMessage) {
         const completionMessage: MessageInterface = convertToMessageInterface("assistant", "", outputMessage, inputContext, inputModel);
-         await updateTotalTokenUsed({
-          model: inputModel,
-          promptMessages: [promptMessage],
-          completionMessage: completionMessage,
-          aiModel: aiModel,
-          inputType: inputType, 
-          outputType: outputType,
-          inputModelData: inputModelData,
-          updateModel: updateModel,
-        });
-        await updateTimeLimitTokenUsed({
-          model: inputModel,
-          promptMessages: [promptMessage],
-          completionMessage: completionMessage,
-          aiModel: aiModel,
-          inputType: inputType, 
-          outputType: outputType,
-          inputModelData: inputModelData,
-          updateModel: updateModel,
-        });
-        await updateTokenUsage();
+        await Promise.all([
+          updateTotalTokenUsed({
+            model: inputModel,
+            promptMessages: [promptMessage],
+            completionMessage: completionMessage,
+            aiModel: aiModel,
+            inputType: inputType, 
+            outputType: outputType,
+            inputModelData: inputModelData,
+            updateModel: updateModel,
+          }),
+          updateTimeLimitTokenUsed({
+            model: inputModel,
+            promptMessages: [promptMessage],
+            completionMessage: completionMessage,
+            aiModel: aiModel,
+            inputType: inputType, 
+            outputType: outputType,
+            inputModelData: inputModelData,
+            updateModel: updateModel,
+          }),
+          updateTokenUsage(),
+        ]);
       }
     }
   };

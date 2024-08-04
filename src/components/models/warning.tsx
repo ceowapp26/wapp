@@ -8,14 +8,19 @@ import Slide from '@mui/material/Slide';
 import { useGeneralContext } from '@/context/general-context-provider';
 import { formatDistanceToNow } from 'date-fns';
 
-const Warning = ({ type, nextTimeUsage }) => {
+interface WarningProps {
+  type: "CURRENT" | "REMINDER" | "SHORTAGE" | "UNSUPPORTED";
+  nextTimeUsage?: string;
+}
+
+const Warning: React.FC<WarningProps> = ({ type, nextTimeUsage }) => {
   const { setShowWarning } = useGeneralContext();
   const settings = useModelSettings();
   const router = useRouter();
   const [open, setOpen] = useState(true);
 
   const getMessage = () => {
-    const timeUntilNext = formatDistanceToNow(new Date(nextTimeUsage), { addSuffix: true });
+    const timeUntilNext = nextTimeUsage ? formatDistanceToNow(new Date(nextTimeUsage), { addSuffix: true }) : 'some time';
     switch (type) {
       case "CURRENT":
         return `You've reached the AI usage limit. Next available in ${timeUntilNext}. Consider the options below:`;
@@ -23,6 +28,8 @@ const Warning = ({ type, nextTimeUsage }) => {
         return "You've reached the max tokens. Please upgrade your plan or purchase more tokens to continue using AI features.";
       case "SHORTAGE":
         return `You've reached the AI usage limit. Consider the options below:`;
+      case "UNSUPPORTED":
+        return `Country, region, or territory not supported`;
       default:
         return "";
     }
@@ -38,7 +45,7 @@ const Warning = ({ type, nextTimeUsage }) => {
     settings.onOpen();
   };
 
-  const handleClose = (event, reason) => {
+  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') return;
     setOpen(false);
     setShowWarning(false);
@@ -79,47 +86,48 @@ const Warning = ({ type, nextTimeUsage }) => {
         <Box display="flex" alignItems="center" mb={2}>
           <WarningIcon sx={{ color: '#FFA500', mr: 1 }} />
           <Typography variant="subtitle1" fontWeight="bold" color="#FFA500">
-            Usage Limit Reached
+            {type === "UNSUPPORTED" ? "Unsupported Region" : "Usage Limit Reached"}
           </Typography>
         </Box>
         
         <Typography variant="body2" color="#fff" mb={2}>
           {getMessage()}
         </Typography>
-        
-        <Box display="flex" justifyContent="space-between">
-          <Tooltip title={type === "CURRENT" || type === "SHORTAGE" ? "Purchase more tokens" : "Upgrade your plan"} arrow>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleBilling}
-              sx={{
-                fontWeight: 'bold',
-                textTransform: 'none',
-                backgroundColor: '#4CAF50',
-                '&:hover': { backgroundColor: '#45a049' },
-              }}
-            >
-              {type === "CURRENT" || type === "SHORTAGE" ? "Purchase Tokens" : "Upgrade Plan"}
-            </Button>
-          </Tooltip>
-          <Tooltip title={type === "CURRENT" || type === "SHORTAGE" ? "Open settings" : "Purchase more tokens"} arrow>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={type === "CURRENT" || type === "SHORTAGE" ? handleSetting : handleBilling}
-              sx={{
-                fontWeight: 'bold',
-                textTransform: 'none',
-                borderColor: '#fff',
-                color: '#fff',
-                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
-              }}
-            >
-              {type === "CURRENT" || type === "SHORTAGE" ? "Settings" : "Purchase Tokens"}
-            </Button>
-          </Tooltip>
-        </Box>
+        {type !== "UNSUPPORTED" && (
+          <Box display="flex" justifyContent="space-between">
+            <Tooltip title={type === "CURRENT" || type === "SHORTAGE" ? "Purchase more tokens" : "Upgrade your plan"} arrow>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleBilling}
+                sx={{
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  backgroundColor: '#4CAF50',
+                  '&:hover': { backgroundColor: '#45a049' },
+                }}
+              >
+                {type === "CURRENT" || type === "SHORTAGE" ? "Purchase Tokens" : "Upgrade Plan"}
+              </Button>
+            </Tooltip>
+            <Tooltip title={type === "CURRENT" || type === "SHORTAGE" ? "Open settings" : "Purchase more tokens"} arrow>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={type === "CURRENT" || type === "SHORTAGE" ? handleSetting : handleBilling}
+                sx={{
+                  fontWeight: 'bold',
+                  textTransform: 'none',
+                  borderColor: '#fff',
+                  color: '#fff',
+                  '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' },
+                }}
+              >
+                {type === "CURRENT" || type === "SHORTAGE" ? "Settings" : "Purchase Tokens"}
+              </Button>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
     </Snackbar>
   );

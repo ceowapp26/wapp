@@ -155,7 +155,7 @@ export const LeftSidebarSkeleton = ({ children }: LeftSidebarProps) => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-56 z-[99]",
+          "absolute top-56 z-[99] max-w-[50px]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile ? "pl-14 top-8 z-[101]" : `left-${leftSidebarWidth}px`
         )}
@@ -170,7 +170,7 @@ export const LeftSidebarSkeleton = ({ children }: LeftSidebarProps) => {
         ) : (
           isCollapsed && (
             isMobile ? (
-              <span className="bg-transparent fixed top-2 p-6 left-10">
+              <span className="bg-transparent fixed top-3 p-6 left-10">
                 <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />
               </span>
             ) : (

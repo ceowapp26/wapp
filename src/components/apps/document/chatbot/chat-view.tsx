@@ -46,6 +46,7 @@ const ChatView = ({
   sticky?: boolean;
 }) => {
   const MEDIUM_SCREEN_THRESHOLD = 540;
+  const SMALL_SCREEN_THRESHOLD = 500;
   const { t } = useTranslation();
   const inputRole = useStore((state) => state.inputRole);
   const setInputRole = useStore((state) => state.setInputRole);
@@ -72,6 +73,7 @@ const ChatView = ({
   const { handleAIDynamicFunc } = useDynamicSubmit();
   const popupModal = useDisclosure();
   const isMediumScreen = useMemo(() => rightSidebarWidth < MEDIUM_SCREEN_THRESHOLD, [rightSidebarWidth]); 
+  const isSmallScreen = useMemo(() => rightSidebarWidth < SMALL_SCREEN_THRESHOLD, [rightSidebarWidth]); 
 
   const options = [
     { icon: <Paperclip />, label: 'Upload File' },
@@ -213,8 +215,6 @@ const ChatView = ({
     }
   }, []);
 
-      console.log("generating state", useStore.getState().generating);
-
   const GenerateButton: React.FC<GenerateButtonProps> = ({ isGenerating, stop, generate }) => (
     <motion.div whileTap={{ scale: 0.95 }}>
       <Button
@@ -323,9 +323,9 @@ const ChatView = ({
           <X className="w-3 h-3 text-gray-800 cursor-pointer" />
         </button>
       )}
-      <CharacterCount numofCharacter={characterCount} />
+      {!isSmallScreen && <CharacterCount numofCharacter={characterCount} />}
     </div>
-  ), [_content, _setContent, setCharacterCount]);
+  ), [_content, _setContent, setCharacterCount, isSmallScreen, characterCount]);
 
   return (
     <>

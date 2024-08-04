@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useStore } from "@/redux/features/apps/document/store";
 import { useTranslation } from "react-i18next";
-import { MessageInterface, ModelOption } from "@/types/chat";
+import { MessageInterface, ModelOption, WarningType } from "@/types/chat";
 import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed } from '@/utils/aiUtils';
 import { useGeneralContext } from "@/context/general-context-provider";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useToken } from "./use-token";
 
 export type ChatContext = "general" | "selection" | "page" | "q&a";
@@ -66,6 +66,34 @@ export const useAIImage = ({
   const updateModel = useMutation(api.models.updateModel);
   const models = useQuery(api.models.getAllModels);
 
+  const updateTokens = async (promptMessage: MessageInterface, completionMessage: MessageInterface, inputModelData: any, imageInput?: any) => {
+    await Promise.all([
+      updateTotalTokenUsed({
+        model: inputModel,
+        promptMessages: [promptMessage],
+        completionMessage,
+        aiModel,
+        inputType,
+        outputType,
+        inputImage: imageInput,
+        inputModelData,
+        updateModel,
+      }),
+      updateTimeLimitTokenUsed({
+        model: inputModel,
+        promptMessages: [promptMessage],
+        completionMessage,
+        aiModel,
+        inputType, 
+        outputType,
+        inputImage: imageInput,
+        inputModelData,
+        updateModel,
+      }),
+      updateTokenUsage(),
+    ]);
+  };
+
   const handleAIImage = async () => {
     setIsLoading && setIsLoading(true);
     const inputModelData = models?.find(model => model.model === inputModel);
@@ -86,32 +114,40 @@ export const useAIImage = ({
       }
     };
     try {
+      const isInsufficientTokens = checkTokenUsage();
+
+      if (isInsufficientTokens) return; 
+
       const fetchAPI = async () => {
+
         const response = await fetch(APIEndpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestOption),
         });
 
         if (!response.ok) {
-          if (response.status === 429) {
+          if (response.status === 429 || response.status === 403) {
             const data = await response.json();
-            setShowWarning && setShowWarning(true);
-            setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
-            setWarningType && setWarningType("CURRENT");
-            toast.error(data.error);
-            return null; 
+            setShowWarning?.(true);
+            if (response.status === 429) {
+              setWarningType?.('CURRENT');
+              setNextTimeUsage?.(data.nextAllowedTime);
+            } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
+              setWarningType?.('UNSUPPORTED');
+            }
+            setError?.(data.error);
+            return;
           }
-          throw new Error('Failed to generate');
+          throw new Error(await response.text());
         }
-        return await response.json();
+
+        const result = await response.json();
+
+        return result;
       };
 
-      if (model === "openAI") {
-        const isInsufficientTokens = checkTokenUsage();
-        if (isInsufficientTokens) return;        
+      if (model === "openAI") {      
         const promptMessage: MessageInterface = convertToMessageInterface("user", "", prompt, inputContext, inputModel);
         const messages = limitMessageTokens([promptMessage], AIConfig[inputModel].max_tokens, inputModel, aiModel, inputType, outputType);
         if (messages.length === 0) {
@@ -121,65 +157,32 @@ export const useAIImage = ({
         }
         const result = await fetchAPI();
         setResData && setResData(result.response);
-        if (countTotalTokens && result) {
-          const completionMessage: MessageInterface = convertToMessageInterface("assistant", "", result.response, inputContext, inputModel);
-          await updateTotalTokenUsed({
-            model: inputModel,
-            promptMessages: [promptMessage],
-            completionMessage: completionMessage,
-            aiModel: aiModel,
-            inputType: inputType,
-            outputType: outputType,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTimeLimitTokenUsed({
-            model: inputModel,
-            promptMessages: [promptMessage],
-            completionMessage: completionMessage,
-            aiModel: aiModel,
-            inputType: inputType, 
-            outputType: outputType,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTokenUsage();
+        if (countTotalTokens) {
+          const completionMessage = convertToMessageInterface("assistant", "", result.response, inputContext, inputModel);
+          await updateTokens(promptMessage, completionMessage, inputModelData);
         }
+       
       } else if (model === "gemini") {
         const result = await fetchAPI();
         const { textInput, imageInput, response } = result;
         setResData && setResData(response);
-        const promptMessage: MessageInterface = convertToMessageInterface("user", "", textInput, inputContext, inputModel);
-        if (countTotalTokens) {
-          const completionMessage: MessageInterface = convertToMessageInterface("assistant", "", response, inputContext, inputModel);
-          await updateTotalTokenUsed({
-            model: inputModel,
-            promptMessages: [promptMessage],
-            completionMessage: completionMessage,
-            aiModel: aiModel,
-            inputType: inputType,
-            outputType: outputType,
-            inputImage: imageInput,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTimeLimitTokenUsed({
-            model: inputModel,
-            promptMessages: [promptMessage],
-            completionMessage: completionMessage,
-            aiModel: aiModel,
-            inputType: inputType, 
-            outputType: outputType,
-            inputImage: imageInput,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTokenUsage();
+      if (countTotalTokens) {
+          const promptMessage = convertToMessageInterface("user", "", textInput, inputContext, inputModel);
+          const completionMessage = convertToMessageInterface("assistant", "", response, inputContext, inputModel);
+          await updateTokens(promptMessage, completionMessage, inputModelData, imageInput);
         }
       }
     } catch (e: unknown) {
       const err = (e as Error).message;
-      setError && setError(err);
+      if (err.includes('Country, region, or territory not supported')) {
+        setError?.('Your region is not supported. Please try again later or contact support.');
+      } else if (err.includes('You have reached your request limit for the day.')) {
+        setError?.('You have reached your request limit for the day.');
+      } else if (err.includes('You have reached your request limit for the minute.')) {
+        setError?.('You have reached your request limit for the minute.');
+      } else {
+        setError?.(err);
+      }
     } finally {
       setIsLoading && setIsLoading(false);
     }
@@ -187,4 +190,3 @@ export const useAIImage = ({
 
   return { handleAIImage }; 
 };
-

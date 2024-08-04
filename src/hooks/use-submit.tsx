@@ -1,21 +1,21 @@
 import React, { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChatInterface } from '@/types/chat';
-import { useCompletion } from "ai/react";
-import { useAction, useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { toast } from "sonner";
+import { useCompletion } from 'ai/react';
+import { useAction, useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Id } from '@/convex/_generated/dataModel';
+import { toast } from 'sonner';
 import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, determineModel } from '@/utils/aiUtils';
-import { useToken } from "./use-token";
+import { useToken } from './use-token';
 import { useStore } from '@/redux/features/apps/document/store';
 import { useGeneralContext } from '@/context/general-context-provider';
-import { ModelOption, TotalTokenUsed, WarningType } from "@/types/ai"; 
+import { ModelOption, TotalTokenUsed, WarningType } from '@/types/ai';
 import { MessageInterface } from '@/types/chat';
 
 export type Context = 'general' | 'selection' | 'document' | 'q&a';
 
-export const useSubmit = () => {  
+export const useSubmit = () => {
   const { t, i18n } = useTranslation('api');
   const currentState = useStore.getState();
   const error = useStore((state) => state.error);
@@ -38,9 +38,9 @@ export const useSubmit = () => {
   const { checkTokenUsage, updateTokenUsage } = useToken();
   const models = useQuery(api.models.getAllModels);
 
-  const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
+  const handleUpdateCloudChat = async (id: Id<'chats'>, chatIndex: number, chat: ChatInterface) => {
     try {
-      await updateChat({ id: id , chatIndex: chatIndex, chat: chat });
+      await updateChat({ id: id, chatIndex: chatIndex, chat: chat });
     } catch (error) {
       console.error('Error updating chat:', error);
       throw error;
@@ -50,41 +50,46 @@ export const useSubmit = () => {
   if (!apiEndpoint || apiEndpoint.length === 0) throw new Error(t('noApiKeyWarning') as string);
 
   const { complete, stop } = useCompletion({
-    api: apiEndpoint, 
-     onResponse: (response) => {
-      if (response.status === 429) {
+    api: apiEndpoint,
+    onResponse: async (response) => {
+      if (response.status === 429 || response.status === 403) {
+        setShowWarning && setShowWarning(true);
         response.json().then(data => {
-          setShowWarning && setShowWarning(true);
-          setWarningType && setWarningType("CURRENT");
-          setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
-          toast.error(data.error);
-        }).catch(e => {
-          toast.error("Failed to parse response");
+          if (response.status === 429) {
+            setWarningType && setWarningType('CURRENT');
+            setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
+          } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
+            setWarningType && setWarningType('UNSUPPORTED');
+          }
+          setError && setError(data.error);
+        }).catch(() => {
+          toast.error('Failed to parse response');
         });
-        return null; 
+
+        return null;
       }
-      return response; 
+      return response;
     },
     onError: (e) => {
       toast.error(e.message);
     },
   });
-  
+
   const handleSubmit = async () => {
     if (useStore.getState().generating || !inputContext || !inputModel || currentChatIndex === undefined) return;
     const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
-    const inputModelData = models?.find(model => model.model === inputModel);
+    const inputModelData = models?.find((model) => model.model === inputModel);
     if (!inputModelData) {
-      console.error("Input model data not found");
-      return; 
-    }
-    if (lastMessage.role !== 'user') {
-      toast.error("Last message is not from user. Cannot generate response.");
+      console.error('Input model data not found');
       return;
     }
-    const newAssistantMessage = {
+    if (lastMessage.role !== 'user') {
+      toast.error('Last message is not from user. Cannot generate response.');
+      return;
+    }
+    const newAssistantMessage: MessageInterface = {
       role: 'assistant',
       command: '',
       content: '',
@@ -100,11 +105,10 @@ export const useSubmit = () => {
       if (isInsufficientTokens) return;
       const messages = limitMessageTokens(currentChat.messages, AIConfig[inputModel].max_tokens, determineModel(inputModel), inputModel, inputType, outputType);
       if (messages.length === 0) {
-        toast.error("Message exceeds max token!");
+        toast.error('Message exceeds max token!');
         throw new Error('Message exceeds max token!');
-        return;
       }
-      let requestOption = {
+      const requestOption = {
         command: lastMessage.command || '',
         model: inputModel,
         contextContent: inputContext === 'selection' ? contextContent : '',
@@ -112,7 +116,7 @@ export const useSubmit = () => {
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
-        }
+        },
       };
       const completion = await complete(lastMessage.content, {
         body: requestOption,
@@ -123,7 +127,7 @@ export const useSubmit = () => {
       }
 
       const hasCompletion = completion.length > 0;
-      
+
       if (hasCompletion) {
         currentChat.messages[currentChat.messages.length - 1].content += completion;
         await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
@@ -132,37 +136,46 @@ export const useSubmit = () => {
       }
     } catch (e: unknown) {
       const err = (e as Error).message;
-      setError(err);
+      if (err.includes('Country, region, or territory not supported')) {
+        setError('Your region is not supported. Please try again later or contact support.');
+      } else if (err.includes('You have reached your request limit for the day.')) {
+        setError('You have reached your request limit for the day.');
+      } else if (err.includes('You have reached your request limit for the minute.')) {
+        setError('You have reached your request limit for the minute.');
+      } else {
+        setError(err);
+      }
       currentChat.messages.pop();
       await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
       setChats(updatedChats);
     } finally {
       setGenerating(false);
-      if (currentState.countTotalTokens) {
-        await updateTotalTokenUsed({
-          model: inputModel,
-          promptMessages: currentChat.messages.slice(0, -1),
-          completionMessage: currentChat.messages[currentChat.messages.length - 1],
-          aiModel: determineModel(inputModel),
-          inputType: inputType, 
-          outputType: outputType,
-          inputModelData: inputModelData,
-          updateModel: updateModel,
-        });
-        await updateTimeLimitTokenUsed({
-          model: inputModel,
-          promptMessages: currentChat.messages.slice(0, -1),
-          completionMessage: currentChat.messages[currentChat.messages.length - 1],
-          aiModel: determineModel(inputModel),
-          inputType: inputType, 
-          outputType: outputType,
-          inputModelData: inputModelData,
-          updateModel: updateModel,
-        });
-        await updateTokenUsage();
+      if (countTotalTokens) {
+        await Promise.all([
+          updateTotalTokenUsed({
+            model: inputModel,
+            promptMessages: currentChat.messages.slice(0, -1),
+            completionMessage: currentChat.messages[currentChat.messages.length - 1],
+            aiModel: determineModel(inputModel),
+            inputType: inputType,
+            outputType: outputType,
+            inputModelData: inputModelData,
+            updateModel: updateModel,
+          }),
+          updateTimeLimitTokenUsed({
+            model: inputModel,
+            promptMessages: currentChat.messages.slice(0, -1),
+            completionMessage: currentChat.messages[currentChat.messages.length - 1],
+            aiModel: determineModel(inputModel),
+            inputType: inputType,
+            outputType: outputType,
+            inputModelData: inputModelData,
+            updateModel: updateModel,
+          }),
+          updateTokenUsage(),
+        ]);
       }
     }
   };
   return { handleSubmit, stop, error };
 };
-

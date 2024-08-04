@@ -102,7 +102,7 @@ const ChatContent = () => {
       </ScrollToBottom>
       {showWarning && (
         <Warning
-          type={waringType}
+          type={warningType}
           nextTimeUsage={nextTimeUsage}
         />
       )}

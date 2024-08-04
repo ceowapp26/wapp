@@ -25,6 +25,7 @@ const DashBoardContainer = styled.div`
   height: 400px;
   background-color: #f5f5f5;
   position: relative;
+  overflow: auto;
 `;
 
 const DashBoardTitle = styled.h3`

@@ -86,8 +86,8 @@ const CloneChat: React.FC = React.memo(() => {
 
   return (
     <button
-      className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-        cloned ? 'bg-green-500 text-white hover:bg-green-600' : 'bg-blue-500 text-white hover:bg-blue-600'
+      className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out${
+        cloned ? 'bg-black text-white hover:bg-black/50' : 'bg-black text-white hover:bg-black/50'
       }`}
       aria-label={t('cloneChat')}
       onClick={cloneChat}

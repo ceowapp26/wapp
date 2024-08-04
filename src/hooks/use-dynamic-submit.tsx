@@ -14,6 +14,7 @@ import { useGeneralContext } from "@/context/general-context-provider";
 import { ModelOption, TimeLimitTokenUsed, WarningType } from "@/app/types/ai";
 import { defaultModel } from "@/constants/ai";
 import { toast } from "sonner";
+import axios from 'axios';
 import { useToken } from "./use-token";
 
 export type ChatContext = "general" | "selection" | "page" | "q&a";
@@ -70,6 +71,7 @@ export const useDynamicSubmit = ({
   const generating = useStore((state) => state.generating);
   const currentChatIndex = useStore((state) => state.currentChatIndex);
   const setChats = useStore((state) => state.setChats);
+  const _setError = useStore((state) => state.setError);
   const _apiEndpoint = useStore((state) => state.apiEndpoint);
   const AIConfig = useStore((state) => state.AIConfig);
   const timeLimitTokenUsed = useStore((state) => state.timeLimitTokenUsed);
@@ -96,9 +98,68 @@ export const useDynamicSubmit = ({
   const models = useQuery(api.models.getAllModels);
   const { checkTokenUsage, updateTokenUsage } = useToken();
 
+  async function checkSupportedLocation() {
+    try {
+      const ipResponse = await axios.get('https://api.ipify.org?format=json');
+      const ip = ipResponse.data.ip;
+      if (!ip) {
+        console.error("Unable to determine client IP address");
+        return false;
+      }
+      const locationResponse = await axios.get(`https://ipapi.co/${ip}/json/`);
+      const data = locationResponse.data;
+      const supportedCountries = ['US', 'CA', 'GB', 'DE', 'FR'];
+      const isLocationSupported = supportedCountries.includes(data.country_code);
+      if (!isLocationSupported) {
+        return new Response(JSON.stringify({
+          error: "Country, region, or territory not supported",
+          code: "unsupported_country_region_territory",
+          type: "request_forbidden"
+        }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({ message: "Location supported" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+
+    } catch (error) {
+      console.error("Error checking location support:", error);
+      return new Response(JSON.stringify({
+        error: "Internal Server Error",
+        code: "internal_server_error",
+        type: "server_error"
+      }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
+  async function handleLocationCheck() {
+    const response = await checkSupportedLocation();
+    if (response.status === 403) {
+      try {
+        const data = await response.json();
+        setShowWarning && setShowWarning(true);
+        if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
+          setWarningType && setWarningType('UNSUPPORTED');
+        }
+        setError(data.error);
+      } catch (e) {
+        toast.error('Failed to parse response');
+      }
+      return null;
+    }
+    return response;
+  }
+
   const handleGenerateDocumentMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
+    if (aiModel === "openAI") await handleLocationCheck();
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -129,27 +190,29 @@ export const useDynamicSubmit = ({
       const titleUserPromptMsg = convertToMessageInterface("user", "", titlePrompt, inputContext, inputModel);
       const titleCompletionMsg = convertToMessageInterface("assistant", "", title, inputContext, inputModel);
       titlePromtMessages.push(titleSystemPromptMsg, titleUserPromptMsg);
-      await updateTotalTokenUsed({
-        model: inputModel,
-        promptMessages: titlePromtMessages,
-        completionMessage: titleCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTimeLimitTokenUsed({
-        model: inputModel,
-        promptMessages: titlePromtMessages,
-        completionMessage: titleCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTokenUsage();
+      await Promise.all([
+        updateTotalTokenUsed({
+          model: inputModel,
+          promptMessages: titlePromtMessages,
+          completionMessage: titleCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTimeLimitTokenUsed({
+          model: inputModel,
+          promptMessages: titlePromtMessages,
+          completionMessage: titleCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTokenUsage(),
+      ]);
       const descriptionResult = await generateDocumentDescription({ 
         documentId: selectedDocument, 
         configs: {
@@ -172,27 +235,29 @@ export const useDynamicSubmit = ({
       const descUserPromptMsg = convertToMessageInterface("user", "", descriptionPrompt, inputContext, inputModel);
       const descCompletionMsg = convertToMessageInterface("assistant", "", description, inputContext, inputModel);
       descPromtMessages.push(descSystemPromptMsg, descUserPromptMsg);
-      await updateTotalTokenUsed({
-        model: inputModel,
-        promptMessages: descPromtMessages,
-        completionMessage: descCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTimeLimitTokenUsed({
-        model: inputModel,
-        promptMessages: descPromtMessages,
-        completionMessage: descCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTokenUsage();
+      await Promise.all([
+        updateTotalTokenUsed({
+          model: inputModel,
+          promptMessages: descPromtMessages,
+          completionMessage: descCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTimeLimitTokenUsed({
+          model: inputModel,
+          promptMessages: descPromtMessages,
+          completionMessage: descCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTokenUsage(),
+      ]);
     } catch (error) {
       console.error("AI Generation failed", error);
       setError && setError("AI Generation failed. Please try again.");
@@ -202,9 +267,10 @@ export const useDynamicSubmit = ({
     }
   };
 
-   const handleGenerateChatMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
+  const handleGenerateChatMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
+    if (aiModel === "openAI") await handleLocationCheck();
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -235,27 +301,29 @@ export const useDynamicSubmit = ({
       const titleUserPromptMsg = convertToMessageInterface("user", "", titlePrompt, inputContext, inputModel);
       const titleCompletionMsg = convertToMessageInterface("assistant", "", title, inputContext, inputModel);
       titlePromtMessages.push(titleSystemPromptMsg, titleUserPromptMsg);
-      await updateTotalTokenUsed({
-        model: inputModel,
-        promptMessages: titlePromtMessages,
-        completionMessage: titleCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTimeLimitTokenUsed({
-        model: inputModel,
-        promptMessages: titlePromtMessages,
-        completionMessage: titleCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTokenUsage();
+      await Promise.all([
+        updateTotalTokenUsed({
+          model: inputModel,
+          promptMessages: titlePromtMessages,
+          completionMessage: titleCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTimeLimitTokenUsed({
+          model: inputModel,
+          promptMessages: titlePromtMessages,
+          completionMessage: titleCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTokenUsage(),
+      ]);
       const descriptionResult = await generateChatDescription({ 
         chatId: selectedChat, 
         configs: {
@@ -279,27 +347,29 @@ export const useDynamicSubmit = ({
       const descUserPromptMsg = convertToMessageInterface("user", "", descriptionPrompt, inputContext, inputModel);
       const descCompletionMsg = convertToMessageInterface("assistant", "", description, inputContext, inputModel);
       descPromtMessages.push(descSystemPromptMsg, descUserPromptMsg);
-      await updateTotalTokenUsed({
-        model: inputModel,
-        promptMessages: descPromtMessages,
-        completionMessage: descCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTimeLimitTokenUsed({
-        model: inputModel,
-        promptMessages: descPromtMessages,
-        completionMessage: descCompletionMsg,
-        aiModel: aiModel,
-        inputType: inputType, 
-        outputType: outputType,
-        inputModelData: inputModelData,
-        updateModel: updateModel,
-      });
-      await updateTokenUsage();
+      await Promise.all([
+        updateTotalTokenUsed({
+          model: inputModel,
+          promptMessages: descPromtMessages,
+          completionMessage: descCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTimeLimitTokenUsed({
+          model: inputModel,
+          promptMessages: descPromtMessages,
+          completionMessage: descCompletionMsg,
+          aiModel: aiModel,
+          inputType: inputType, 
+          outputType: outputType,
+          inputModelData: inputModelData,
+          updateModel: updateModel,
+        }),
+        updateTokenUsage(),
+      ]);
     } catch (error) {
       console.error("AI Generation failed", error);
       setError && setError("AI Generation failed. Please try again.");
@@ -311,6 +381,7 @@ export const useDynamicSubmit = ({
 
   const convexAIHandler = async (func: any) => {
     if (useStore.getState().generating || !inputContext || !inputModel || currentChatIndex === undefined) return;
+    if (aiModel === "openAI") await handleLocationCheck();
     const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
@@ -337,7 +408,23 @@ export const useDynamicSubmit = ({
     try {
       const isInsufficientTokens = checkTokenUsage();
       if (isInsufficientTokens) return;
-      const { response, systemEmbeddingContent } = await func({ chat: updatedChats[currentChatIndex] });
+      const aiResponse = await func({ 
+        chat: updatedChats[currentChatIndex],
+        configs: {
+          RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
+          RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
+          max_tokens: inputModelData.max_tokens,
+        } 
+      }) 
+      if ('error' in aiResponse) {
+        toast.error(aiResponse.error);
+        setShowWarning && setShowWarning(true);
+        setWarningType: setWarningType("CURRENT");
+        setNextTimeUsage && setNextTimeUsage(aiResponse.nextAllowedTime);
+        _setError(aiResponse.error)
+        return;
+      }
+      const { response, systemEmbeddingContent } = aiResponse;
       if (response) {
         currentChat.messages[currentChat.messages.length - 1].content += response;
         setChats(updatedChats);
@@ -346,27 +433,29 @@ export const useDynamicSubmit = ({
         const systemPromptMsg: MessageInterface = convertToMessageInterface("system", systemEmbeddingContent, "", inputContext, inputModel);
         promptMessages.push(systemPromptMsg, ...currentChat.messages.slice(0, -1));
         if (countTotalTokens) {
-          await updateTotalTokenUsed({
-            model: inputModel,
-            promptMessages: promptMessages,
-            completionMessage: currentChat.messages[currentChat.messages.length - 1],
-            aiModel: aiModel,
-            inputType: inputType, 
-            outputType: outputType,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTimeLimitTokenUsed({
-            model: inputModel,
-            promptMessages: descPromtMessages,
-            completionMessage: descCompletionMsg,
-            aiModel: aiModel,
-            inputType: inputType, 
-            outputType: outputType,
-            inputModelData: inputModelData,
-            updateModel: updateModel,
-          });
-          await updateTokenUsage();
+          await Promise.all([
+            updateTotalTokenUsed({
+              model: inputModel,
+              promptMessages: promptMessages,
+              completionMessage: currentChat.messages[currentChat.messages.length - 1],
+              aiModel: aiModel,
+              inputType: inputType, 
+              outputType: outputType,
+              inputModelData: inputModelData,
+              updateModel: updateModel,
+            }),
+            updateTimeLimitTokenUsed({
+              model: inputModel,
+              promptMessages: descPromtMessages,
+              completionMessage: descCompletionMsg,
+              aiModel: aiModel,
+              inputType: inputType, 
+              outputType: outputType,
+              inputModelData: inputModelData,
+              updateModel: updateModel,
+            }),
+            updateTokenUsage(),
+          ]);
         }
       }
     } catch (error) {

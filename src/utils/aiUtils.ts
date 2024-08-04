@@ -103,15 +103,20 @@ export const countTokensGoogleGemini = async (
   model: ModelOption
 ): Promise<number> => {
   if (messages.length === 0) return 0;
+
+  const messagesToCount = messages[0]?.role === 'system' ? messages.slice(1) : messages;
+  
+  if (messagesToCount.length === 0) return 0;
+
   const geminiModel = genAI.getGenerativeModel({
     model: model,
   });
   switch (inputType) {
     case "text-only": {
-      return formatAndCountTokens(geminiModel, messages);
+      return formatAndCountTokens(geminiModel, messagesToCount);
     }
     case "text-image": {
-      let totalTokens = formatAndCountTokens(geminiModel, messages);
+      let totalTokens = formatAndCountTokens(geminiModel, messagesToCount);
       if (inputImage) {
         const imageTokens = await geminiModel.countTokens({
           contents: [{ image: inputImage }],

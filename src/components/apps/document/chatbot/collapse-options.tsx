@@ -18,6 +18,7 @@ const CollapseOptions = () => {
           flex items-center justify-center
           px-6 py-2 h-3 w-full
           bg-gray-200
+          rounded-md
           text-white font-semibold
           shadow-md hover:shadow-lg
           transition-all duration-300 ease-in-out
