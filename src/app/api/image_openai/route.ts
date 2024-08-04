@@ -8,7 +8,9 @@ import { NextApiResponse } from "next";
 import { fetch } from 'node-fetch'; 
 
 async function checkLocationSupport(req: Request): Promise<boolean> {
+
   const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
+
   if (!ip) {
     console.error("Unable to determine client IP address");
     return false;
@@ -25,8 +27,6 @@ async function checkLocationSupport(req: Request): Promise<boolean> {
 }
 
 async function checkSupportedLocation(req: Request) {
-
-  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
 
   const isLocationSupported = await checkLocationSupport(req);
 
@@ -49,6 +49,8 @@ async function checkRateLimit(req: Request, config: { RPM?: number; RPD?: number
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
     return null;
   }
+
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
   
   if (config.RPM) {
     const ratelimit = new Ratelimit({
@@ -93,7 +95,6 @@ async function checkRateLimit(req: Request, config: { RPM?: number; RPD?: number
       });
     }
   }
-
   return null;
 }
 
@@ -115,9 +116,9 @@ export async function POST(req: Request): Promise<Response> {
 
     const { prompt, command, model, contextContent, config } = await req.json();
 
-    const supportedLocationResponse = await checkSupportedLocation(req);
+    /*const supportedLocationResponse = await checkSupportedLocation(req);
 
-    if (supportedLocationResponse) return supportedLocationResponse;
+    if (supportedLocationResponse) return supportedLocationResponse;*/
 
     const rateLimitResponse = await checkRateLimit(req, config);
     

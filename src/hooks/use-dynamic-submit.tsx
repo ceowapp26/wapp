@@ -159,7 +159,7 @@ export const useDynamicSubmit = ({
   const handleGenerateDocumentMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
-    if (aiModel === "openAI") await handleLocationCheck();
+    /*if (aiModel === "openAI") await handleLocationCheck();*/
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -270,7 +270,7 @@ export const useDynamicSubmit = ({
   const handleGenerateChatMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
-    if (aiModel === "openAI") await handleLocationCheck();
+    /*if (aiModel === "openAI") await handleLocationCheck();*/
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -381,7 +381,7 @@ export const useDynamicSubmit = ({
 
   const convexAIHandler = async (func: any) => {
     if (useStore.getState().generating || !inputContext || !inputModel || currentChatIndex === undefined) return;
-    if (aiModel === "openAI") await handleLocationCheck();
+    /*if (aiModel === "openAI") await handleLocationCheck();*/
     const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
