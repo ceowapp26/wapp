@@ -35,7 +35,7 @@ export const useSignUpForm = () => {
     setVerified(false);
     localStorage.setItem('tempEmail', email);
     try {
-      const userFormData: { emailAddress: string, password: string } = { emailAddress: email, password: `${SECRET_PASSWORD}` };
+      const userFormData: { emailAddress: string, password: string } = { emailAddress: email, password: `${process.env.CLERK_SECRET_PASSWORD}` };
       const { startEmailLinkFlow } = signUp.createEmailLinkFlow();
       const test = await signUp.create(userFormData);
       router.push('/auth/post-signup');
