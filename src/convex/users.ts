@@ -21,25 +21,22 @@ export const storeUser = mutation({
       throw new Error("Not authenticated");
     }
     const userId = identity.subject;
+
     const existingUsers = await ctx.db
       .query("users")
-      .withIndex("by_user")
+      .filter(q => {
+        const conditions = [];
+        if (data.email) conditions.push(q.eq(q.field("userInfo.email"), data.email));
+        if (data.phone) conditions.push(q.eq(q.field("userInfo.phone"), data.phone));
+        if (data.clerkId) conditions.push(q.eq(q.field("userInfo.clerkId"), data.clerkId));
+        return q.or(...conditions);
+      })
       .collect();
-    const existingUserEmails = new Set(existingUsers.map((user) => user.userInfo.email).filter(Boolean));
-    const existingUserClerkIds = new Set(existingUsers.map((user) => user.userInfo.clerkId).filter(Boolean));
-    const existingUserPhones = new Set(existingUsers.map((user) => user.userInfo.phone).filter(Boolean));
-    const isExistingUser = (data.phone && existingUserPhones.has(data.phone)) ||
-                           (data.email && existingUserEmails.has(data.email)) ||
-                           (data.clerkId && existingUserClerkIds.has(data.clerkId));
-    if (isExistingUser) {
-      const existingUser = existingUsers.find(user =>
-        user.userInfo.phone === data.phone || user.userInfo.email === data.email || user.userInfo.clerkId === data.clerkId
-      );
-
-      if (existingUser) {
-        await ctx.db.delete(existingUser._id);
-      }
+      
+    for (const existingUser of existingUsers) {
+      await ctx.db.delete(existingUser._id);
     }
+
     const newUser = await ctx.db.insert("users", {
       userId,
       cloudUserId: "",
