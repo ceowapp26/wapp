@@ -662,17 +662,17 @@ export const chatAPIEndpointOptions = [
 ];
 
 export const emailAPIEndpointOptions = [
-  { key: "openAI", value: "/api/email_openAI" },
+  { key: "openAI", value: "/api/email_openai" },
   { key: "gemini", value: "/api/email_gemini" },
 ];
 
 export const portalAPIEndpointOptions = [
-  { key: "openAI", value: "/api/portal_openAI" },
+  { key: "openAI", value: "/api/portal_openai" },
   { key: "gemini", value: "/api/portal_gemini" },
 ];
 
 export const advancedAPIEndpointOptions = [
-  { key: "openAI", value: "/api/enhance_openAI" },
+  { key: "openAI", value: "/api/enhance_openai" },
   { key: "gemini", value: "/api/enhance_gemini" },
 ];
 
