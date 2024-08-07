@@ -1,46 +1,44 @@
 "use client";
 
+import { useState, useRef, useEffect } from "react";
+import Link from 'next/link';
+import { motion, AnimatePresence } from "framer-motion";
+import { useMediaQuery } from "usehooks-ts";
+import { cn } from "@/lib/utils";
+import { useMyspaceContext } from "@/context/myspace-context-provider";
+import { useBooks } from "@/hooks/use-books";
+import { SiGitbook } from "react-icons/si";
 import {
   ChevronsLeft,
   ChevronsRight,
-  MenuIcon,
-  Plus,
-  PlusCircle,
   Search,
-  Settings,
-  Trash,
-  ArrowLeftToLine
+  Heart,
+  Feather,
+  Wand2,
+  HeartHandshake,
+  MoreHorizontal,
+  Library,
+  ArrowLeftToLine,
+  BookOpen, 
+  Bookmark, 
+  CheckCircle
 } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
-import { toast } from "sonner";
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { cn } from "@/lib/utils";
-import { api } from "@/convex/_generated/api";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
-import { useMediaQuery } from "usehooks-ts";
-import { useMyspaceContext } from "@/context/myspace-context-provider";
-import $ from 'jquery';
-import { SiGitbook } from "react-icons/si";
 
 const BookSideBar = () => {
+  const books = useBooks();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const {leftSidebarWidth, setLeftSidebarWidth, tabIndex, setTabIndex} = useMyspaceContext();
-  const isResizingRef = useRef(false);
-  const sidebarRef = useRef(null);
-  const router = useRouter();
-  const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
-  const [currentSection, setCurrentSection] = useState(null);
-  const searchRef = useRef(null);
-  const favoriteRef = useRef(null);
-  const readingnowRef = useRef(null);
-  const toreadRef = useRef(null);
-  const havereadRef = useRef(null);
+  const [currentSection, setCurrentSection] = useState("#search");
+  const sidebarRef = useRef(null);
+
+  const sections = [
+    { id: "search", icon: <Search className="w-5 h-5" />, label: "Search" },
+    { id: "favorite", icon: <Heart className="w-5 h-5" />, label: "My Favorite" },
+    { id: "readingnow", icon: <BookOpen className="w-5 h-5" />, label: "Reading Now" },
+    { id: "toread", icon: <Bookmark className="w-5 h-5" />, label: "To Read" },
+    { id: "haveread", icon: <CheckCircle className="w-5 h-5" />, label: "Have Read" },
+  ];
 
   useEffect(() => {
     if (isMobile) {
@@ -50,199 +48,110 @@ const BookSideBar = () => {
     }
   }, [isMobile]);
 
-  useEffect(() => {
-    if (isMobile) {
-      collapse();
-    }
-  }, [isMobile]);
-
-  const handleMouseDown = (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    isResizingRef.current = true;
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-  };
-
-  const handleMouseMove = (event: MouseEvent) => {
-    if (!isResizingRef.current) return;
-    let newWidth = event.clientX;
-
-    if (newWidth < 240) {
-      newWidth = 240;
-      setLeftSidebarWidth(240);
-    }
-    if (newWidth > 480) {
-      newWidth = 480;
-      setLeftSidebarWidth(480);
-    }
-    setLeftSidebarWidth(newWidth);
-    if (sidebarRef.current) {
-      sidebarRef.current.style.width = `${newWidth}px`;
-    }
-  };
-
-  const handleMouseUp = () => {
-    isResizingRef.current = false;
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-  };
-
-
   const resetWidth = () => {
-    if (sidebarRef.current) {
-      setIsCollapsed(false);
-      setIsResetting(true);
-      setLeftSidebarWidth(240);
-      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
-      setTimeout(() => setIsResetting(false), 300);
-    }
+    setIsCollapsed(false);
+    setLeftSidebarWidth(240);
   };
 
   const collapse = () => {
-    if (sidebarRef.current) {
-      setIsCollapsed(true);
-      setIsResetting(true);
-      setLeftSidebarWidth(20);
-      sidebarRef.current.style.width = "0";
-      setTimeout(() => setIsResetting(false), 300);
+    setIsCollapsed(true);
+    setLeftSidebarWidth(0);
+  };
+
+  const toggleSidebar = () => {
+    isCollapsed ? resetWidth() : collapse();
+  };
+
+  const handleSectionClick = (sectionId, index) => {
+    setCurrentSection(sectionId);
+    if (sectionId === "search") {
+      setTabIndex(undefined)
     }
-  }
+    setTabIndex(index - 1 )
+  };
 
   const backToMainPage = () => {
     router.push("/myspace/apps/book")
   }
 
+
   return (
     <>
-      <aside 
+      <motion.aside 
         ref={sidebarRef}
+        initial={{ width: isMobile ? 0 : 240 }}
+        animate={{ width: isCollapsed ? 0 : 240 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
         className={cn(
-            "group/sidebar h-full bg-secondary overflow-auto fixed top-[88px] flex w-60 flex-col border-gray-300 border-2 z-[99]",
-            isResetting && "transition-all ease-in-out duration-300",
-            isMobile && "w-0"
+          "fixed top-[88px] left-0 h-[calc(100vh-88px)] bg-white dark:bg-gray-800 overflow-hidden z-[99] shadow-lg",
+          isCollapsed ? "w-0" : "w-60"
         )}
       >
-        <div className="pb-20">
-          <div
-            onClick={collapse} 
-            role="button"
-            className={cn(
-              "h-6 w-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
-              isMobile && "opacity-100"
-            )}
-          >
-            <ChevronsLeft className="h-6 w-6"/>
-          </div>
-          <div
-            onClick={backToMainPage} 
-            role="button"
-            className={cn(
-              "h-8 w-8 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 left-2 opacity-0 group-hover/sidebar:opacity-100 transition"
-            )}
-          >
-            <ArrowLeftToLine className="h-8 w-8 py-2"/>
-            Back
-          </div>
-        </div>
-         <Link className='flex flex-row px-2 py-6 gap-x-2 items-center justify-start' href='/myspce/apps/book'>
-          <SiGitbook className="p-1 text-white text-4xl rounded-full bg-gradient-to-r from-pink-500 to-[#ffa69e]" />
-          <span className="text-md font-bold text-black dark:text-white pl-1">WApp Book</span>
-        </Link>
-        <nav>
-          <ul>
-            <li>
-             <a
-                ref={searchRef} 
-                id="#search"
-                onClick={() => {
-                  setTabIndex(undefined)
-                  setCurrentSection("#search")
-                }} 
-                className={`flex items-center mx-2 px-8 py-4 cursor-pointer rounded-lg bg-bg-color font-semibold transition-all duration-200 hover:shadow-md ${currentSection === '#search' ? 'bg-primary text-white dark:text-black' : ''}`} 
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="h-full flex flex-col"
+            >
+              <Link className='flex items-center px-4 py-6 gap-x-2' href='/myspace/apps/book'>
+                <SiGitbook className="text-4xl text-primary" />
+                <span className="text-lg font-bold text-primary dark:text-primary-light">WApp Book</span>
+              </Link>
+              <nav className="flex-grow">
+                <div className="px-4 py-2 text-sm font-semibold text-gray-500 dark:text-gray-400">LIBRARY</div>
+                {sections.map((section, index) => (
+                  <SidebarItem
+                    key={section.id}
+                    {...section}
+                    isActive={currentSection === `#${section.id}`}
+                    onClick={() => handleSectionClick(section.id, index)}
+                  />
+                ))}
+              </nav>
+              <Link 
+                href="/myspace/apps/book"
+                className="flex items-center px-4 py-3 m-2 rounded-lg bg-primary/10 text-primary dark:bg-primary-dark/10 dark:text-primary-light font-semibold hover:bg-primary/20 dark:hover:bg-primary-dark/20 transition-colors"
               >
-                <span className="icon px-2">🔍</span>Search
-              </a>
-            </li>
-            <li className="flex items-center px-8 py-4 bg-bg-color font-semibold">MY LIBRARY</li>
-            <li>
-              <a 
-                ref={favoriteRef} 
-                onClick={() => { 
-                  setTabIndex(0)
-                  setCurrentSection("#favorite") 
-                }} 
-                className={`flex items-center mx-2 px-8 py-4 cursor-pointer rounded-lg bg-bg-color font-semibold transition-all duration-200 hover:shadow-md ${tabIndex === 0 ? 'bg-primary text-white dark:text-black' : ''}`} 
-                href="#favorite"
-              >
-                <span className="icon px-2">💖</span>My Favorites
-              </a>
-            </li>
-            <li>
-              <a 
-                ref={readingnowRef} 
-                onClick={() => { 
-                  setTabIndex(1)
-                  setCurrentSection("#readingnow") 
-                }}
-                className={`flex items-center mx-2 px-8 py-4 cursor-pointer rounded-lg bg-bg-color font-semibold transition-all duration-200 hover:shadow-md ${tabIndex === 1 ? 'bg-primary text-white dark:text-black' : ''}`} 
-                href="#readingnow"
-              >
-                <span className="icon px-2">👽</span>Reading Now
-              </a>
-            </li>
-            <li>
-               <a 
-                ref={toreadRef} 
-                onClick={() => { 
-                  setTabIndex(2)
-                  setCurrentSection("#toread") 
-                }} 
-                className={`flex items-center mx-2 px-8 py-4 cursor-pointer rounded-lg bg-bg-color font-semibold transition-all duration-200 hover:shadow-md ${tabIndex === 2 ? 'bg-primary text-white dark:text-black' : ''}`} 
-                href="#toread"
-              >
-                <span className="icon px-2">🌈</span>To Read
-              </a>
-            </li>
-            <li>
-              <a 
-                ref={havereadRef} 
-                onClick={() => { 
-                  setTabIndex(3)
-                  setCurrentSection("#haveread") 
-                }} 
-                className={`flex items-center mx-2 px-8 py-4 cursor-pointer rounded-lg bg-bg-color font-semibold transition-all duration-200 hover:shadow-md ${tabIndex === 3 ? 'bg-primary text-white dark:text-black' : ''}`} 
-                href="#haveread"
-              >
-                <span className="icon px-2">🌺</span>Have Read
-              </a>
-            </li>
-          </ul>
-
-        </nav>
-        <div
-          onMouseDown={handleMouseDown}
-          onClick={resetWidth}
-          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary/10 right-0 top-0"
-        />
-      </aside>
-      <div
+                <ArrowLeftToLine className="w-5 h-5 mr-3" />
+                Back
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.aside>
+      <button
+        onClick={toggleSidebar}
         className={cn(
-          "absolute top-[25px] ml-14 z-[101]",
-          isResetting && "transition-all ease-in-out duration-300",
-          isMobile && "top-6 ml-12"
+          "fixed top-[100px] left-2 z-[100] p-2 rounded-full bg-primary text-white dark:bg-primary-dark dark:text-gray-200 shadow-lg transition-all duration-300",
+          isCollapsed ? "translate-x-0" : "translate-x-56"
         )}
       >
-        <nav className="bg-transparent px-3 py-2 w-full">
-          {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
-        </nav>
-      </div>
+        {isCollapsed ? <ChevronsRight className="w-6 h-6" /> : <ChevronsLeft className="w-6 h-6" />}
+      </button>
     </>
-  )
-}
+  );
+};
+
+const SidebarItem = ({ id, icon, label, isActive, onClick }) => (
+  <motion.button
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+    onClick={onClick}
+    className={cn(
+      "flex items-center w-full px-4 py-3 rounded-lg transition-colors",
+      isActive 
+        ? "bg-primary text-white dark:bg-primary-dark dark:text-gray-200" 
+        : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+    )}
+  >
+    {icon}
+    <span className="ml-3">{label}</span>
+  </motion.button>
+);
+
 
 export default BookSideBar;
 

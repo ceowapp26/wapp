@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import SettingsToggle from './settings-toggle';
 
 const InlineLatexToggle = () => {
   const { t } = useTranslation();
 
-  const setInlineLatex = useStore((state) => state.setInlineLatex);
+  const setInlineLatex = useDocumentStore((state) => state.setInlineLatex);
 
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().inlineLatex
+    useDocumentStore.getState().inlineLatex
   );
 
   useEffect(() => {

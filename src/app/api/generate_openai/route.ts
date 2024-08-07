@@ -18,9 +18,7 @@ interface ChatCompletionMessageParam {
 }
 
 async function checkLocationSupport(req: Request): Promise<boolean> {
-
   const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
-
   if (!ip) {
     console.error("Unable to determine client IP address");
     return false;
@@ -37,6 +35,8 @@ async function checkLocationSupport(req: Request): Promise<boolean> {
 }
 
 async function checkSupportedLocation(req: Request) {
+
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
 
   const isLocationSupported = await checkLocationSupport(req);
 
@@ -59,9 +59,9 @@ async function checkRateLimit(req: Request, config: { RPM?: number; RPD?: number
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
     return null;
   }
-
-  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
   
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
+
   if (config.RPM) {
     const ratelimit = new Ratelimit({
       redis: kv,
@@ -105,6 +105,7 @@ async function checkRateLimit(req: Request, config: { RPM?: number; RPD?: number
       });
     }
   }
+
   return null;
 }
 
@@ -115,10 +116,6 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     const { prompt, command, model, contextContent, config } = await req.json();
-
-    /*const supportedLocationResponse = await checkSupportedLocation(req);
-
-    if (supportedLocationResponse) return supportedLocationResponse;*/
 
     const rateLimitResponse = await checkRateLimit(req, config);
     
@@ -320,13 +317,41 @@ export async function POST(req: Request): Promise<Response> {
     });
     const stream = OpenAIStream(response);
     return new StreamingTextResponse(stream);
-  } catch (error) {
-    console.error("Error in POST request:", error);
-    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      status: 500,
+ } catch (error: any) {  
+    let status = 500;
+    let errorMessage = "An unexpected error occurred";
+    let errorCode = "unknown_error";
+    let errorType = "internal_server_error";
+
+    if (error.response) {
+      status = error.response.status;
+      if (error.error && error.error.type) {
+        errorType = error.error.type;
+      }
+      if (error.error && error.error.code) {
+        errorCode = error.error.code;
+      }
+      if (status === 429) {
+        errorMessage = "Rate limit exceeded";
+        errorCode = "rate_limit_exceeded";
+      } else if (status === 403 && error.error && error.error.code === 'unsupported_country_region_territory') {
+        errorMessage = "Unsupported region";
+        errorCode = "unsupported_country_region_territory";
+        errorType = "request_forbidden";
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return new Response(JSON.stringify({ 
+      error: errorMessage, 
+      status,
+      code: errorCode,
+      type: errorType
+    }), {
+      status,
       headers: { "Content-Type": "application/json" },
     });
   }
 }
-
 

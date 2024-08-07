@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PopupModal from './popup-modal';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { submitShareChat } from '@/api/api';
 import { Share2 } from 'lucide-react';
 import { useDisclosure, Button, Progress } from "@nextui-org/react";
@@ -15,8 +15,8 @@ const ShareChat = React.memo(() => {
   const [shareProgress, setShareProgress] = useState(0);
 
   const handleConfirm = async () => {
-    const chats = useStore.getState().chats;
-    const currentChatIndex = useStore.getState().currentChatIndex;
+    const chats = useDocumentStore.getState().chats;
+    const currentChatIndex = useDocumentStore.getState().currentChatIndex;
     if (!chats) return;
     setIsSharing(true);
     try {

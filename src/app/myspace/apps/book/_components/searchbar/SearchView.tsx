@@ -2,7 +2,7 @@
 "use client";
 import SearchBar from '../searchbar/SearchBar';
 import SearchContainer from '../searchcontainer';
-import { selectSearchs } from '@/redux/features/apps/book/searchsSlice';
+import { selectSearchs } from '@/stores/features/apps/book/searchsSlice';
 import { useAppSelector } from '@/hooks/hooks';
 
 const SearchView = () => {

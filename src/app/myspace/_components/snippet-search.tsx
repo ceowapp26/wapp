@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { useStore } from '@/redux/features/apps/document/store';
 import SearchBar from '@/components/searchbar';
 
 const SnippetSearch = ({

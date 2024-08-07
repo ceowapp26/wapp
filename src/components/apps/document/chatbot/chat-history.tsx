@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useInitializeNewChat } from '@/hooks/use-initialize-newchat';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import ChatIcon from '@/icons/ChatIcon';
 import CrossIcon from '@/icons/CrossIcon';
 import DeleteIcon from '@/icons/DeleteIcon';
@@ -38,12 +38,12 @@ const ChatHistoryClass = {
 const ChatHistory = React.memo(
   ({ chatId, documentId, userId, orgId, cloudChatId, chatTitle, chatIndex, isArchived }: { chatId: string, documentId: string, userId: string, orgId: string, cloudChatId: string, chatTitle: string, chatIndex: number, isArchived: boolean }) => {
     const initializeNewChat = useInitializeNewChat();
-    const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
-    const setChats = useStore((state) => state.setChats);
-    const setArchivedChats = useStore((state) => state.setArchivedChats);
-    const active = useStore((state) => state.currentChatIndex === chatIndex);
-    const generating = useStore((state) => state.generating);
-    const chats = useStore((state) => state.chats);
+    const setCurrentChatIndex = useDocumentStore((state) => state.setCurrentChatIndex);
+    const setChats = useDocumentStore((state) => state.setChats);
+    const setArchivedChats = useDocumentStore((state) => state.setArchivedChats);
+    const active = useDocumentStore((state) => state.currentChatIndex === chatIndex);
+    const generating = useDocumentStore((state) => state.generating);
+    const chats = useDocumentStore((state) => state.chats);
     const [isDelete, setIsDelete] = useState<boolean>(false);
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [_title, _setTitle] = useState<string>(chatTitle);
@@ -101,7 +101,7 @@ const ChatHistory = React.memo(
 
     const handleRemoveChat = () => {
       const archivedChats = JSON.parse(
-        JSON.stringify(useStore.getState().archivedChats)
+        JSON.stringify(useDocumentStore.getState().archivedChats)
       );
       const chatIndex = archivedChats.findIndex((chat) => chat.chatId === chatId);
       const removedChat = archivedChats[chatIndex];
@@ -112,10 +112,10 @@ const ChatHistory = React.memo(
 
     const handleRestoreChat = () => {
       const updatedChats = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       const archivedChats = JSON.parse(
-        JSON.stringify(useStore.getState().archivedChats)
+        JSON.stringify(useDocumentStore.getState().archivedChats)
       );
       const chatIndex = archivedChats.findIndex((chat) => chat.chatId === chatId);
       const restoredChat = archivedChats[chatIndex];
@@ -131,7 +131,7 @@ const ChatHistory = React.memo(
 
     const editTitle = () => {
       const updatedChats = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       updatedChats[chatIndex].chatTitle = _title;
       setChats(updatedChats);
@@ -143,10 +143,10 @@ const ChatHistory = React.memo(
 
     const deleteChat = () => {
       const updatedChats = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       const archivedChats = JSON.parse(
-        JSON.stringify(useStore.getState().archivedChats)
+        JSON.stringify(useDocumentStore.getState().archivedChats)
       );
       const _currentArchiveChat = {
         chatId: chatId,
@@ -214,7 +214,7 @@ const ChatHistory = React.memo(
 
     const moveChat = (direction: 'up' | 'down') => {
       const updatedChats: FolderCollectionInterface = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       const chatsArray = Object.values(updatedChats);
       let currentIndex = chatsArray.findIndex((chat) => chat.chatId === chatId);

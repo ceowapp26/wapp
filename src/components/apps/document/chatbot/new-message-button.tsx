@@ -1,5 +1,5 @@
 import React from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import PlusIcon from '@/icons/PlusIcon';
 import { ChatInterface } from '@/types/chat';
 import { generateDefaultChat } from '@/constants/chat';
@@ -11,11 +11,11 @@ import { toast } from "sonner";
 
 const NewMessageButton = React.memo(
   ({ messageIndex }: { messageIndex: number }) => {
-    const inputModel = useStore((state) => state.inputModel);
-    const inputContext = useStore((state) => state.inputContext);
-    const setChats = useStore((state) => state.setChats);
-    const currentChatIndex = useStore((state) => state.currentChatIndex);
-    const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
+    const chatModel = useDocumentStore((state) => state.chatModel);
+    const chatContext = useDocumentStore((state) => state.chatContext);
+    const setChats = useDocumentStore((state) => state.setChats);
+    const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+    const setCurrentChatIndex = useDocumentStore((state) => state.setCurrentChatIndex);
     const createChat = useMutation(api.chats.createChat);
     const updateChat = useMutation(api.chats.updateChat);
     const { activeOrg, activeDocument } = useMyspaceContext();
@@ -54,7 +54,7 @@ const NewMessageButton = React.memo(
         toast.error('Failed to authenticate.');
         throw new Error('Current user is not set');
       }
-      const { chats, archivedChats } = useStore.getState();
+      const { chats, archivedChats } = useDocumentStore.getState();
       const allChats = [...Object.values(chats), ...Object.values(archivedChats).map(chat => chat.chat)];
       if (chats) {
         const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(chats));
@@ -92,15 +92,15 @@ const NewMessageButton = React.memo(
         addChat();
       } else {
         const updatedChats: ChatInterface[] = JSON.parse(
-          JSON.stringify(useStore.getState().chats)
+          JSON.stringify(useDocumentStore.getState().chats)
         );
         const currentChat = updatedChats[currentChatIndex];
         currentChat.messages.splice(messageIndex + 1, 0, {
           content: '',
           role: 'user',
           command: "zap",
-          context: inputContext,
-          model: inputModel,
+          context: chatContext,
+          model: chatModel,
         });
         setChats(updatedChats);
         handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);

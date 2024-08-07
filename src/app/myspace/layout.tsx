@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Spinner } from '@/components/spinner';
 import { useAppSelector, useAppDispatch } from '@/hooks/hooks';
-import { addToLists, selectApps } from '@/redux/features/apps/appsSlice';
+import { addToLists, selectApps } from '@/stores/features/apps/appsSlice';
 import { NavbarPanel } from "./_components/navbar-panel";
 import { SwitchRightSidebar } from "./_components/switch-sidebar";
 import { AppHorizontalBar } from "./_components/app-horizontal-bar";

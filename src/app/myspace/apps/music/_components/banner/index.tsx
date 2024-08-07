@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/hooks';
-import { selectMoodStatus, changeMoodStatus } from '@/redux/features/apps/music/moodSlice';
+import { selectMoodStatus, changeMoodStatus } from '@/stores/features/apps/music/moodSlice';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { IconButton } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -10,7 +10,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { all } from '@/data/songData';
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 import SampleImage from '/public/music/images/default_player_image.png';
-import { playSong } from '@/redux/features/apps/music/songsSlice';
+import { playSong } from '@/stores/features/apps/music/songsSlice';
 import Image from 'next/image';
 
 const Banner = () => {

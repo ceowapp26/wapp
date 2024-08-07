@@ -161,4 +161,17 @@ export type TimeLimitTokenUsed = {
   };
 };
 
+export interface LocalStorageInterfaceV0ToV1 {
+  AIConfig: LocalModelConfigCollectionInterface;
+  countTotalTokens: boolean;
+  totalTokenUsed: TotalTokenUsed;
+  timeLimitTokenUsed: TimeLimitTokenUsed;
+  defaultModel: ModelOption;
+  configModel: ModelOption;
+  apiEndpoint: string;
+}
 
+export interface LocalStorageInterfaceV1ToV2 extends LocalStorageInterfaceV0ToV1 {
+  tokenShortage: boolean;
+  autoAdjustToken: boolean;
+}

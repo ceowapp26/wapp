@@ -1,4 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { ModelOption } from "@/types/ai";
 
 type PlanType = 'STANDARD' | 'PRO' | 'ULTIMATE';
 type PaymentType = 'CREDIT' | 'SUBSCRIPTION';
@@ -20,6 +21,8 @@ type PurchasePriceInfo = {
 };
 
 type InitialValuesProps = {
+  modelType: ModelOption;
+  setModelType: Dispatch<SetStateAction<ModelOption>>;
   paymentType: PaymentType;
   setPaymentType: Dispatch<SetStateAction<PaymentType>>;
   planType: PlanType;
@@ -35,6 +38,8 @@ type InitialValuesProps = {
 };
 
 const InitialValues: InitialValuesProps = {
+  modelType: 'gpt-3.5-turbo',
+  setModelType: () => {},
   paymentType: 'SUBSCRIPTION',
   setPaymentType: () => {},
   planType: 'PRO',
@@ -50,6 +55,7 @@ const InitialValues: InitialValuesProps = {
 const PaymentContext = createContext<InitialValuesProps>(InitialValues);
 
 const PaymentContextProvider = ({ children }: { children: ReactNode }) => {
+  const [modelType, setModelType] = useState<ModelOption>('gpt-3.5-turbo');
   const [paymentType, setPaymentType] = useState<PaymentType>('SUBSCRIPTION');
   const [planType, setPlanType] = useState<PlanType>('STANDARD');
   const [basePriceInfo, setBasePriceInfo] = useState<BasePriceInfo>({});
@@ -57,6 +63,8 @@ const PaymentContextProvider = ({ children }: { children: ReactNode }) => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [paymentGateway, setPaymentGateway] = useState<PaymentGateway>('PAYPAL');
   const values: InitialValuesProps = {
+    modelType,
+    setModelType,
     paymentType,
     setPaymentType,
     planType,

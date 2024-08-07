@@ -11,7 +11,6 @@ import PaypalButtonComponent from "@/components/paypal/button";
 import StripeButtonComponent from "@/components/stripe/button";
 import { createOrder, onApproveOrder, onErrorOrderPayment, createSubscription, onApproveSubscription, onErrorSubscriptionPayment } from "@/actions/payments/paypal";
 import { createParams, onError } from "@/actions/payments/stripe";
-import { useStore } from "@/redux/features/apps/document/store";
 import { usePaymentContextHook } from "@/context/payment-context-provider";
 import { defaultModel } from "@/constants/ai";
 import { getPlanAIModelIdByName } from "@/actions/ai";
@@ -20,9 +19,7 @@ import { toast } from "sonner";
 type Props = {};
 
 const PaymentGatewayCard = (props: Props) => {
-  const inputContext = useStore((state) => state.inputContext);
-  const inputModel = useStore((state) => state.inputModel);
-  const { paymentGateway, paymentType, purchasePriceInfo } = usePaymentContextHook();
+  const { paymentGateway, paymentType, purchasePriceInfo, modelType } = usePaymentContextHook();
   const currentUser = useQuery(api.users.getCurrentUser);
   const updateModel = useMutation(api.models.updateModel);
   const updateUserCredit = useMutation(api.users.updateUserCredit);
@@ -62,12 +59,12 @@ const PaymentGatewayCard = (props: Props) => {
         const productId = Object.keys(purchasePriceInfo).pop();
         const productQuantity = purchasePriceInfo[productId]?.totalPrice;
 
-        if (!cloudModels || !inputModel) {
+        if (!cloudModels || !modelType) {
           console.error("Cloud models or input model is missing");
           return;
         }
 
-        const modelToUpdate = cloudModels.find(item => item.model === inputModel);
+        const modelToUpdate = cloudModels.find(item => item.model === modelType);
         
         if (!modelToUpdate) {
           console.error("Model not found in cloud models");

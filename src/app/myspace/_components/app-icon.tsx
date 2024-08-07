@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
-import { removeFromLists } from '@/redux/features/apps/appsSlice';
+import { removeFromLists } from '@/stores/features/apps/appsSlice';
 import { X } from 'lucide-react';
 
 interface AppProps {

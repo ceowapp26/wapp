@@ -15,8 +15,8 @@ const AdminPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-      <div className="container mx-auto px-4 py-8">
+    <div className="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 max-h-screen overflow-y-auto w-full">
+      <div className="container mx-auto min-h-screen py-8">
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}

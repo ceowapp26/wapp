@@ -4,7 +4,7 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Dropdown, Dro
 import { motion } from "framer-motion";
 import { LocalModelConfigInterface, ModelOption } from '@/types/ai';
 import { modelMaxToken, modelOptions } from '@/constants/ai';
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { LoaderPinwheel } from 'lucide-react';
@@ -21,8 +21,8 @@ const ConfigMenu = ({
   onOpenChange: () => void;
   config: LocalModelConfigInterface;
 }) => {
-  const AIConfig = useStore((state) => state.AIConfig);
-  const setAIConfig = useStore((state) => state.setAIConfig);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
   const [_maxToken, _setMaxToken] = useState<number>(config.max_tokens);
   const [_model, _setModel] = useState<ModelOption>(config.model);
   const [_temperature, _setTemperature] = useState<number>(config.temperature);
@@ -78,7 +78,7 @@ const ConfigMenu = ({
 };
 
 export const ModelSelector = ({ _model, _setModel }: { _model: ModelOption; _setModel: React.Dispatch<React.SetStateAction<ModelOption>> }) => {
-  const setConfigModel = useStore((state) => state.setConfigModel);
+  const setConfigModel = useModelStore((state) => state.setConfigModel);
   return (
     <Dropdown
       showArrow

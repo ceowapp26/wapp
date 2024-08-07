@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import {
   chatToMarkdown,
   downloadImg,
@@ -26,7 +26,7 @@ const DownloadChat = React.memo(({ saveRef }) => {
         if (saveRef?.current) {
           toast.promise(
             htmlToImg(saveRef.current).then(imgData => {
-              const title = useStore.getState().chats?.[useStore.getState().currentChatIndex].title.trim() ?? 'download';
+              const title = useDocumentStore.getState().chats?.[useDocumentStore.getState().currentChatIndex].title.trim() ?? 'download';
               downloadImg(imgData, `${title}.png`);
             }),
             {
@@ -42,12 +42,12 @@ const DownloadChat = React.memo(({ saveRef }) => {
       label: 'Markdown',
       icon: <FileText className="w-6 h-6" />,
       onClick: async () => {
-        const chats = useStore.getState().chats;
+        const chats = useDocumentStore.getState().chats;
         if (chats && saveRef?.current) {
           toast.promise(
             Promise.resolve().then(() => {
-              const markdown = chatToMarkdown(chats[useStore.getState().currentChatIndex]);
-              const title = chats[useStore.getState().currentChatIndex].title.trim() ?? 'download';
+              const markdown = chatToMarkdown(chats[useDocumentStore.getState().currentChatIndex]);
+              const title = chats[useDocumentStore.getState().currentChatIndex].title.trim() ?? 'download';
               downloadMarkdown(markdown, `${title}.md`);
             }),
             {
@@ -63,11 +63,11 @@ const DownloadChat = React.memo(({ saveRef }) => {
       label: 'JSON',
       icon: <Code className="w-6 h-6" />,
       onClick: async () => {
-        const chats = useStore.getState().chats;
+        const chats = useDocumentStore.getState().chats;
         if (chats) {
           toast.promise(
             Promise.resolve().then(() => {
-              const chat = chats[useStore.getState().currentChatIndex];
+              const chat = chats[useDocumentStore.getState().currentChatIndex];
               downloadFile([chat], chat.title);
             }),
             {

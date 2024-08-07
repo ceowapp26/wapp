@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Command, CommandGroup, CommandItem, CommandSeparator, CommandList } from "../ui/command";
 import { useCompletion } from "ai/react";
 import { useEditor } from "../core/index";
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useMutation } from "convex/react";
@@ -104,15 +105,16 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
     setLeftSidebarType,
     setRightSidebarType,
   } = useMyspaceContext();
-  const { aiContext, setAiContext, setAiModel, setInputType, setOutputType, showWarning, warningType, nextTimeUsage } = useGeneralContext();
-  const inputContext = useStore((state) => state.inputContext);
-  const inputModel = useStore((state) => state.inputModel);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setApiEndpoint = useStore((state) => state.setApiEndpoint);
-  const setChats = useStore((state) => state.setChats);
-  const apiEndpoint = useStore((state) => state.apiEndpoint);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
+  const { aiContext, setAiContext, setAiModel, setIsSytemModel, setInputType, setOutputType, showWarning, warningType, nextTimeUsage } = useGeneralContext();
+  const chatContext = useDocumentStore((state) => state.chatContext);
+  const chatModel = useDocumentStore((state) => state.chatModel);
+  const setChatModel = useDocumentStore((state) => state.setChatModel);
+  const setChatContext = useDocumentStore((state) => state.setChatContext);
+  const setApiEndpoint = useDocumentStore((state) => state.setApiEndpoint);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const apiEndpoint = useDocumentStore((state) => state.apiEndpoint);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const inputModel = useModelStore((state) => state.inputModel);
   const updateChat = useMutation(api.chats.updateChat);
   const { handleAIDynamicFunc } = useDynamicSubmit();
 
@@ -126,18 +128,19 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
   };
 
   const handleSetup = useCallback(() => {
+    setIsSytemModel(false);
+    setChatModel(inputModel);
+    setChatContext("general");
     setInputType("text-only");
     setOutputType("text");
-    setInputContext("general");
     setAiContext("basic");
-    setAiModel("openAI");
-  }, [setAiContext, setInputContext, setInputType, setOutputType]);
+  }, [setAiContext, setChatContext, setChatModel, setInputType, setOutputType, setIsSytemModel, inputModel]);
 
   const handleGenerate = useCallback(async (role, command, content, context, model) => {
     handleSetup();
-    if (!content || content.trim() === '' || useStore.getState().generating) return;
+    if (!content || content.trim() === '' || useDocumentStore.getState().generating) return;
     const updatedChats: ChatInterface[] = JSON.parse(
-      JSON.stringify(useStore.getState().chats)
+      JSON.stringify(useDocumentStore.getState().chats)
     );
     const currentChat = updatedChats[currentChatIndex];
     const chatId = currentChat.chatId;
@@ -155,9 +158,8 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
       currentChat.messages = [...currentChat.messages, newUserMessage];
     }
     setChats(updatedChats);
-    const newChatIndex = updatedChats.findIndex((chat) => chat.chatId === chatId);
-    await handleUpdateCloudChat(currentChat.cloudChatId, newChatIndex, currentChat);
-    handleAIDynamicFunc();
+    await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
+    await handleAIDynamicFunc();
   }, [handleSetup, currentChatIndex, aiContext, setChats, handleUpdateCloudChat, handleAIDynamicFunc]);
 
   const handleSidebar = useCallback(() => {
@@ -171,8 +173,8 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
     const slice = editor.state.selection.content();
     const text = editor.storage.markdown.serializer.serialize(slice.content);
     handleSidebar();
-    handleGenerate('user', option.value, text, inputContext, inputModel);
-  }, [editor, handleSidebar, handleGenerate, inputContext, inputModel]);
+    handleGenerate('user', option.value, text, chatContext, chatModel);
+  }, [editor, handleSidebar, handleGenerate, chatContext, chatModel]);
 
   return (
     <React.Fragment>
@@ -231,6 +233,7 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}
+          inputModel={chatModel}
         />
       )}
     </React.Fragment>

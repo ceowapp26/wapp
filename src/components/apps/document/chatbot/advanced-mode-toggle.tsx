@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import SettingsToggle from './settings-toggle';
 
 const AdvancedModeToggle = () => {
   const { t } = useTranslation();
-
-  const setAdvancedMode = useStore((state) => state.setAdvancedMode);
+  const setAdvancedMode = useDocumentStore((state) => state.setAdvancedMode);
 
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().advancedMode
+    useDocumentStore.getState().advancedMode
   );
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { ScrollToBottomButton }  from '@/components/scroll-to-bottom-button';
 import ChatTitle from './chat-title';
 import Message from './message';
 import NewMessageButton from './new-message-button';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { ChevronDown, Plus } from 'lucide-react';
 import { useSubmit } from "@/hooks/use-submit";
 import { useGeneralContext } from '@/context/general-context-provider';
@@ -15,11 +15,11 @@ import ErrorContainer from './error-container';
 import Warning from '@/components/models/warning'; 
 
 const ChatContent = () => {
-  const inputRole = useStore((state) => state.inputRole);
-  const inputContext = useStore((state) => state.inputContext);
-  const inputModel = useStore((state) => state.inputModel);
-  const setError = useStore((state) => state.setError);
-  const messages = useStore((state) =>
+  const chatRole = useDocumentStore((state) => state.chatRole);
+  const chatContext = useDocumentStore((state) => state.chatContext);
+  const chatModel = useDocumentStore((state) => state.chatModel);
+  const setError = useDocumentStore((state) => state.setError);
+  const messages = useDocumentStore((state) =>
     state.chats &&
     state.chats.length > 0 &&
     state.currentChatIndex >= 0 &&
@@ -27,7 +27,7 @@ const ChatContent = () => {
       ? state.chats[state.currentChatIndex].messages
       : []
   );
-  const stickyIndex = useStore((state) =>
+  const stickyIndex = useDocumentStore((state) =>
     state.chats &&
     state.chats.length > 0 &&
     state.currentChatIndex >= 0 &&
@@ -35,9 +35,9 @@ const ChatContent = () => {
       ? state.chats[state.currentChatIndex].messages.length
       : 0
   );
-  const advancedMode = useStore((state) => state.advancedMode);
-  const generating = useStore.getState().generating;
-  const hideSideMenu = useStore((state) => state.hideSideMenu);
+  const advancedMode = useDocumentStore((state) => state.advancedMode);
+  const generating = useDocumentStore.getState().generating;
+  const hideSideMenu = useDocumentStore((state) => state.hideSideMenu);
   const { showWarning, warningType, nextTimeUsage } = useGeneralContext();
   const saveRef = useRef<HTMLDivElement>(null);
   const { error } = useSubmit();
@@ -73,11 +73,11 @@ const ChatContent = () => {
             ))}
           </div>
           <Message
-            role={inputRole}
+            role={chatRole}
             content=''
             command=''
-            context={inputContext}
-            model={inputModel}
+            context={chatContext}
+            model={chatModel}
             messageIndex={stickyIndex}
             sticky
           />
@@ -89,7 +89,7 @@ const ChatContent = () => {
                 : 'md:max-w-3xl lg:max-w-3xl xl:max-w-4xl'
             }`}
           >
-            {useStore.getState().generating || (
+            {useDocumentStore.getState().generating || (
               <div className='md:w-[calc(100%-50px)] flex gap-4 flex-wrap justify-center'>
                 <DownloadChat saveRef={saveRef} />
                 <ShareChat />
@@ -104,6 +104,7 @@ const ChatContent = () => {
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}
+          inputModel={chatModel}
         />
       )}
     </div>

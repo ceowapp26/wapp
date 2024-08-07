@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { ChatInterface, Context } from '@/types/chat';
 import { useHideOnOutsideClick } from '@/hooks/use-hideon-outside-click';
 import { useMutation } from "convex/react";
@@ -20,10 +20,10 @@ const ContextSelector = React.memo(
     sticky?: boolean;
   }) => {
     const { t } = useTranslation();
-    const inputContext = useStore((state) => state.inputContext);
-    const setInputContext = useStore((state) => state.setInputContext);
-    const setChats = useStore((state) => state.setChats);
-    const currentChatIndex = useStore((state) => state.currentChatIndex);
+    const chatContext = useDocumentStore((state) => state.chatContext);
+    const setChatContext = useDocumentStore((state) => state.setChatContext);
+    const setChats = useDocumentStore((state) => state.setChats);
+    const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
     const [dropDown, setDropDown, dropDownRef] = useHideOnOutsideClick();
     const updateChat = useMutation(api.chats.updateChat);
 
@@ -38,7 +38,7 @@ const ContextSelector = React.memo(
 
     const handleAsyncConfig = async (selectedContextKey: Context) => {
       if (!selectedContextKey) return;
-      const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const updatedChats = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
       const currentChat = updatedChats[currentChatIndex];
       if (currentChat && currentChat.messages[messageIndex]) {
         currentChat.messages[messageIndex].context = selectedContextKey;
@@ -52,8 +52,8 @@ const ContextSelector = React.memo(
         <Select 
           options={AIContextOptions} 
           label="Context"
-          selectedOption={inputContext} 
-          setSelectedOption={setInputContext} 
+          selectedOption={chatContext} 
+          setSelectedOption={setChatContext} 
           handleAsyncConfig={handleAsyncConfig} 
         />
       </div>

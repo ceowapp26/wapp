@@ -7,7 +7,7 @@ import { FilterCommand } from "@/components/apps/document/filter-command";
 import { SearchCommand } from "@/components/apps/document/search-command";
 import { SwitchLeftSidebar } from './_components/switch-sidebar';
 import { useInitializeNewChat } from '@/hooks/use-initialize-newchat';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { useMutation, useQuery } from "convex/react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
@@ -29,13 +29,13 @@ const FolderManagementModal = dynamic(() => import('@/components/apps/document/m
 const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useConvexAuth();
   const initializeNewChat = useInitializeNewChat();
-  const setChats = useStore((state) => state.setChats);
-  const setFolders = useStore((state) => state.setFolders);
-  const setSnippets = useStore((state) => state.setSnippets);
-  const setArchivedChats = useStore((state) => state.setArchivedChats);
-  const setArchivedFolders = useStore((state) => state.setArchivedFolders);
-  const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const setFolders = useDocumentStore((state) => state.setFolders);
+  const setSnippets = useDocumentStore((state) => state.setSnippets);
+  const setArchivedChats = useDocumentStore((state) => state.setArchivedChats);
+  const setArchivedFolders = useDocumentStore((state) => state.setArchivedFolders);
+  const setCurrentChatIndex = useDocumentStore((state) => state.setCurrentChatIndex);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
   const [syncWithCloudWarning, setSyncWithCloudWarning] = useState(false);
   const { isAppbarCollapsed, activeDocument, setActiveDocument } = useMyspaceContext();
   const createChat = useMutation(api.chats.createChat);
@@ -97,7 +97,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const syncActiveChats = useCallback(debounce(async () => {
     try {
-      const localData = localStorage.getItem('wapp');
+      const localData = localStorage.getItem('wapp_doc');
       if (!localData) return;
       const parsedLocalActiveChats = JSON.parse(localData).state.chats || [];
       if (cloudActiveChats && cloudActiveChats.length > 0) {
@@ -115,7 +115,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
           .map(chat => handleCreateCloudChat(chat));
         await Promise.all(createChatPromises);
       } else {
-        const storedChats = useStore.getState().chats;
+        const storedChats = useDocumentStore.getState().chats;
         if (!storedChats || storedChats.length === 0) {
           initializeNewChat();
         } else if (storedChats && !(currentChatIndex >= 0 && currentChatIndex < storedChats.length)) {
@@ -130,7 +130,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const syncArchivedChats = useCallback(debounce(async () => {
     try {
-      const localData = localStorage.getItem('wapp');
+      const localData = localStorage.getItem('wapp_doc');
       if (!localData) return;
       const parsedLocalArchivedChats = JSON.parse(localData).state.archivedChats || [];
       if (cloudArchivedChats && cloudArchivedChats.length > 0) {
@@ -154,7 +154,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const syncActiveFolders = useCallback(debounce(async () => {
     try {
-      const localData = localStorage.getItem('wapp');
+      const localData = localStorage.getItem('wapp_doc');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
       const parsedLocalActiveFolders = parsedLocalData.state.folders || null;
@@ -179,7 +179,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const syncArchivedFolders = useCallback(debounce(async () => {
     try {
-      const localData = localStorage.getItem('wapp');
+      const localData = localStorage.getItem('wapp_doc');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
       const parsedLocalArchivedFolders = parsedLocalData.state.archivedFolders || null;
@@ -204,7 +204,7 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
 
   const syncSnippets = useCallback(debounce(async () => {
     try {
-      const localData = localStorage.getItem('wapp');
+      const localData = localStorage.getItem('wapp_doc');
       if (!localData) return;
       const parsedLocalData = JSON.parse(localData);
       const parsedLocalSnippets = parsedLocalData.state.snippets || [];

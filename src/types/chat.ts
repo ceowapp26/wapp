@@ -4,8 +4,11 @@ import { ModelOption } from './ai';
 import { LocalConfigCollectionInterface, TotalTokenUsed, InputTokenUsed, OutputTokenUsed } from '@/types/ai';
 
 export type Role = 'user' | 'assistant' | 'system';
+
 export const roles: Role[] = ['user', 'assistant', 'system'];
+
 export type Context = 'general' | 'selection' | 'page' | 'q&a';
+
 export const contexts: Context[] = ['general', 'selection', 'page', 'q&a'];
 
 type ChatTotalTokenUsed = {
@@ -116,89 +119,21 @@ export interface FolderInterface {
 export interface LocalStorageInterfaceV0ToV1 {
   chats: ChatInterface[];
   currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  theme: Theme;
-}
-
-export interface LocalStorageInterfaceV1ToV2 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  apiEndpoint?: string;
-  theme: Theme;
-}
-
-export interface LocalStorageInterfaceV2ToV3 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  apiEndpoint?: string;
-  theme: Theme;
-  autoTitle: boolean;
-}
-export interface LocalStorageInterfaceV3ToV4 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  apiEndpoint?: string;
-  theme: Theme;
   autoTitle: boolean;
   prompts: Prompt[];
-}
-
-export interface LocalStorageInterfaceV4ToV5 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  apiEndpoint?: string;
-  theme: Theme;
-  autoTitle: boolean;
-  prompts: Prompt[];
-}
-
-export interface LocalStorageInterfaceV5ToV6 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiKey: string;
-  apiFree: boolean;
-  apiFreeEndpoint: string;
-  apiEndpoint?: string;
-  theme: Theme;
-  autoTitle: boolean;
-  prompts: Prompt[];
-}
-
-export interface LocalStorageInterfaceV6ToV7 {
-  chats: ChatInterface[];
-  currentChatIndex: number;
-  apiFree?: boolean;
-  apiKey: string;
-  apiEndpoint: string;
-  theme: Theme;
-  autoTitle: boolean;
-  prompts: Prompt[];
-  defaultAIConfig: LocalConfigCollectionInterface;
   defaultSystemMessage: string;
   hideMenuOptions: boolean;
-  firstVisit: boolean;
   hideSideMenu: boolean;
+  enterToSubmit: boolean;
+  inlineLatex: boolean;
+  markdownMode: boolean,
 }
 
-export interface LocalStorageInterfaceV7oV8
-  extends LocalStorageInterfaceV6ToV7 {
-  foldersName: string[];
-  foldersExpanded: boolean[];
-  folders: FolderCollection;
+export interface LocalStorageInterfaceV1ToV2
+  extends LocalStorageInterfaceV0ToV1 {
+  archivedChats: ArchivedChatInterface[],
+  folders: FolderCollectionInterface,
+  archivedFolders: ArchivedFolderCollectionInterface,
 }
 
 interface Keyword {

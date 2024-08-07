@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import NewFolderIcon from '@/icons/NewFolderIcon';
 import { FolderInterface, FolderCollectionInterface } from '@/types/chat';
 import { useMutation, useQuery } from "convex/react";
@@ -11,8 +11,8 @@ import { useMyspaceContext } from "@/context/myspace-context-provider";
 
 const NewFolder = () => {
   const { t } = useTranslation();
-  const generating = useStore((state) => state.generating);
-  const setFolders = useStore((state) => state.setFolders);
+  const generating = useDocumentStore((state) => state.generating);
+  const setFolders = useDocumentStore((state) => state.setFolders);
   const createFolder = useMutation(api.chats.createFolder);
   const { activeOrg, activeDocument } = useMyspaceContext();
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -31,8 +31,8 @@ const NewFolder = () => {
     let folderIndex = 1;
     let isArchived = false;
     let folderName = `New Folder ${folderIndex}`;
-    const folders = useStore.getState().folders;
-    const archivedFolders = useStore.getState().archivedFolders;
+    const folders = useDocumentStore.getState().folders;
+    const archivedFolders = useDocumentStore.getState().archivedFolders;
     const allFolders = [
       ...Object.values(folders).map(folder => folder),
       ...Object.values(archivedFolders).map(folder => folder.folder),

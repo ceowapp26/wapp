@@ -6,8 +6,8 @@ import BookContainer from '../bookcontainer';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
 import BookResult from '../bookresult';
 import Utils from '@/utils/bookUtils';
-import { nextBookLists, prevBookLists } from '@/redux/features/apps/book/booksSlice';
-import { selectCurrentBook, selectTotalBook } from '@/redux/features/apps/book/booksSlice';
+import { nextBookLists, prevBookLists } from '@/stores/features/apps/book/booksSlice';
+import { selectCurrentBook, selectTotalBook } from '@/stores/features/apps/book/booksSlice';
 
 const ListContainer = ({ categoryId, title }) => {
     const dispatch = useAppDispatch();

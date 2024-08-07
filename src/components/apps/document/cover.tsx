@@ -6,7 +6,7 @@ import { clamp } from '@/utils/clamp';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { styled } from '@mui/material/styles';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
-import { selectInitialCoverPosition, selectNewCoverPosition, setInitialCoverPosition, setNewCoverPosition } from '@/redux/features/apps/document/coversSlice';
+import { selectInitialCoverPosition, selectNewCoverPosition, setInitialCoverPosition, setNewCoverPosition } from '@/stores/features/apps/document/coversSlice';
 
 const DoneButton = styled(Button)({
   boxShadow: 'none',

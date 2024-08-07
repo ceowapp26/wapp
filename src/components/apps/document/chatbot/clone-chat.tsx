@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { ChatInterface } from '@/types/chat';
 import TickIcon from '@/icons/TickIcon';
 import CloneIcon from '@/icons/CloneIcon';
@@ -11,8 +11,8 @@ import { useMyspaceContext } from "@/context/myspace-context-provider";
 
 const CloneChat: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const setChats = useStore((state) => state.setChats);
-  const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const setCurrentChatIndex = useDocumentStore((state) => state.setCurrentChatIndex);
   const { activeDocument, activeOrg } = useMyspaceContext();
   const createChat = useMutation(api.chats.createChat);
   const [cloned, setCloned] = useState<boolean>(false);
@@ -28,7 +28,7 @@ const CloneChat: React.FC = React.memo(() => {
   }, [createChat]);
 
   const getUniqueTitle = useCallback((baseTitle: string): string => {
-    const chats = useStore.getState().chats;
+    const chats = useDocumentStore.getState().chats;
     let title = `Copy of ${baseTitle}`;
     let i = 0;
     while (chats.some((chat) => chat.chatTitle === title)) {
@@ -39,8 +39,8 @@ const CloneChat: React.FC = React.memo(() => {
   }, []);
 
   const cloneChat = useCallback(async () => {
-    const chats = useStore.getState().chats;
-    const currentChatIndex = useStore.getState().currentChatIndex;
+    const chats = useDocumentStore.getState().chats;
+    const currentChatIndex = useDocumentStore.getState().currentChatIndex;
     if (!chats || currentChatIndex === undefined || currentChatIndex < 0 || currentChatIndex >= chats.length) {
       toast.error('No chats available or invalid current chat index');
       return;
@@ -86,9 +86,7 @@ const CloneChat: React.FC = React.memo(() => {
 
   return (
     <button
-      className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out${
-        cloned ? 'bg-black text-white hover:bg-black/50' : 'bg-black text-white hover:bg-black/50'
-      }`}
+      className={`relative px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ease-in-out bg-black text-white hover:bg-black/50`}
       aria-label={t('cloneChat')}
       onClick={cloneChat}
       disabled={cloned}

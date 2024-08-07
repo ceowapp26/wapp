@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChatInterface } from '@/types/chat';
 import { useCompletion } from 'ai/react';
@@ -8,30 +8,31 @@ import { Id } from '@/convex/_generated/dataModel';
 import { toast } from 'sonner';
 import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, determineModel } from '@/utils/aiUtils';
 import { useToken } from './use-token';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { useGeneralContext } from '@/context/general-context-provider';
 import { ModelOption, TotalTokenUsed, WarningType } from '@/types/ai';
+import { chatAPIEndpointOptions } from '@/constants/ai';
 import { MessageInterface } from '@/types/chat';
 
 export type Context = 'general' | 'selection' | 'document' | 'q&a';
 
 export const useSubmit = () => {
   const { t, i18n } = useTranslation('api');
-  const currentState = useStore.getState();
-  const error = useStore((state) => state.error);
-  const setError = useStore((state) => state.setError);
-  const setGenerating = useStore((state) => state.setGenerating);
-  const setChats = useStore((state) => state.setChats);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
-  const inputModel = useStore((state) => state.inputModel);
-  const inputContext = useStore((state) => state.inputContext);
-  const apiEndpoint = useStore((state) => state.apiEndpoint);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const chats = useStore((state) => state.chats);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
-  const timeLimitTokenUsed = useStore((state) => state.timeLimitTokenUsed);
-  const tokenShortage = useStore((state) => state.tokenShortage);
+  const error = useDocumentStore((state) => state.error);
+  const setError = useDocumentStore((state) => state.setError);
+  const setGenerating = useDocumentStore((state) => state.setGenerating);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const chatModel = useDocumentStore((state) => state.chatModel);
+  const chatContext = useDocumentStore((state) => state.chatContext);
+  const chats = useDocumentStore((state) => state.chats);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const setApiEndpoint = useModelStore((state) => state.setApiEndpoint);
+  const countTotalTokens = useModelStore((state) => state.countTotalTokens);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
+  const timeLimitTokenUsed = useModelStore((state) => state.timeLimitTokenUsed);
+  const tokenShortage = useModelStore((state) => state.tokenShortage);
   const updateChat = useMutation(api.chats.updateChat);
   const updateModel = useMutation(api.models.updateModel);
   const { contextContent, inputType, outputType, showWarning, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
@@ -47,40 +48,58 @@ export const useSubmit = () => {
     }
   };
 
-  if (!apiEndpoint || apiEndpoint.length === 0) throw new Error(t('noApiKeyWarning') as string);
+  const apiEndpoint = useMemo(() => {
+    const model = determineModel(chatModel);
+    const endpoint = chatAPIEndpointOptions.find(option => option.key === model)?.value;
+    setApiEndpoint(endpoint);
+    return endpoint;
+  }, [chatModel, setApiEndpoint, chatAPIEndpointOptions]);
 
   const { complete, stop } = useCompletion({
     api: apiEndpoint,
     onResponse: async (response) => {
-      if (response.status === 429 || response.status === 403) {
-        setShowWarning && setShowWarning(true);
-        response.json().then(data => {
-          if (response.status === 429) {
-            setWarningType && setWarningType('CURRENT');
-            setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
-          } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
-            setWarningType && setWarningType('UNSUPPORTED');
-          }
-          setError && setError(data.error);
-        }).catch(() => {
-          toast.error('Failed to parse response');
-        });
-
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error("Error parsing JSON:", e);
+          errorData = { error: "An unexpected error occurred", status: response.status };
+        }
+        setError(errorData.error);
+        switch (response.status) {
+          case 429:
+            setShowWarning?.(true);
+            setWarningType?.('CURRENT');
+            setNextTimeUsage?.(errorData.nextAllowedTime);
+            break;
+          case 403:
+            if (errorData.error === "Unsupported region") {
+              setShowWarning?.(true);
+              setWarningType?.('UNSUPPORTED');
+            } else {
+              toast.error(errorData.error);
+            }
+            break;
+          default:
+            toast.error(errorData.error);
+        }
         return null;
       }
       return response;
     },
     onError: (e) => {
+      setError(e.message);
       toast.error(e.message);
     },
   });
 
   const handleSubmit = async () => {
-    if (useStore.getState().generating || !inputContext || !inputModel || currentChatIndex === undefined) return;
-    const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+    if (useDocumentStore.getState().generating || !chatContext || !chatModel || currentChatIndex === undefined) return;
+    const updatedChats = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
-    const inputModelData = models?.find((model) => model.model === inputModel);
+    const inputModelData = models?.find((model) => model.model === chatModel);
     if (!inputModelData) {
       console.error('Input model data not found');
       return;
@@ -93,8 +112,8 @@ export const useSubmit = () => {
       role: 'assistant',
       command: '',
       content: '',
-      context: inputContext,
-      model: inputModel,
+      context: chatContext,
+      model: chatModel,
     };
     currentChat.messages = [...currentChat.messages, newAssistantMessage];
     await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
@@ -103,15 +122,15 @@ export const useSubmit = () => {
     try {
       const isInsufficientTokens = checkTokenUsage();
       if (isInsufficientTokens) return;
-      const messages = limitMessageTokens(currentChat.messages, AIConfig[inputModel].max_tokens, determineModel(inputModel), inputModel, inputType, outputType);
+      const messages = limitMessageTokens(currentChat.messages, AIConfig[chatModel].max_tokens, determineModel(chatModel), chatModel, inputType, outputType);
       if (messages.length === 0) {
         toast.error('Message exceeds max token!');
         throw new Error('Message exceeds max token!');
       }
       const requestOption = {
         command: lastMessage.command || '',
-        model: inputModel,
-        contextContent: inputContext === 'selection' ? contextContent : '',
+        model: chatModel,
+        contextContent: chatContext === 'selection' ? contextContent : '',
         config: {
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
@@ -136,15 +155,7 @@ export const useSubmit = () => {
       }
     } catch (e: unknown) {
       const err = (e as Error).message;
-      if (err.includes('Country, region, or territory not supported')) {
-        setError('Your region is not supported. Please try again later or contact support.');
-      } else if (err.includes('You have reached your request limit for the day.')) {
-        setError('You have reached your request limit for the day.');
-      } else if (err.includes('You have reached your request limit for the minute.')) {
-        setError('You have reached your request limit for the minute.');
-      } else {
-        setError(err);
-      }
+      console.error("Error in POST request:", err);
       currentChat.messages.pop();
       await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
       setChats(updatedChats);
@@ -153,20 +164,20 @@ export const useSubmit = () => {
       if (countTotalTokens) {
         await Promise.all([
           updateTotalTokenUsed({
-            model: inputModel,
+            model: chatModel,
             promptMessages: currentChat.messages.slice(0, -1),
             completionMessage: currentChat.messages[currentChat.messages.length - 1],
-            aiModel: determineModel(inputModel),
+            aiModel: determineModel(chatModel),
             inputType: inputType,
             outputType: outputType,
             inputModelData: inputModelData,
             updateModel: updateModel,
           }),
           updateTimeLimitTokenUsed({
-            model: inputModel,
+            model: chatModel,
             promptMessages: currentChat.messages.slice(0, -1),
             completionMessage: currentChat.messages[currentChat.messages.length - 1],
-            aiModel: determineModel(inputModel),
+            aiModel: determineModel(chatModel),
             inputType: inputType,
             outputType: outputType,
             inputModelData: inputModelData,

@@ -130,7 +130,7 @@ const SendInAppNotificationPage = () => {
   );
 
   return (
-    <Box sx={{ p: 4, bgcolor: '#f5f5f5', minHeight: '100vh' }}>
+    <Box sx={{ p: 4, bgcolor: '#f5f5f5', maxHeight: '100vh', overflowY: 'auto' }}>
       <Tabs.Root
         defaultValue="firebase"
         onValueChange={setCurrentTab}
@@ -151,7 +151,7 @@ const SendInAppNotificationPage = () => {
           ))}
         </Tabs.List>
         {['firebase', 'pusher'].map((tab) => (
-          <Tabs.Content key={tab} value={tab}>
+          <Tabs.Content className="min-h-screen" key={tab} value={tab}>
             <Card>
               <CardHeader className="flex justify-center items-center bg-gradient-to-r from-blue-500 to-purple-600">
                 <Typography variant="h4" align="center" gutterBottom sx={{ color: 'white', py: 2 }}>

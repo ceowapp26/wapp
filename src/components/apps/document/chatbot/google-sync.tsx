@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import useGStore from '@store/cloud-auth-store';
 import {
   createDriveFile,
@@ -57,10 +57,10 @@ const GoogleSync = ({ clientId }: { clientId: string }) => {
               setFileId(_files[0].id);
             }
           }
-          useStore.persist.setOptions({
+          useDocumentStore.persist.setOptions({
             storage: createGoogleCloudStorage(),
           });
-          useStore.persist.rehydrate();
+          useDocumentStore.persist.rehydrate();
         }
       } catch (e: unknown) {
         console.log(e);
@@ -116,9 +116,9 @@ const GooglePopup = ({
   const googleAccessToken = useGStore((state) => state.googleAccessToken);
   const setFileId = useGStore((state) => state.setFileId);
 
-  const setToastStatus = useStore((state) => state.setToastStatus);
-  const setToastMessage = useStore((state) => state.setToastMessage);
-  const setToastShow = useStore((state) => state.setToastShow);
+  const setToastStatus = useDocumentStore((state) => state.setToastStatus);
+  const setToastMessage = useDocumentStore((state) => state.setToastMessage);
+  const setToastShow = useDocumentStore((state) => state.setToastShow);
 
   const [_fileId, _setFileId] = useState<string>(
     useGStore.getState().fileId || ''
@@ -177,7 +177,7 @@ const GooglePopup = ({
                   className='btn btn-primary cursor-pointer'
                   onClick={async () => {
                     setFileId(_fileId);
-                    await useStore.persist.rehydrate();
+                    await useDocumentStore.persist.rehydrate();
                     setToastStatus('success');
                     setToastMessage(t('toast.sync'));
                     setToastShow(true);
@@ -221,9 +221,9 @@ const FileSelector = ({
   const syncStatus = useGStore((state) => state.syncStatus);
   const setSyncStatus = useGStore((state) => state.setSyncStatus);
 
-  const setToastStatus = useStore((state) => state.setToastStatus);
-  const setToastMessage = useStore((state) => state.setToastMessage);
-  const setToastShow = useStore((state) => state.setToastShow);
+  const setToastStatus = useDocumentStore((state) => state.setToastStatus);
+  const setToastMessage = useDocumentStore((state) => state.setToastMessage);
+  const setToastShow = useDocumentStore((state) => state.setToastShow);
 
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);

@@ -7,7 +7,7 @@ async function checkRateLimit(req: Request, config: { RPM?: number; RPD?: number
   if (!process.env.KV_REST_API_URL || !process.env.KV_REST_API_TOKEN) {
     return null;
   }
-  const ip = req.headers.get("x-forwarded-for");
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip");
   
   if (config.RPM) {
     const ratelimit = new Ratelimit({

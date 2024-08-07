@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useTranslation } from "react-i18next";
 import { MessageInterface, ModelOption, WarningType } from "@/types/chat";
 import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed } from '@/utils/aiUtils';
@@ -57,10 +57,10 @@ export const useAIImage = ({
 }: AIImageProps = {}) => {
   const { t } = useTranslation('api');
   const [outputMessage, setOutputMessage] = useState<string>("");
-  const AIConfig = useStore((state) => state.AIConfig);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
-  const inputModel = useStore((state) => state.inputModel);
-  const inputContext = useStore((state) => state.inputContext);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const countTotalTokens = useModelStore((state) => state.countTotalTokens);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const inputContext = useModelStore((state) => state.inputContext);
   const { aiModel, inputType, outputType } = useGeneralContext();
   const { checkTokenUsage, updateTokenUsage } = useToken();
   const updateModel = useMutation(api.models.updateModel);
@@ -127,23 +127,34 @@ export const useAIImage = ({
         });
 
         if (!response.ok) {
-          if (response.status === 429 || response.status === 403) {
-            const data = await response.json();
-            setShowWarning?.(true);
-            if (response.status === 429) {
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            console.error("Error parsing JSON:", e);
+            errorData = { error: "An unexpected error occurred", status: response.status };
+          }
+          setError(errorData.error);
+          switch (response.status) {
+            case 429:
+              setShowWarning?.(true);
               setWarningType?.('CURRENT');
-              setNextTimeUsage?.(data.nextAllowedTime);
-            } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
-              setWarningType?.('UNSUPPORTED');
-            }
-            setError?.(data.error);
-            return;
+              setNextTimeUsage?.(errorData.nextAllowedTime);
+              break;
+            case 403:
+              if (errorData.error === "Unsupported region") {
+                setShowWarning?.(true);
+                setWarningType?.('UNSUPPORTED');
+              } else {
+                toast.error(errorData.error);
+              }
+              break;
+            default:
+              toast.error(errorData.error);
           }
           throw new Error(await response.text());
         }
-
         const result = await response.json();
-
         return result;
       };
 
@@ -174,15 +185,7 @@ export const useAIImage = ({
       }
     } catch (e: unknown) {
       const err = (e as Error).message;
-      if (err.includes('Country, region, or territory not supported')) {
-        setError?.('Your region is not supported. Please try again later or contact support.');
-      } else if (err.includes('You have reached your request limit for the day.')) {
-        setError?.('You have reached your request limit for the day.');
-      } else if (err.includes('You have reached your request limit for the minute.')) {
-        setError?.('You have reached your request limit for the minute.');
-      } else {
-        setError?.(err);
-      }
+      console.error("Error in POST request:", err);
     } finally {
       setIsLoading && setIsLoading(false);
     }

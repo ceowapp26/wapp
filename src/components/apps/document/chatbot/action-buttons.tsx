@@ -1,9 +1,6 @@
 import React from 'react';
 import { ButtonGroup, Tooltip, Button } from "@nextui-org/react";
-import { BetweenVerticalStart, BetweenVerticalEnd, BetweenHorizontalStart, BetweenHorizontalEnd, Replace, ArrowUp, ArrowDown, ArrowRight, RefreshCw, Copy, Trash2, Edit } from 'lucide-react';
-import TickIcon from '@/icons/TickIcon';
-import CrossIcon from '@/icons/CrossIcon';
-import MagicIcon from "@/icons/MagicIcon";
+import { BetweenVerticalStart, BetweenVerticalEnd, BetweenHorizontalStart, BetweenHorizontalEnd, Replace, ArrowUp, ArrowDown, ArrowRight, RefreshCw, Copy, Trash2, Edit, Sparkles, X, Check } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ActionButtonsProps {
@@ -80,12 +77,12 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
           <ButtonGroup variant="ghost" className="flex items-center">
             <Tooltip content="Confirm Delete" placement="top">
               <Button isIconOnly variant="bordered" onPress={handleDelete}>
-                <TickIcon />
+                <Check />
               </Button>
             </Tooltip>
             <Tooltip content="Cancel" placement="top">
               <Button isIconOnly variant="bordered" onPress={() => setIsDelete(false)}>
-                <CrossIcon />
+                <X />
               </Button>
             </Tooltip>
             <Tooltip content="Edit" placement="top">
@@ -128,7 +125,7 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
             )}
             <Tooltip content="Advanced AI" placement="top">
               <Button isIconOnly variant="bordered">
-                <MagicIcon />
+                <Sparkles />
               </Button>
             </Tooltip>
           </ButtonGroup>

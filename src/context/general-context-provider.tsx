@@ -12,6 +12,8 @@ interface GeneralContextType {
   setAiContext: React.Dispatch<React.SetStateAction<Context>>;
   aiModel: Model;
   setAiModel: React.Dispatch<React.SetStateAction<Model>>;
+  isSystemModel: boolean;
+  setIsSystemModel: React.Dispatch<React.SetStateAction<boolean>>;
   inputType: InputType;
   setInputType: React.Dispatch<React.SetStateAction<InputType>>;
   outputType: OutputType;
@@ -48,6 +50,7 @@ export const GeneralContextProvider: React.FC = ({ children }: { children: React
   const [selectedFolder, setSelectedFolder] = useState<string>(undefined);
   const [resData, setResData] = useState<SummaryData>(undefined);
   const [showWarning, setShowWarning] = useState<boolean>(false);
+  const [isSystemModel, setIsSystemModel] = useState<boolean>(false);
   const [warningType, setWarningType] = useState<WarningType>("CURRENT");
   const [nextTimeUsage, setNextTimeUsage] = useState<string>(null);
 
@@ -58,6 +61,7 @@ export const GeneralContextProvider: React.FC = ({ children }: { children: React
       selectedFolder, setSelectedFolder,  
       aiContext, setAiContext,
       aiModel, setAiModel,
+      isSystemModel, setIsSystemModel,
       inputType, setInputType,
       outputType, setOutputType,
       resData, setResData,

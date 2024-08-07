@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import DownChevronArrow from '@/icons/DownChevronArrow';
 import EditIcon from '@/icons/EditIcon';
 import DeleteIcon from '@/icons/DeleteIcon';
@@ -18,10 +18,10 @@ import { ClipboardList, GripVertical, Edit, Trash2, X, Check, Palette, RefreshCw
 
 const SnippetItem = React.memo(
   ({ snippetId, cloudSnippetId, content, snippetIndex }: { snippetId: string, cloudSnippetId: string, content: string, snippetIndex: number }) => {
-  const snippets = useStore((state) => state.snippets);
-  const isExpanded = useStore((state) => state.snippets[snippetIndex]?.expanded);
-  const color = useStore((state) => state.snippets[snippetIndex]?.color);
-  const setSnippets = useStore((state) => state.setSnippets);
+  const snippets = useDocumentStore((state) => state.snippets);
+  const isExpanded = useDocumentStore((state) => state.snippets[snippetIndex]?.expanded);
+  const color = useDocumentStore((state) => state.snippets[snippetIndex]?.color);
+  const setSnippets = useDocumentStore((state) => state.setSnippets);
   const inputRef = useRef<HTMLInputElement>(null);
   const snippetRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,7 @@ const SnippetItem = React.memo(
 
   const editTitle = () => {
     const updatedSnippets = JSON.parse(
-      JSON.stringify(useStore.getState().snippets)
+      JSON.stringify(useDocumentStore.getState().snippets)
     );
     updatedSnippets[snippetIndex].snippetName = snippetName;
     setSnippets(updatedSnippets);
@@ -64,7 +64,7 @@ const SnippetItem = React.memo(
 
   const handleDeleteSnippet = () => {
     const updatedSnippets = JSON.parse(
-      JSON.stringify(useStore.getState().snippets)
+      JSON.stringify(useDocumentStore.getState().snippets)
     );
     handleRemoveCloudSnippet(cloudSnippetId);
     delete updatedSnippets[snippetIndex];
@@ -74,7 +74,7 @@ const SnippetItem = React.memo(
 
   const updateColor = (_color?: string) => {
     const updatedSnippets = JSON.parse(
-      JSON.stringify(useStore.getState().snippets)
+      JSON.stringify(useDocumentStore.getState().snippets)
     );
     if (_color) updatedSnippets[snippetIndex].color = _color;
     else delete updatedSnippets[snippetIndex].color;
@@ -110,7 +110,7 @@ const SnippetItem = React.memo(
     event.preventDefault();
     if (draggedSnippetId) {
       const updatedSnippets = JSON.parse(
-        JSON.stringify(useStore.getState().snippets)
+        JSON.stringify(useDocumentStore.getState().snippets)
       );
       const draggedSnippetIndex = updatedSnippets.findIndex((snippet) => snippet.snippetId === draggedSnippetId);
       const draggedSnippet = updatedSnippets[draggedSnippetIndex];
@@ -137,7 +137,7 @@ const SnippetItem = React.memo(
 
   const toggleExpanded = () => {
     const updatedSnippets = JSON.parse(
-      JSON.stringify(useStore.getState().snippets)
+      JSON.stringify(useDocumentStore.getState().snippets)
     );
     if (updatedSnippets[snippetIndex]) {
       updatedSnippets[snippetIndex].expanded = !updatedSnippets[snippetIndex].expanded;

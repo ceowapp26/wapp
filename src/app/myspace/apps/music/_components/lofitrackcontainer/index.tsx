@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/hooks/hooks";
 import { RadioGroup } from "@headlessui/react";
-import { playSong, selectCurrentTracklist, selectCurrentIndex } from "@/redux/features/apps/music/songsSlice";
+import { playSong, selectCurrentTracklist, selectCurrentIndex } from "@/stores/features/apps/music/songsSlice";
 import Card from "../card";
 import { all, chill, jazzy, sleep } from '@/data/songData';
 

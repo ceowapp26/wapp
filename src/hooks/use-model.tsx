@@ -22,7 +22,7 @@ import {
 import { PlanModelFormProps, PlanModelSchema, CreditModelFormProps, CreditModelSchema } from '@/schemas/model.schema';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { CloudModelConfigInterface, CloudModelConfigCollectionInterface, LocalModelConfigInterface } from "@/types/ai";
 import { useModelContextHook } from '@/context/model-context-provider';
 import { calculateFloorMAR } from '@/utils/APILimitUtils';
@@ -38,8 +38,8 @@ export const useModel = () => {
   const currentUser = useQuery(api.users.getCurrentUser);
   const router = useRouter();
   const [userPlan, setUserPlan] = useState<PLAN_TYPE>('FREE');
-  const setAIConfig = useStore((state) => state.setAIConfig);
-  const AIConfig = useStore((state) => state.AIConfig);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
+  const AIConfig = useModelStore((state) => state.AIConfig);
   const { modelType, planType, aiModelStatus, setAiModelStatus, planModelStatus, setPlanModelStatus, setCurrentStep } = useModelContextHook();
 
   useEffect(() => {

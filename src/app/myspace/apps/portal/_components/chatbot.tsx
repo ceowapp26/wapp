@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useCallback } from 'react';
 import { useCompletion } from "ai/react";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { MessageInterface, ModelOption } from "@/types/chat";
@@ -43,17 +43,17 @@ const AILoadingSpinner = () => (
 const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
   const { t } = useTranslation('api');
   const MAX_WORDS = 255;
-  const AIConfig = useStore((state) => state.AIConfig);
-  const inputContext = useStore((state) => state.inputContext);
-  const inputModel = useStore((state) => state.inputModel);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const inputContext = useModelStore((state) => state.inputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const setInputModel = useModelStore((state) => state.setInputModel);
   const [_isPromptValid, _setIsPromptValid] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [option, setOption] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
+  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ prompt: prompt, option: option, setIsLoading: setIsLoading, setError: setError, onSendMessage: onSendMessage, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
 
   const wordCount = (text) => {
@@ -67,14 +67,13 @@ const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
   };
 
   const handleSetup = useCallback(() => {
+    setIsSystemModel(true);
     setOption(portalContext);
     setAiContext("portal");
-    setAiModel("openAI");
     setInputType("text-only");
-    setInputModel("gpt-3.5-turbo");
     setInputContext("general");
     setOutputType("text");    
-  }, [setAiContext, setAiModel, setOption, setInputContext, setInputModel, setInputType, setOutputType]);
+  }, [setAiContext, setOption, setInputContext, setInputType, setOutputType, setIsSystemModel]);
 
   const handlePromptChange = useCallback((value) => {
     const isValid = isPromptValid(value);
@@ -194,6 +193,7 @@ const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}
+          inputModel={inputModel}
         />
       )}
     </Container>

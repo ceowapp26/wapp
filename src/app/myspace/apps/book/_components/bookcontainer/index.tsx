@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/hooks';
 import BookResult from '../bookresult';
 import Utils from '@/utils/bookUtils';
-import { initializeLists, selectCurrentBook } from '@/redux/features/apps/book/booksSlice';
+import { initializeLists, selectCurrentBook } from '@/stores/features/apps/book/booksSlice';
 
 const BookContainer = ({ subject }) => {
   const dispatch = useAppDispatch();

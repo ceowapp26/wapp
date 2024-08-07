@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
 import { useDisclosure } from "@nextui-org/react";
 import PopupModal from './popup-modal';
 import SettingIcon from '@/icons/SettingIcon';
@@ -14,18 +13,12 @@ import { ChatConfigButton, ChatConfigModal } from './chat-config-menu';
 
 const SettingsMenu = () => {
   const { t } = useTranslation();
-  const theme = useStore.getState().theme;
   const settingModal = useDisclosure();
   const clearConversationModal = useDisclosure();
   const promptLibraryModal = useDisclosure();
   const chatConfigModal = useDisclosure();
 
-  useEffect(() => {
-    document.documentElement.className = theme;
-  }, [theme]);
-
   return (
-
     <>
       <button
         className='flex items-center w-full gap-4 px-4 py-4 text-md font-medium text-gray-700 bg-gray-400 rounded-md shadow-sm hover:bg-gray-500 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-200 mb-2'

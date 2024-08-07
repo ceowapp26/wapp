@@ -39,7 +39,7 @@ import { useEdgeStore } from '@/lib/edgestore';
 import { EdgeStoreApiClientError } from '@edgestore/react/shared';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { useGeneralContext } from '@/context/general-context-provider';
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useTranslation } from "react-i18next";
 import Warning from '@/components/models/warning'; 
 
@@ -67,12 +67,14 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [prompt, setPrompt] = useState<string | null>(null);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
+  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsModelSystem, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ prompt: prompt, option: selectedOption, setIsLoading: setIsLoading, setResData: setResData, setError: setError, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
   
   const handleSetup = useCallback((selectedOption: string) => {
+    setIsModelSystem(true);
     setSelectedOption(selectedOption);
     setAiContext("image");
     setInputContext("general");
@@ -90,7 +92,7 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
     const slice = editor.state.selection.content();
     const text = editor.storage.markdown.serializer.serialize(slice.content);
     setPrompt(text);
-  }, [editor, isGemini, setAiContext, setAiModel, setSelectedOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
+  }, [editor, isGemini, setAiContext, setAiModel, setIsModelSystem, setSelectedOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
 
   const handleAIGenerate = useCallback(async() => {
     if (aiContext === "image" && prompt && selectedOption && !isLoading) {
@@ -354,6 +356,7 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}
+          inputModel={inputModel}
         />
       )}
     </React.Fragment>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import SettingsToggle from './settings-toggle';
 
 const EnterToSubmitToggle = () => {
   const { t } = useTranslation();
-  const setEnterToSubmit = useStore((state) => state.setEnterToSubmit);
+  const setEnterToSubmit = useDocumentStore((state) => state.setEnterToSubmit);
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().enterToSubmit
+    useDocumentStore.getState().enterToSubmit
   );
   useEffect(() => {
     setEnterToSubmit(isChecked);

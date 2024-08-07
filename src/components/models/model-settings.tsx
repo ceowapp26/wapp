@@ -33,7 +33,7 @@ import EditIcon from "@/icons/EditIcon";
 import SearchIcon from "@/icons/SearchIcon";
 import ChevronDownIcon from "@/icons/ChevronDownIcon";
 import { CloudModelConfigInterface, ModelOption, CloudModelConfigCollectionInterface, TotalTokenUsed } from "@/types/ai";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useGeneralContext } from "@/context/general-context-provider";
@@ -388,10 +388,10 @@ const ModelSettings = () => {
   const [sortDescriptor, setSortDescriptor] = useState<{ column: string; direction: string }>({ column: "model", direction: "ascending" });
   const [editingModel, setEditingModel] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const setAIConfig = useStore((state) => state.setAIConfig);
-  const setTokenShortage = useStore((state) => state.setTokenShortage);
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
+  const setTokenShortage = useModelStore((state) => state.setTokenShortage);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
   const updateModel = useMutation(api.models.updateModel);
   const cloudModels = useQuery(api.models.getAllModels);
 

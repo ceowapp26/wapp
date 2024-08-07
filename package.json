@@ -6,7 +6,7 @@
     "dev": "node swEnvBuild.js && next dev",
     "build": "cross-env NODE_OPTIONS='--max_old_space_size=4096' next build && node swEnvBuild.js && prisma generate && prisma migrate deploy && npx convex deploy",
     "start": "next start",
-     "lint": "next lint --cache",
+    "lint": "next lint --cache",
     "vercel-install": "npm install --legacy-peer-deps",
     "analyze": "ANALYZE=true npm run build",
     "postinstall": "prisma generate"
@@ -96,6 +96,7 @@
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
     "babel-loader": "^9.1.3",
+    "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.3",
     "child_process": "^1.0.2",
     "class-variance-authority": "^0.7.0",

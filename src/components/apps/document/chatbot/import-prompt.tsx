@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { importPromptCSV } from '@/utils/prompt';
 import { Button, Input, Card, CardBody, Progress } from '@nextui-org/react';
 import { Upload, CheckCircle, XCircle } from 'lucide-react';
@@ -23,8 +23,8 @@ const ImportPrompt = () => {
         const csvString = event.target?.result;
         try {
           const results = importPromptCSV(csvString);
-          const prompts = useStore.getState().prompts;
-          const setPrompts = useStore.getState().setPrompts;
+          const prompts = useDocumentStore.getState().prompts;
+          const setPrompts = useDocumentStore.getState().setPrompts;
           const newPrompts = results.map((data) => ({
             id: uuidv4(),
             name: Object.values(data)[0],

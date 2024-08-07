@@ -1,10 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectApps } from '@/redux/features/apps/appsSlice';
+import { selectApps } from '@/stores/features/apps/appsSlice';
 import { AppIcon } from './app-icon';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
-import { useStore } from '@/redux/features/apps/document/store';
 
 export const AppHorizontalBar = () => {
   const apps = useSelector(selectApps);

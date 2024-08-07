@@ -1,4 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+"use client"
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { IconButton, Tooltip } from "@mui/material";
 import PauseIcon from "@mui/icons-material/Pause";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import RepeatOne from "@mui/icons-material/RepeatOne";
@@ -7,6 +10,7 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useAppDispatch, useAppSelector } from "@/hooks/hooks";
 import {
   playSong,
@@ -17,95 +21,105 @@ import {
   selectCurrentIndex,
   selectCurrentSong,
   selectCurrentTracklist
-} from "@/redux/features/apps/music/songsSlice";
-import { selectPlayModeStatus } from "@/redux/features/apps/music/playmodeSlice";
+} from "@/stores/features/apps/music/songsSlice";
+import { selectPlayModeStatus } from "@/stores/features/apps/music/playmodeSlice";
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 
-const PlayerControls = ({audio}) => {
+const PlayerControls = ({ audio, onPlay, onPause }) => {
   const dispatch = useAppDispatch();
   const mode = useAppSelector(selectPlayModeStatus);
   const currentIndex = useAppSelector(selectCurrentIndex);
   const [playMode, updateMode] = useState("list");
   const [repeatMode, setRepeatMode] = useState("loop");
-  const mounted = useRef(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { homePlayerToggle, setHomePlayerToggle, screenSize } = useMyspaceContext();
- 
+
   const isAboveSmallScreen = screenSize >= 640;
 
   const toggleRepeatMode = () => {
-    if (repeatMode === "loop") {
-      setRepeatMode("looponce");
-      updateMode("looponce");
-    } else {
-      setRepeatMode("loop");
-      updateMode("loop");
-    }
+    setRepeatMode(repeatMode === "loop" ? "looponce" : "loop");
+    updateMode(repeatMode === "loop" ? "looponce" : "loop");
   };
 
   const playerHandler = () => {
-    if (audio.paused) {
-        audio.play();
-        setHomePlayerToggle(true);
-      } else {
-        audio.pause();
+    if (homePlayerToggle) {
+        onPause();
         setHomePlayerToggle(false);
+      } else {
+        onPlay();
+        setHomePlayerToggle(true);
       }
   };
 
+  const buttonVariants = {
+    hover: { scale: 1.1 },
+    tap: { scale: 0.95 }
+  };
+
   return (
-    <div className="flex justify-around py-6 items-center flex-row">
+    <motion.div 
+      className="flex justify-around py-6 items-center flex-row"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       {!isAboveSmallScreen && (
         <>
-          <div
-            className="text-white cursor-pointer"
-            onClick={toggleRepeatMode}
-          >
-            {repeatMode === "loop" ? <RepeatIcon /> : <RepeatOne />}
-          </div>
-          <div
-            className="text-white cursor-pointer"
-            onClick={() => dispatch(playPreviousSong())}
-          >
-            <SkipPreviousIcon />
-          </div>
+          <Tooltip title={repeatMode === "loop" ? "Repeat All" : "Repeat One"}>
+            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+              <IconButton onClick={toggleRepeatMode} color="primary">
+                {repeatMode === "loop" ? <RepeatIcon /> : <RepeatOne />}
+              </IconButton>
+            </motion.div>
+          </Tooltip>
+          <Tooltip title="Previous">
+            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+              <IconButton onClick={() => dispatch(playPreviousSong())} color="primary">
+                <SkipPreviousIcon />
+              </IconButton>
+            </motion.div>
+          </Tooltip>
         </>
       )}
-      {!isAboveSmallScreen && (
-        <FavoriteBorderIcon
-          sx={{
-            marginRight: "1rem",
-            color: "rgb(87,114,255)",
-            fontSize: "32px",
-          }}
-        />
-      )}
-      <div
-        className="aspect-square w-8 sm:w-14 rounded-2xl flex items-center justify-center bg-white cursor-pointer"
-      >
-        <span onClick={playerHandler} className="text-player">
-          {homePlayerToggle ? <PauseIcon /> : <PlayArrowIcon />}
-        </span>
-      </div>
+      <Tooltip title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}>
+        <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+          <IconButton onClick={() => setIsFavorite(!isFavorite)} color="primary">
+            {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+          </IconButton>
+        </motion.div>
+      </Tooltip>
+      <Tooltip title={homePlayerToggle ? "Pause" : "Play"}>
+        <motion.div
+          className="aspect-square w-16 h-16 rounded-full flex items-center justify-center bg-blue-500 cursor-pointer"
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          <IconButton onClick={playerHandler} color="secondary">
+            {homePlayerToggle ? <PauseIcon /> : <PlayArrowIcon />}
+          </IconButton>
+        </motion.div>
+      </Tooltip>
       {!isAboveSmallScreen && (
         <>
-          <div
-            className="text-white cursor-pointer"
-            onClick={() => dispatch(playNextSong())}
-          >
-            <SkipNextIcon />
-          </div>
-          <div
-            className="text-white cursor-pointer"
-            onClick={() => updateMode("random")}
-          >
-            <ShuffleIcon />
-          </div>
+          <Tooltip title="Next">
+            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+              <IconButton onClick={() => dispatch(playNextSong())} color="primary">
+                <SkipNextIcon />
+              </IconButton>
+            </motion.div>
+          </Tooltip>
+          <Tooltip title="Shuffle">
+            <motion.div variants={buttonVariants} whileHover="hover" whileTap="tap">
+              <IconButton onClick={() => updateMode("random")} color="primary">
+                <ShuffleIcon />
+              </IconButton>
+            </motion.div>
+          </Tooltip>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 
 export default PlayerControls;
-
-

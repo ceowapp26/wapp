@@ -1,8 +1,9 @@
 import { User } from 'lucide-react';
-import { useStore } from "@/redux/features/apps/document/store";
 import { LocalModelConfigInterface, LocalModelConfigCollectionInterface, ModelOption, TimeLimitTokenUsed } from '@/types/ai';
 
-export const defaultModel = 'gpt-3.5-turbo';
+export const _defaultModel = 'gpt-3.5-turbo';
+
+export const _defaultAIAPIEndpoint = '/api/generate_openai';
 
 export const defaultAdvancedAPIEndPoint = '/api/enhance_openai';
 
@@ -153,8 +154,7 @@ export const imageModelCost = {
   },
 };
 
-export const defaultUserMaxToken = 4000;
-
+export const _defaultMaxToken = 4096;
 
 export interface LocalModelConfigCollectionInterface {
   [model: string]: LocalModelConfigInterface;
@@ -656,9 +656,25 @@ export const AIModelOptions = [
   { key: "gemini-1.5-flash", value: "gemini-1.5-flash" },
 ];
 
-export const APIEndpointOptions = [
+export const chatAPIEndpointOptions = [
   { key: "openAI", value: "/api/generate_openai" },
   { key: "gemini", value: "/api/generate_gemini" },
 ];
+
+export const emailAPIEndpointOptions = [
+  { key: "openAI", value: "/api/email_openAI" },
+  { key: "gemini", value: "/api/email_gemini" },
+];
+
+export const portalAPIEndpointOptions = [
+  { key: "openAI", value: "/api/portal_openAI" },
+  { key: "gemini", value: "/api/portal_gemini" },
+];
+
+export const advancedAPIEndpointOptions = [
+  { key: "openAI", value: "/api/enhance_openAI" },
+  { key: "gemini", value: "/api/enhance_gemini" },
+];
+
 
 

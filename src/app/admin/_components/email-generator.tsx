@@ -13,7 +13,7 @@ import { Mail, X } from 'lucide-react';
 import { useCompletion } from "ai/react";
 import MagicIcon from "@/icons/MagicIcon";
 import CrazySpinnerIcon from "@/icons/CrazySpinnerIcon";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { useTranslation } from "react-i18next";
@@ -75,10 +75,11 @@ const EmailGenerator = () => {
   const { locale } = useLocale();
   const defaultDate = today(getLocalTimeZone());
   const [date, setDate] = useState(defaultDate);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
   const allUsers = useQuery(api.users.getAllUsers);
-  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
+  const { aiContext, aiModel, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ prompt: prompt, setIsLoading: setIsLoading, setResData: setResData, setError: setError, setEmailSubject: setEmailSubject, setEmailText: setEmailText, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
   
   const wordCount = (text) => {
@@ -92,13 +93,12 @@ const EmailGenerator = () => {
   };
 
   const handleSetup = useCallback(() => {
+    setIsSystemModel(true);
     setAiContext("email");
     setInputContext("general");
-    setAiModel("openAI");
-    setInputModel("gpt-3.5-turbo");
     setInputType("text-only");
     setOutputType("text");
-  }, [setAiContext, setAiModel, setInputContext, setInputModel, setInputType, setOutputType]);
+  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel]);
 
   const handleAIGenerate = useCallback(async () => {
     handleSetup();
@@ -674,6 +674,7 @@ const handleScheduleEmail = async (e) => {
       <Warning
         type={warningType}
         nextTimeUsage={nextTimeUsage}
+        inputModel={inputModel}
       />
     )}
     </Container>

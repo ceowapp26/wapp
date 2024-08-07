@@ -1,22 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Loader } from '@/components/loader';
 import { useClerk } from "@clerk/nextjs";
-import { useRouter } from 'next/navigation'; 
-import { Button } from '@/components/ui/button';
-import { CircleCheckBig, CircleAlert, PartyPopper, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
-import { GradientLoadingCircle } from "@/components/gradient-loading-circle"
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, AlertCircle, ArrowLeft, Home, Mail } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
-type Props = {}
-
-const EmailVerification = (props: Props) => {
+const EmailVerification = () => {
   const [verificationStatus, setVerificationStatus] = useState("loading");
   const { handleEmailLinkVerification } = useClerk();
   const router = useRouter();
   const { user } = useUser();
-  const storedTempEmail = localStorage.getItem("tempEmail");
-  const storedEmail = localStorage.getItem("email");
 
   useEffect(() => {
     async function verify() {
@@ -26,94 +21,123 @@ const EmailVerification = (props: Props) => {
           redirectUrlComplete: "https://wapp-pi.vercel.app/home",
         });
         setVerificationStatus("verified");
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        setTimeout(() => {
+          router.push("/home");
+        }, 5000);
       } catch (err) {
         setVerificationStatus(err.code === "expired" ? "expired" : "failed");
       }
     }
     verify();
-  }, []);
+  }, [handleEmailLinkVerification, router]);
 
   useEffect(() => {
-    if (verificationStatus === 'verified' && (storedTempEmail || storedEmail)) {
+    if (verificationStatus === 'verified') {
       localStorage.removeItem('tempEmail');
       localStorage.removeItem('email');
     }
-  }, [verificationStatus, storedEmail, storedTempEmail]);
+  }, [verificationStatus]);
 
-  const handleReDirectHomePage = () => { 
-    router.push("/home");
-  };
-
-  const handleRedirectSignup = () => { 
+  const handleRedirectSignup = () => {
     router.push("/auth/sign-up");
   };
 
-  let content = null;
-
-  switch (verificationStatus) {
-    case "loading":
-      content = <GradientLoadingCircle size={70} thickness={5} />;
-      break;
-    case "failed":
-    case "expired":
-      content = (
-        <div className="fixed p-8 top-0 left-0 w-full h-full bg-black bg-opacity-50 flex flex-col items-center justify-center">
-          <div className="bg-white max-w-[350px] shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <div className="flex flex-col items-center justify-center mb-4">
-              <CircleAlert className="text-red-500 w-12 h-12 mr-2" />
-              <h1 className="text-2xl font-bold">
-                {verificationStatus === "failed" ? "Email link verification failed" : "Email link expired"}
+  const renderContent = () => {
+    switch (verificationStatus) {
+      case "loading":
+        return (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="flex flex-col items-center justify-center"
+          >
+            <div className="w-16 h-16 border-t-4 border-blue-500 border-solid rounded-full animate-spin"></div>
+            <p className="mt-4 text-lg font-semibold text-gray-700">Verifying your email...</p>
+          </motion.div>
+        );
+      case "failed":
+      case "expired":
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full"
+          >
+            <div className="flex flex-col items-center mb-6">
+              <AlertCircle className="text-red-500 w-16 h-16 mb-4" />
+              <h1 className="text-2xl font-bold text-gray-800">
+                {verificationStatus === "failed" ? "Verification Failed" : "Link Expired"}
               </h1>
             </div>
-            <p className="text-gray-700 text-center mb-10">
+            <p className="text-gray-600 text-center mb-8">
               {verificationStatus === "failed" 
-                ? "You have not successfully signed up for WApp."
-                : "The email link has expired. Please try signing up again."
+                ? "We couldn't verify your email. Please try signing up again."
+                : "The verification link has expired. Please request a new one."
               }
             </p>
-            <Button
-              type="button"
-              className="bg-white border border-green-500 w-[100px] hover:bg-green-500 hover:text-white text-green-500 font-bold py-2 px-4 rounded-full"
-              onClick={handleRedirectSignup}
-            >
-              Back <ArrowLeft className="ml-4" />
-            </Button>
-          </div>
-        </div>
-      );
-      break;
-    case "verified":
-      content = (
-        <div className="fixed p-8 top-0 left-0 w-full h-full bg-black bg-opacity-50 flex flex-col items-center justify-center">
-          <div className="bg-white max-w-[350px] shadow-md rounded px-8 pt-6 pb-8 mb-4">
-            <div className="flex flex-col items-center justify-center mb-4">
-              <CircleCheckBig className="text-green-500 w-12 h-12 mr-2" />
-              <div className="flex items-center p-4">
-                <h1 className="text-2xl font-bold">Success </h1>
-                <PartyPopper className="text-green-500 w-8 h-8 ml-2 -mt-2" />
-              </div>
+            <div className="flex justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full flex items-center"
+                onClick={handleRedirectSignup}
+              >
+                <ArrowLeft className="mr-2" size={18} />
+                Try Again
+              </motion.button>
             </div>
-            <p className="text-gray-700 text-center mb-10">
-              You have successfully signed up for WApp. Enjoy your journey with us!
+          </motion.div>
+        );
+      case "verified":
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-lg shadow-xl p-8 max-w-md w-full"
+          >
+            <div className="flex flex-col items-center mb-6">
+              <CheckCircle className="text-green-500 w-16 h-16 mb-4" />
+              <h1 className="text-2xl font-bold text-gray-800">Email Verified!</h1>
+            </div>
+            <p className="text-gray-600 text-center mb-8">
+              Welcome to WApp! You're all set to start your journey with us.
             </p>
-            <span className="typing-effect text-cener mr-4 w-full text-green-500 font-bold py-2 px-4">Wait.....</span>
-          </div>
-        </div>
-      );
-      break;
-    default:
-      content = null;
-      break;
-  }
+            <div className="flex justify-center">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full flex items-center"
+                onClick={() => router.push("/home")}
+              >
+                <Home className="mr-2" size={18} />
+                Go to Home
+              </motion.button>
+            </div>
+          </motion.div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
-      {content}
-      {verificationStatus === "loading" && (
-        <div className="mt-8">
-          <Loader loading />
-        </div>
-      )}
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center px-4">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={verificationStatus}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.3 }}
+        >
+          {renderContent()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 };

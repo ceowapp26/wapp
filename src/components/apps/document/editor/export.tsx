@@ -7,7 +7,6 @@ import {
   defaultNodes,
   defaultMarks
 } from "prosemirror-docx";
-import { useStore } from '@/redux/features/apps/document/store';
 import { saveAs } from "file-saver";
 import { Button } from "@/components/ui/button"; 
 import { api } from "@/convex/_generated/api";

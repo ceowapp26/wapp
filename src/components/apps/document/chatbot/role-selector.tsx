@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { ChatInterface, Role, roles } from '@/types/chat';
 import { useHideOnOutsideClick } from '@/hooks/use-hideon-outside-click';
 import { useMutation } from "convex/react";
@@ -15,10 +15,10 @@ const RoleSelector: React.FC<{
   sticky?: boolean;
 }> = React.memo(({ role, messageIndex, sticky }) => {
   const { t } = useTranslation();
-  const setInputRole = useStore((state) => state.setInputRole);
-  const setChats = useStore((state) => state.setChats);
+  const setChatRole = useDocumentStore((state) => state.setChatRole);
+  const setChats = useDocumentStore((state) => state.setChats);
   const updateChat = useMutation(api.chats.updateChat);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
   const [dropDown, setDropDown, dropDownRef] = useHideOnOutsideClick();
 
   const handleUpdateCloudChat = async (id: Id<"chats">, chatIndex: number, chat: ChatInterface) => {
@@ -76,14 +76,14 @@ const RoleSelector: React.FC<{
                   onClick={() => {
                     if (!sticky) {
                       const updatedChats: ChatInterface[] = JSON.parse(
-                        JSON.stringify(useStore.getState().chats)
+                        JSON.stringify(useDocumentStore.getState().chats)
                       );
                       const currentChat = updatedChats[currentChatIndex];
                       currentChat.messages[messageIndex].role = r;
                       setChats(updatedChats);
                       handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
                     } else {
-                      setInputRole(r);
+                      setChatRole(r);
                     }
                     setDropDown(false);
                   }}

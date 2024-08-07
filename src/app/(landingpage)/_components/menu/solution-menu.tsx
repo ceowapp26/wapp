@@ -186,12 +186,12 @@ export const SolutionMenu = forwardRef<HTMLDivElement>((props, ref) => {
   return (
     <nav
       ref={ref}
-      className="w-dropdown-list w-full bg-transparent absolute left-1/2 transform -translate-x-1/2"
+      className="w-dropdown-list w-full bg-transparent absolute left-1/2 transform -translate-x-1/2 rounded-lg"
       id="w-dropdown-list-0"
       aria-labelledby="w-dropdown-toggle-0"
     >
-      <div className="border border-solid w-full max-w-3xl border-opacity-10 bg-purple-900 rounded-lg flex justify-between">
-        <div className="w-full border-r border-solid border-dropdown-border px-6 py-8 flex gap-x-8">
+      <div className="w-full max-w-3xl bg-purple-900 flex justify-between">
+        <div className="w-full px-6 py-8 flex gap-x-8">
           {capabilities.map((section, index) => (
             <div key={index} className="flex flex-col h-full">
               {section.map((subsection, subIndex) => (

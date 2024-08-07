@@ -16,7 +16,6 @@ import {
   EditorInstance,
   EditorCommandList,
 } from "./core/index";
-import { useStore } from '@/redux/features/apps/document/store';
 import { ImageResizer } from "./lib/image-resizer";
 import { handleCommandNavigation } from "./lib/slash-command";
 import { defaultExtensions } from "./extensions";
@@ -181,7 +180,7 @@ const WappEditor = ({ onChange, id, documentTitle, initialContent }: EditorProps
           handleKeepCloudStorage={handleKeepCloudStorage}
         />
       )}
-      <div ref={ref} className={`relative`} style={{ width: `${isMobile ? '100%' : `calc(100% - ${rightSidebarWidth}px)`}` }}>
+      <div ref={ref} className={`relative wapp-editor`} style={{ width: `${isMobile ? '100%' : `calc(100% - ${rightSidebarWidth}px)`}` }}>
         <div className={`absolute flex right-2 items-center top-4 z-10 space-x-2`}>
           <div className={charsCount ? "rounded-lg bg-accent p-2 text-sm text-muted-foreground" : "hidden"}>
             {charsCount} Words

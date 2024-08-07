@@ -9,7 +9,7 @@ import { Button } from '../ui/button';
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { ClipboardPlus } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useMutation } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
@@ -22,8 +22,8 @@ interface SnippetEditorProps {
 
 export const SnippetSelector: React.FC<SnippetEditorProps> = ({ open, onOpenChange }) => {
   const { editor } = useEditor();
-  const setSnippets = useStore((state) => state.setSnippets);
-  const setCurrentSnippetIndex = useStore((state) => state.setCurrentSnippetIndex);
+  const setSnippets = useDocumentStore((state) => state.setSnippets);
+  const setCurrentSnippetIndex = useDocumentStore((state) => state.setCurrentSnippetIndex);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const createSnippet = useMutation(api.snippets.createSnippet);
@@ -54,7 +54,7 @@ export const SnippetSelector: React.FC<SnippetEditorProps> = ({ open, onOpenChan
   } = useMyspaceContext();
 
   const addSnippet = (snippet: SnippetInterface) => {
-    const snippets = useStore.getState().snippets;
+    const snippets = useDocumentStore.getState().snippets;
     setSnippets([...snippets, snippet]);
   };
 
@@ -70,7 +70,7 @@ export const SnippetSelector: React.FC<SnippetEditorProps> = ({ open, onOpenChan
     handleSidebar();
     const slice = editor.state.selection.content();
     const text = editor.storage.markdown.serializer.serialize(slice.content);
-    const snippets = useStore.getState().snippets;
+    const snippets = useDocumentStore.getState().snippets;
     const snippetId = uuidv4();
     const newSnippet: SnippetInterface = {
       snippetId: snippetId,

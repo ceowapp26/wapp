@@ -12,7 +12,7 @@ import { modelCost } from '@/constants/ai';
 
 export const usePaymentForm = () => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { paymentGateway, paymentType, basePriceInfo, setBasePriceInfo, purchasePriceInfo, setPurchasePriceInfo } = usePaymentContextHook();
+  const { paymentGateway, paymentType, modelType, basePriceInfo, setBasePriceInfo, purchasePriceInfo, setPurchasePriceInfo } = usePaymentContextHook();
   const router = useRouter();
   const [verified, setVerified] = useState(true); 
   const methods = useForm<UserPaymentProps>({

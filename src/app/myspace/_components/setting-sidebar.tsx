@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from "react";
-import { Settings2, Menu, ChevronRight, Search, X } from 'lucide-react'; 
+import { Settings2, Menu, ChevronRight, Search, X, CircleHelp } from 'lucide-react'; 
 import { styled, useTheme } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -107,6 +107,12 @@ export const SettingSidebar = () => {
               title="General Menu"
               subtitle="App, extensions, etc."
               onClick={() => handleSidebar("general-menu")}
+            />
+            <SidebarItem
+              icon={CircleHelp}
+              title="Technical Support"
+              subtitle="App tour, supports, etc."
+              onClick={() => handleSidebar("support-menu")}
             />
           </motion.div>
         </AnimatePresence>

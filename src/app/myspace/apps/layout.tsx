@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { useMutation, useQuery } from "convex/react";
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
@@ -27,12 +27,12 @@ const AppLayout: React.FC<AppProps> = ({ children }) => {
   const allUsers = useQuery(api.users.getAllUsers);
   const currentUser = useQuery(api.users.getCurrentUser);
   const updateMultipleModelsInfo = useMutation(api.users.updateMultipleModelsInfo);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const setAIConfig = useStore((state) => state.setAIConfig);
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
-  const setTotalTokenUsed = useStore((state) => state.setTotalTokenUsed);
-  const timeLimitTokenUsed = useStore((state) => state.timeLimitTokenUsed);
-  const setTimeLimitTokenUsed = useStore((state) => state.setTimeLimitTokenUsed);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
+  const setTotalTokenUsed = useModelStore((state) => state.setTotalTokenUsed);
+  const timeLimitTokenUsed = useModelStore((state) => state.timeLimitTokenUsed);
+  const setTimeLimitTokenUsed = useModelStore((state) => state.setTimeLimitTokenUsed);
   
   const handleUpdateMultipleModelsInfo = useCallback(async (id: Id<"users">, data: UserModelInfo[]) => {
     try {

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import BaseButton from './base-button';
 import MarkdownIcon from '@/icons/MarkdownIcon';
 import FileTextIcon from '@/icons/FileTextIcon';
 
 const MarkdownModeButton = () => {
-  const markdownMode = useStore((state) => state.markdownMode);
-  const setMarkdownMode = useStore((state) => state.setMarkdownMode);
+  const markdownMode = useDocumentStore((state) => state.markdownMode);
+  const setMarkdownMode = useDocumentStore((state) => state.setMarkdownMode);
 
   return (
     <BaseButton

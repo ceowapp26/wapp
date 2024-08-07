@@ -1,5 +1,6 @@
 import React from "react";
-import { MenuIcon, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { Button, Tooltip } from "@nextui-org/react";
 import { useSidebarContext } from "@/context/sidebar-context";
 import clsx from "clsx";
 
@@ -15,11 +16,18 @@ export const ToggleSettingsSidebar = () => {
           className={clsx("h-6 w-6")}
         />
       ) : (
-        <MenuIcon
-          onClick={setCollapsed}
-          role="button"
-          className={clsx("h-6 w-6")}
-        />
+        <Tooltip content="Toggle Sidebar" placement="bottom">
+          <Button
+            isIconOnly
+            color="warning"
+            variant="faded"
+            aria-label="Sidebar toggle"
+            onClick={setCollapsed}
+            className="sm:hidden bg-gray-300/50 hover:bg-gray-200/50"
+          >
+            <Menu size={24} />
+          </Button>
+        </Tooltip>
       )}
     </span>
   );

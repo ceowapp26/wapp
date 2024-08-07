@@ -19,6 +19,8 @@ import { kv } from "@vercel/kv";
 import { match } from "ts-pattern";
 import { embed } from "./notes";
 
+const _defaultModel = "gpt-3.5-turbo";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -131,6 +133,17 @@ const limitMessageTokens = async (
     limitedMessages.unshift(messages[i]);
   }
   return limitedMessages;
+};
+
+export const determineModel = (model: string): "openAI" | "gemini" => {
+  switch (true) {
+    case model.includes("gpt"):
+      return "openAI";
+    case model.includes("gemini"):
+      return "gemini";
+    default:
+      return "openAI";
+  }
 };
 
 export const createDocument = mutation({
@@ -359,6 +372,7 @@ export const generateDocumentTitle = action({
     activeOrgId: v.optional(v.string()),
     activeChatId: v.optional(v.id("chats")),
     configs: v.object({
+      model: v.optional(v.string()),  
       max_tokens: v.optional(v.number()),  
       RPM: v.optional(v.number()),  
       RPD: v.optional(v.number()),  
@@ -369,7 +383,10 @@ export const generateDocumentTitle = action({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    const model = "gpt-3.5-turbo";
+
+    const model = args.configs.model || _defaultModel;
+
+    const aiModel = determineModel(model);
 
     const userId = identity.subject;
 
@@ -459,25 +476,61 @@ export const generateDocumentTitle = action({
       return null;
     }
 
-    const chatCompletion: OpenAI.Chat.Completions.ChatCompletion =
-      await openai.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: systemTitleEmbeddingContent,
-          },
-          {
-            role: "user",
-            content: titlePrompt,
-          },
-        ],
-        model: model,
-      });
+    let title = "";
 
-    const title =
-      chatCompletion.choices[0].message.content ??
-      "Could not generate a title for this document.";
-    const titleEmbedding = await embed(title);
+    switch (aiModel) {
+      case "openAI":
+        const chatCompletion: OpenAI.Chat.Completions.ChatCompletion =
+        await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: systemTitleEmbeddingContent,
+            },
+            {
+              role: "user",
+              content: titlePrompt,
+            },
+          ],      
+          model: model,
+        });
+        title =
+          chatCompletion.choices[0].message.content ??
+          "Could not generate a title for this document.";
+        break;
+
+      case "gemini":
+        const messages = {
+          contents: [
+            {
+              role: "system",
+               parts: [
+                { text: systemTitleEmbeddingContent },
+              ],
+            },
+            {
+              role: "user",
+              parts: [
+                { text: titlePrompt },
+              ],
+            },
+          ],
+        };
+        const geminiStream = await genAI
+          .getGenerativeModel({ model: model, generationConfig, safetySettings })
+          .generateContentStream(messages);
+        let response = '';
+        for await (const chunk of geminiStream.stream) {
+          const chunkText = chunk.text();
+          title += chunkText;
+        }
+        break;
+      default:
+        throw new Error(`Unsupported AI model: ${aiModel}`);
+    }
+    
+    const titleEmbedding = await embed(title);    
+
     return { titlePrompt, title, systemTitleEmbeddingContent };
   },
 });
@@ -507,6 +560,7 @@ export const generateDocumentDescription = action({
     activeOrgId: v.optional(v.string()),
     activeChatId: v.optional(v.id("chats")),   
     configs: v.object({
+      model: v.optional(v.string()),  
       max_tokens: v.optional(v.number()),  
       RPM: v.optional(v.number()),  
       RPD: v.optional(v.number()),  
@@ -519,7 +573,9 @@ export const generateDocumentDescription = action({
     }
     const userId = identity.subject;
 
-    const model = "gpt-3.5-turbo";
+    const model = args.configs.model || _defaultModel;
+
+    const aiModel = determineModel(model);
 
     const document = await ctx.runQuery(internal.documents.getDocument, {
       documentId: args.documentId
@@ -606,25 +662,59 @@ export const generateDocumentDescription = action({
       return null;
     }
 
-    const chatCompletion: OpenAI.Chat.Completions.ChatCompletion =
-      await openai.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: systemDescriptionEmbeddingContent,
-          },
-          {
-            role: "user",
-            content: `Please generate a brief description for this document. The description cannot exceed 200 characters.`,
-          },
-        ],
-        model: model,
-      });
+ let description = "";
 
-    const description =
-      chatCompletion.choices[0].message.content ??
-      "Could not generate a description for this document.";
+    switch (aiModel) {
+      case "openAI":
+        const chatCompletion: OpenAI.Chat.Completions.ChatCompletion =
+        await openai.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: systemDescriptionEmbeddingContent,
+            },
+            {
+              role: "user",
+              content: descriptionPrompt,
+            },
+          ],      
+          model: model,
+        });
+        description =
+          chatCompletion.choices[0].message.content ??
+          "Could not generate a title for this document.";
+        break;
 
+      case "gemini":
+        const messages = {
+          contents: [
+            {
+              role: "system",
+               parts: [
+                { text: systemDescriptionEmbeddingContent },
+              ],
+            },
+            {
+              role: "user",
+              parts: [
+                { text: descriptionPrompt },
+              ],
+            },
+          ],
+        };
+        const geminiStream = await genAI
+          .getGenerativeModel({ model: model, generationConfig, safetySettings })
+          .generateContentStream(messages);
+        let response = '';
+        for await (const chunk of geminiStream.stream) {
+          const chunkText = chunk.text();
+          description += chunkText;
+        }
+        break;
+      default:
+        throw new Error(`Unsupported AI model: ${aiModel}`);
+    }
+    
     const descriptionEmbedding = await embed(description);
 
     return { descriptionPrompt, description, systemDescriptionEmbeddingContent };

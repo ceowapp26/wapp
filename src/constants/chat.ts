@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ChatInterface, ConfigCollectionInterface } from '@/types/chat';
 import { ModelOption } from '@/types/ai';
-import { defaultModel } from '@/constants/ai';
-import { useStore } from '@/redux/features/apps/document/store';
+import { _defaultModel } from '@/constants/ai';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 import { GoogleGenerativeAIStream, Message, StreamingTextResponse } from 'ai';
 
@@ -87,8 +87,8 @@ export const generateDefaultChat = (
   cloudChatId: '',
   chatTitle: chatTitle ? chatTitle : 'New Chat',
   messages:
-    useStore.getState().defaultSystemMessage.length > 0
-      ? [{ role: 'system', context: 'general', command: '', content: useStore.getState().defaultSystemMessage, model: defaultModel}]
+    useDocumentStore.getState().defaultSystemMessage.length > 0
+      ? [{ role: 'system', context: 'general', command: '', content: useDocumentStore.getState().defaultSystemMessage, model: _defaultModel}]
       : [],
   titleSet: false,
   tokenUsed: {},

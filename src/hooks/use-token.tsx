@@ -1,42 +1,50 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useDocumentStore } from "@/stores/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useGeneralContext } from "@/context/general-context-provider";
 import { TotalTokenUsed, TimeLimitTokenUsed, Model } from "@/app/types/ai";
 import { modelMaxToken } from '@/constants/ai';
 import { toast } from "sonner";
+
 const TIME_LIMIT = 60000;
+
 const MIN_TOKEN_THRESHOLD = 50;
 
 export const useToken = () => {
-  const inputModel = useStore((state) => state.inputModel);
-  const autoAdjustToken = useStore((state) => state.autoAdjustToken);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const setAIConfig = useStore((state) => state.setAIConfig);
-  const tokenShortage = useStore((state) => state.tokenShortage);
-  const setTokenShortage = useStore((state) => state.setTokenShortage);
+  const chatModel = useDocumentStore((state) => state.chatModel);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
+  const tokenShortage = useModelStore((state) => state.tokenShortage);
+  const setTokenShortage = useModelStore((state) => state.setTokenShortage);
+  const autoAdjustToken = useModelStore((state) => state.autoAdjustToken);
   const updateModel = useMutation(api.models.updateModel);
   const models = useQuery(api.models.getAllModels);
-  const { setShowWarning, setWarningType } = useGeneralContext();
-  
-  const inputModelData = useMemo(() => 
-    models?.find(model => model.model === inputModel),
-    [models, inputModel]
-  );
+  const { setShowWarning, setWarningType, isSystemModel } = useGeneralContext();
+
+  const modelToUse = useMemo(() => {
+    return isSystemModel ? inputModel : chatModel;
+  }, [inputModel, isSystemModel, chatModel]);
+
+  const inputModelData = useMemo(() => {
+    const modelToFind = isSystemModel ? inputModel : chatModel;
+    return models?.find(model => model.model === modelToFind);
+  }, [models, inputModel, isSystemModel, chatModel]);
 
   const checkTokenUsage = useCallback(() => {
     if (!inputModelData) {
       console.error("Input model data not found");
       return true; 
     }
-    const setTimeLimitTokenUsed = useStore.getState().setTimeLimitTokenUsed;
+    const setTimeLimitTokenUsed = useModelStore.getState().setTimeLimitTokenUsed;
     const timeLimitTokenUsed: TimeLimitTokenUsed = JSON.parse(
-      JSON.stringify(useStore.getState().timeLimitTokenUsed)
+      JSON.stringify(useModelStore.getState().timeLimitTokenUsed)
     );
-    const { tokenLimit } = timeLimitTokenUsed[inputModel];
+    const { tokenLimit } = timeLimitTokenUsed[modelToUse];
     const { floor_inputTokens, floor_outputTokens, max_inputTokens, max_outputTokens } = inputModelData;
     const minTokens = Math.min(floor_inputTokens, floor_outputTokens, max_inputTokens, max_outputTokens);
     const isTokenLow = tokenLimit === 0 && minTokens < MIN_TOKEN_THRESHOLD;
@@ -52,7 +60,7 @@ export const useToken = () => {
       setTokenShortage(false);
     }
     return isInsufficientTokens;
-  }, [inputModelData, inputModel, setShowWarning, setWarningType, setTokenShortage, autoAdjustToken]);
+  }, [inputModelData, modelToUse, setShowWarning, setWarningType, setTokenShortage, autoAdjustToken]);
   
   const manageTokenUsage = useCallback((
     currentUsage: TimeLimitTokenUsed,
@@ -84,14 +92,14 @@ export const useToken = () => {
 
   const updateTokenUsage = useCallback(async () => {
     if (!inputModelData) return;
-    const setTimeLimitTokenUsed = useStore.getState().setTimeLimitTokenUsed;
+    const setTimeLimitTokenUsed = useModelStore.getState().setTimeLimitTokenUsed;
     const timeLimitTokenUsed: TimeLimitTokenUsed = JSON.parse(
-      JSON.stringify(useStore.getState().timeLimitTokenUsed)
+      JSON.stringify(useModelStore.getState().timeLimitTokenUsed)
     );
     const totalTokenUsed: TotalTokenUsed = JSON.parse(
-      JSON.stringify(useStore.getState().totalTokenUsed)
+      JSON.stringify(useModelStore.getState().totalTokenUsed)
     );
-    const currentUsage = timeLimitTokenUsed[inputModel];
+    const currentUsage = timeLimitTokenUsed[modelToUse];
     const lastInputTokens = currentUsage.inputTokens[currentUsage.inputTokens.length - 1] || 0;
     const lastOutputTokens = currentUsage.outputTokens[currentUsage.outputTokens.length - 1] || 0;
     const totalTimeLimitUsedTokens = lastInputTokens + lastOutputTokens;
@@ -122,16 +130,16 @@ export const useToken = () => {
       floor_outputTokens: Math.min(inputModelData.floor_outputTokens, inputModelData.ceiling_outputTokens),
       max_RPM: inputModelData.max_inputTokens / inputModelData.max_tokens,
       timeLimitTokenUsed: updatedUsage,
-      totalTokenUsed: totalTokenUsed[inputModel],
+      totalTokenUsed: totalTokenUsed[modelToUse],
       max_tokens: autoAdjustToken ? Math.min(
         (modelMaxToken[inputModelData.model] || 4096),
         tokenLimit
       ) : inputModelData.max_tokens,
     };
     await updateModel({ id: inputModelData.cloudModelId, data: updatedModelData });
-    setTimeLimitTokenUsed({ ...timeLimitTokenUsed, [inputModel]: updatedUsage });
-    setAIConfig({ ...AIConfig, [inputModel]: { ...AIConfig[inputModel], max_tokens: updatedModelData.max_tokens }});
-  }, [inputModelData, inputModel, AIConfig, setAIConfig, updateModel, manageTokenUsage, autoAdjustToken]);
+    setTimeLimitTokenUsed({ ...timeLimitTokenUsed, [modelToUse]: updatedUsage });
+    setAIConfig({ ...AIConfig, [modelToUse]: { ...AIConfig[modelToUse], max_tokens: updatedModelData.max_tokens }});
+  }, [inputModelData, modelToUse, AIConfig, setAIConfig, updateModel, manageTokenUsage, autoAdjustToken]);
 
   return { checkTokenUsage, updateTokenUsage };
 };

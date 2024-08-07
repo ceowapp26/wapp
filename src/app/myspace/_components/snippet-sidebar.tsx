@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+"use client"
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { SnippetInterface } from '@/types/snippet';
 import SnippetSearch from './snippet-search';
 import SnippetItem from './snippet-item';
 
 export const SnippetSidebar: React.FC = () => {
-  const currentSnippetIndex = useStore((state) => state.currentSnippetIndex);
-  const snippets = useStore((state) => state.snippets);
+  const currentSnippetIndex = useDocumentStore((state) => state.currentSnippetIndex);
+  const snippets = useDocumentStore((state) => state.snippets);
   const [filterSnippets, setFilterSnippets] = useState<string>('');
   const snippetsRef = useRef<SnippetInterface[]>(snippets || []);
   const filterSnippetsRef = useRef<string>(filterSnippets);
@@ -28,7 +29,7 @@ export const SnippetSidebar: React.FC = () => {
 
   useEffect(() => {
     updateSnippets();
-    const unsubscribe = useStore.subscribe((state) => {
+    const unsubscribe = useDocumentStore.subscribe((state) => {
       if (state.snippets && state.snippets !== snippetsRef.current) {
         updateSnippets();
         snippetsRef.current = state.snippets;

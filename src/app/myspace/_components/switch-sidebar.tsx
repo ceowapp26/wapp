@@ -4,9 +4,9 @@ import { RightAISidebar } from "./ai-sidebar";
 import { RightSidebarSkeleton } from "./sidebar-skeleton";
 import { SnippetSidebar } from "./snippet-sidebar";
 import { SettingSidebar } from "./setting-sidebar";
+import { SupportSidebar } from "./support-sidebar";
 import { GeneralSetting } from "./general-setting";
 import { Switch } from "@/components/switch";
-import { useStore } from '@/redux/features/apps/document/store';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
 
 export const SwitchRightSidebar = () => {
@@ -26,6 +26,9 @@ export const SwitchRightSidebar = () => {
       </Switch.Case>
       <Switch.Case when={"general"}>
         <SettingSidebar />
+      </Switch.Case>
+      <Switch.Case when={"support-menu"}>
+        <SupportSidebar />
       </Switch.Case>
       <Switch.Case when={"general-setting"}>
         <GeneralSetting />

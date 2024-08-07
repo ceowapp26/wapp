@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { modelCost } from '@/constants/chat';
 import SettingsToggle from './settings-toggle';
 import { ModelOptions, TotalTokenUsed } from '@/types/chat';
 import CalculatorIcon from '@/icons/CalculatorIcon';
 
 type CostMapping = { model: string; cost: number }[];
+
 const tokenCostToCost = (
   tokenCost: TotalTokenUsed[ModelOptions],
   model: ModelOptions
@@ -22,9 +23,9 @@ const tokenCostToCost = (
 const TotalTokenCost = () => {
   const { t } = useTranslation(['main', 'model']);
 
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
-  const setTotalTokenUsed = useStore((state) => state.setTotalTokenUsed);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
+  const setTotalTokenUsed = useModelStore((state) => state.setTotalTokenUsed);
+  const countTotalTokens = useModelStore((state) => state.countTotalTokens);
 
   const [costMapping, setCostMapping] = useState<CostMapping>([]);
 
@@ -85,10 +86,10 @@ const TotalTokenCost = () => {
 export const TotalTokenCostToggle = () => {
   const { t } = useTranslation('main');
 
-  const setCountTotalTokens = useStore((state) => state.setCountTotalTokens);
+  const setCountTotalTokens = useModelStore((state) => state.setCountTotalTokens);
 
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().countTotalTokens
+    useModelStore.getState().countTotalTokens
   );
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export const TotalTokenCostToggle = () => {
 
 export const TotalTokenCostDisplay = () => {
   const { t } = useTranslation();
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
 
   const [totalCost, setTotalCost] = useState<number>(0);
 

@@ -12,6 +12,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import UserDropdown from "@/components/auth/user-dropdown";
 import { Search, X, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ColorfulLoadingCircle from "@/components/colorful-loading-circle";
 
 interface App {
   name: string;
@@ -145,9 +146,7 @@ const AppsPage: React.FC = () => {
       </div>
       
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
-        </div>
+        <ColorfulLoadingCircle width={32} height={32} background={'purple'} />
       ) : (
         <motion.div 
           className="grid grid-cols-1 md:grid-cols-2 laptopMB:grid-cols-3 gap-6"

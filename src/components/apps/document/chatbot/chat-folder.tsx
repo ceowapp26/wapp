@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import DownChevronArrow from '@/icons/DownChevronArrow';
 import FolderIcon from '@/icons/FolderIcon';
 import { ChatHistoryInterface, ArchivedChatInterface, ArchivedFolderCollectionInterface, ChatInterface, FolderInterface, FolderCollectionInterface } from '@/types/chat';
@@ -31,16 +31,15 @@ const ChatFolder = ({
   folderChats: ChatHistoryInterface[];
   folderId: string;
 }) => {
-  const isArchived = useStore((state) => state.archivedFolders[folderId]?.isArchived);
-  const folderName = isArchived ? useStore((state) => state.archivedFolders[folderId]?.folder.folderName) : useStore((state) => state.folders[folderId]?.folderName);
-  const isExpanded = isArchived ? useStore((state) => state.archivedFolders[folderId]?.folder.expanded) : useStore((state) => state.folders[folderId]?.expanded);
-  const color = useStore((state) => state.folders[folderId]?.color);
-  const setChats = useStore((state) => state.setChats);
-  const setArchivedChats = useStore((state) => state.setArchivedChats);
-  const setFolders = useStore((state) => state.setFolders);
-  const setArchivedFolders = useStore((state) => state.setArchivedFolders);
+  const isArchived = useDocumentStore((state) => state.archivedFolders[folderId]?.isArchived);
+  const folderName = isArchived ? useDocumentStore((state) => state.archivedFolders[folderId]?.folder.folderName) : useDocumentStore((state) => state.folders[folderId]?.folderName);
+  const isExpanded = isArchived ? useDocumentStore((state) => state.archivedFolders[folderId]?.folder.expanded) : useDocumentStore((state) => state.folders[folderId]?.expanded);
+  const color = useDocumentStore((state) => state.folders[folderId]?.color);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const setArchivedChats = useDocumentStore((state) => state.setArchivedChats);
+  const setFolders = useDocumentStore((state) => state.setFolders);
+  const setArchivedFolders = useDocumentStore((state) => state.setArchivedFolders);
   const managements = useFolderManagement();
-
   const inputRef = useRef<HTMLInputElement>(null);
   const folderRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<HTMLDivElement>(null);
@@ -88,7 +87,7 @@ const ChatFolder = ({
 
   const handleArchiveCloudFolder = async (id: Id<"chats">) => {
     try {
-      await archiveFolder({ id });
+      await archiveFolder({ id: id });
     } catch (error) {
       console.error(error);
       throw error;
@@ -97,7 +96,7 @@ const ChatFolder = ({
 
   const handleRestoreCloudFolder = async (id: Id<"chats">) => {
     try {
-      await restoreFolder({ id });
+      await restoreFolder({ id: id });
     } catch (error) {
       console.error(error);
       throw error;
@@ -106,7 +105,7 @@ const ChatFolder = ({
 
   const handleRemoveCloudFolder = async (id: Id<"chats">) => {
     try {
-      await removeFolder({ id });
+      await removeFolder({ id: id });
     } catch (error) {
       console.error(error);
       throw error;
@@ -124,7 +123,7 @@ const ChatFolder = ({
 
   const handleRemoveCloudChat = async (id: Id<"chats">) => {
     try {
-      await removeChat({ id });
+      await removeChat({ id: id });
     } catch (error) {
       console.error(error);
       throw error;
@@ -133,7 +132,7 @@ const ChatFolder = ({
 
   const editTitle = () => {
     const updatedFolders: FolderCollectionInterface = JSON.parse(
-      JSON.stringify(useStore.getState().folders)
+      JSON.stringify(useDocumentStore.getState().folders)
     );
     updatedFolders[folderId].folderName = _folderName;
     setFolders(updatedFolders);
@@ -143,10 +142,10 @@ const ChatFolder = ({
 
   const handleRemoveFolder = () => {
     const archivedChats = JSON.parse(
-      JSON.stringify(useStore.getState().archivedChats)
+      JSON.stringify(useDocumentStore.getState().archivedChats)
     );
     const archivedFolders = JSON.parse(
-      JSON.stringify(useStore.getState().archivedFolders)
+      JSON.stringify(useDocumentStore.getState().archivedFolders)
     );
     const archivedFoldersArray = Object.values(archivedFolders);
     const folderIndex = archivedFoldersArray.findIndex((folder) => folder.folderId === folderId);
@@ -174,13 +173,13 @@ const ChatFolder = ({
 
   const deleteFolder = () => {
     const updatedChats: ChatInterface[] = JSON.parse(
-      JSON.stringify(useStore.getState().chats)
+      JSON.stringify(useDocumentStore.getState().chats)
     );
     const archivedChats = JSON.parse(
-      JSON.stringify(useStore.getState().archivedChats)
+      JSON.stringify(useDocumentStore.getState().archivedChats)
     );
     const archivedFolders = JSON.parse(
-      JSON.stringify(useStore.getState().archivedFolders)
+      JSON.stringify(useDocumentStore.getState().archivedFolders)
     );
     for (let index = updatedChats.length - 1; index >= 0; index--) {
       const chat = updatedChats[index];
@@ -201,7 +200,7 @@ const ChatFolder = ({
     setArchivedChats(archivedChats);
     setChats(updatedChats);
     const updatedFolders: FolderCollectionInterface = JSON.parse(
-      JSON.stringify(useStore.getState().folders)
+      JSON.stringify(useDocumentStore.getState().folders)
     );
     const _currentArchiveFolder: ArchivedFolderCollectionInterface = {
       folderId,
@@ -218,16 +217,16 @@ const ChatFolder = ({
 
   const handleRestoreFolder = () => {
     const updatedChats = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
     );
     const updatedFolders = JSON.parse(
-        JSON.stringify(useStore.getState().folders)
+        JSON.stringify(useDocumentStore.getState().folders)
     );
     const archivedChats = JSON.parse(
-        JSON.stringify(useStore.getState().archivedChats)
+        JSON.stringify(useDocumentStore.getState().archivedChats)
     );
     const archivedFolders = JSON.parse(
-        JSON.stringify(useStore.getState().archivedFolders)
+        JSON.stringify(useDocumentStore.getState().archivedFolders)
     );
     const archivedFoldersArray = Object.values(archivedFolders);
 
@@ -261,7 +260,7 @@ const ChatFolder = ({
 
   const updateColor = (_color?: string) => {
     const updatedFolders: FolderCollectionInterface = JSON.parse(
-      JSON.stringify(useStore.getState().folders)
+      JSON.stringify(useDocumentStore.getState().folders)
     );
     if (_color) updatedFolders[folderId].color = _color;
     else delete updatedFolders[folderId].color;
@@ -294,7 +293,7 @@ const ChatFolder = ({
       e.stopPropagation();
       setIsHover(false);
       const updatedFolders: FolderCollectionInterface = JSON.parse(
-        JSON.stringify(useStore.getState().folders)
+        JSON.stringify(useDocumentStore.getState().folders)
       );
       updatedFolders[folderId].expanded = true;
       handleUpdateCloudFolder(updatedFolders[folderId].cloudFolderId, updatedFolders[folderId].order, updatedFolders[folderId]);
@@ -302,7 +301,7 @@ const ChatFolder = ({
 
       const chatIndex = Number(e.dataTransfer.getData('chatIndex'));
       const updatedChats: ChatInterface[] = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       updatedChats[chatIndex].folderId = folderId;
       const chatId = updatedChats[chatIndex].chatId;
@@ -324,10 +323,10 @@ const ChatFolder = ({
 
   const toggleExpanded = () => {
     const updatedFolders = JSON.parse(
-      JSON.stringify(useStore.getState().folders)
+      JSON.stringify(useDocumentStore.getState().folders)
     );
     const archivedFolders = JSON.parse(
-      JSON.stringify(useStore.getState().archivedFolders)
+      JSON.stringify(useDocumentStore.getState().archivedFolders)
     );
 
     if (updatedFolders[folderId] && !isArchived) {
@@ -345,7 +344,7 @@ const ChatFolder = ({
 
   const moveFolder = (direction: 'up' | 'down') => {
     const updatedFolders: FolderCollectionInterface = JSON.parse(
-        JSON.stringify(useStore.getState().folders)
+        JSON.stringify(useDocumentStore.getState().folders)
     );
     const foldersArray = Object.values(updatedFolders);
     let currentIndex = foldersArray.findIndex((folder) => folder.folderId === folderId);
@@ -375,7 +374,7 @@ const ChatFolder = ({
 
   const handleManagement = () => {
     const updatedFolders: FolderCollectionInterface = JSON.parse(
-      JSON.stringify(useStore.getState().folders)
+      JSON.stringify(useDocumentStore.getState().folders)
     );
     const cloudFolderId = updatedFolders[folderId].cloudFolderId;
     if (!cloudFolderId) return;
@@ -536,7 +535,7 @@ const ChatFolder = ({
                   className='p-1 dark:hover:text-white hover:text-gray-900'
                   onClick={() => moveFolder('up')}
                   aria-label='move folder up'
-                  disabled={folderId === Object.keys(useStore.getState().folders)[0]}
+                  disabled={folderId === Object.keys(useDocumentStore.getState().folders)[0]}
                 >
                   <ArrowUpFromLine size={16} />
                 </button>
@@ -544,7 +543,7 @@ const ChatFolder = ({
                   className='p-1 dark:hover:text-white hover:text-gray-900'
                   onClick={() => moveFolder('down')}
                   aria-label='move folder down'
-                  disabled={folderId === Object.keys(useStore.getState().folders)[Object.keys(useStore.getState().folders).length - 1]}
+                  disabled={folderId === Object.keys(useDocumentStore.getState().folders)[Object.keys(useDocumentStore.getState().folders).length - 1]}
                 >
                   <ArrowDownFromLine size={16} />
                 </button>

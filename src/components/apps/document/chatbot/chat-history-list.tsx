@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { shallow } from 'zustand/shallow';
 import ChatFolder from './chat-folder';
 import ChatHistory from './chat-history';
@@ -27,16 +27,16 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
 const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filterValue?: string }) => {
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
-  const setChats = useStore((state) => state.setChats);
-  const chats = useStore((state) => state.chats);
-  const archivedChats = useStore((state) => state.archivedChats);
-  const folders = useStore((state) => state.folders);
-  const archivedFolders = useStore((state) => state.archivedFolders);
-  const setArchivedChats = useStore((state) => state.setArchivedChats);
-  const setFolders = useStore((state) => state.setFolders);
-  const setArchivedFolders = useStore((state) => state.setArchivedFolders);
-  const chatTitles = useStore(
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const chats = useDocumentStore((state) => state.chats);
+  const archivedChats = useDocumentStore((state) => state.archivedChats);
+  const folders = useDocumentStore((state) => state.folders);
+  const archivedFolders = useDocumentStore((state) => state.archivedFolders);
+  const setArchivedChats = useDocumentStore((state) => state.setArchivedChats);
+  const setFolders = useDocumentStore((state) => state.setFolders);
+  const setArchivedFolders = useDocumentStore((state) => state.setArchivedFolders);
+  const chatTitles = useDocumentStore(
     (state) => state.chats?.map((chat) => chat.chatTitle),
     shallow
   );
@@ -62,10 +62,10 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
   );
   const [filterChats, setFilterChats] = useState<string>('');
   const [filterArchivedChats, setFilterArchivedChats] = useState<string>('');
-  const chatsRef = useRef<ChatInterface[]>(useStore.getState().chats || []);
-  const archivedChatsRef = useRef<ArchivedChatInterface[]>(useStore.getState().archivedChats || []);
-  const foldersRef = useRef<FolderCollectionInterface>(useStore.getState().folders);
-  const archivedFoldersRef = useRef<ArchivedFolderCollectionInterface>(useStore.getState().archivedFolders);
+  const chatsRef = useRef<ChatInterface[]>(useDocumentStore.getState().chats || []);
+  const archivedChatsRef = useRef<ArchivedChatInterface[]>(useDocumentStore.getState().archivedChats || []);
+  const foldersRef = useRef<FolderCollectionInterface>(useDocumentStore.getState().folders);
+  const archivedFoldersRef = useRef<ArchivedFolderCollectionInterface>(useDocumentStore.getState().archivedFolders);
   const filterChatsRef = useRef<string>(filterChats);
   const filterArchivedChatsRef = useRef<string>(filterArchivedChats);
   const updateChat = useMutation(api.chats.updateChat);
@@ -93,8 +93,8 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
     const _folders: ArchivedFolderCollectionInterface = {};
     const _noFoldersWithFolderId: { [key: string]: ArchivedChatInterface[] } = {};
     const _noFolders: ArchivedChatInterface[] = [];
-    const _archivedChats = useStore.getState().archivedChats;
-    const _archivedFolders = useStore.getState().archivedFolders;
+    const _archivedChats = useDocumentStore.getState().archivedChats;
+    const _archivedFolders = useDocumentStore.getState().archivedFolders;
     if (!_archivedChats || !_archivedFolders) return;
 
     Object.values(_archivedFolders)
@@ -169,8 +169,8 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
     const _folders: FolderCollectionInterface = {};
     const _noFoldersWithFolderId: { [key: string]: ChatHistoryInterface[] } = {};
     const _noFolders: ChatHistoryInterface[] = [];
-    const _activeChats = useStore.getState().chats;
-    const _activeFolders = useStore.getState().folders;
+    const _activeChats = useDocumentStore.getState().chats;
+    const _activeFolders = useDocumentStore.getState().folders;
 
     Object.values(_activeFolders)
       .sort((a, b) => a.order - b.order)
@@ -187,7 +187,7 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
         if (
           !_chatTitle.includes(_filterLowerCase) &&
           !_chatFolderName.includes(_filterLowerCase) &&
-          index !== useStore.getState().currentChatIndex
+          index !== useDocumentStore.getState().currentChatIndex
         )
           return;
 
@@ -250,7 +250,7 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
   useEffect(() => {
     updateFolders();
     updateArchivedFolders();
-    useStore.subscribe((state) => {
+    useDocumentStore.subscribe((state) => {
       if (
         !state.generating &&
         state.chats &&
@@ -283,11 +283,11 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
       currentChatIndex < chatTitles.length
     ) {
       document.title = chatTitles[currentChatIndex];
-      const chats = useStore.getState().chats;
+      const chats = useDocumentStore.getState().chats;
       if (chats) {
         const folderId = chats[currentChatIndex].folderId;
         const updatedFolders: FolderCollectionInterface = JSON.parse(
-            JSON.stringify(useStore.getState().folders)
+            JSON.stringify(useDocumentStore.getState().folders)
         );
         if (folderId && updatedFolders[folderId]) {
           updatedFolders[folderId].expanded = true;
@@ -312,7 +312,7 @@ const ChatHistoryList = ({ filterKey, filterValue }: { filterKey?: string, filte
       setIsHover(false);
       const chatIndex = Number(e.dataTransfer.getData('chatIndex'));
       const updatedChats: ChatInterface[] = JSON.parse(
-        JSON.stringify(useStore.getState().chats)
+        JSON.stringify(useDocumentStore.getState().chats)
       );
       delete updatedChats[chatIndex].folderId;
       setChats(updatedChats);

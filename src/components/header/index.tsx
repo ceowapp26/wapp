@@ -27,7 +27,7 @@ export default function Header() {
           <HeaderBrand />
         )}
       </NavbarContent>
-      <NavbarContent justify="center">
+      <NavbarContent className="sm:w-3/4" justify="center">
         {!isMobile && <HeaderContent />}
       </NavbarContent>
       <NavbarContent justify="end">

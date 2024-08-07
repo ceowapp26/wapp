@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import ArrowBottom from '@/icons/ArrowBottom';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 
 const CollapseOptions = () => {
-  const setHideMenuOptions = useStore((state) => state.setHideMenuOptions);
-  const hideMenuOptions = useStore((state) => state.hideMenuOptions);
+  const setHideMenuOptions = useDocumentStore((state) => state.setHideMenuOptions);
+  const hideMenuOptions = useDocumentStore((state) => state.hideMenuOptions);
 
   return (
     <motion.div

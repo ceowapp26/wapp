@@ -2,15 +2,15 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import ConfigMenu from './config-menu';
 import { shallow } from 'zustand/shallow';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { api } from "@/convex/_generated/api";
 import { useDisclosure } from "@nextui-org/react";
 import { Settings, ChevronDown } from 'lucide-react';
 
 const ChatTitle = React.memo(() => {
   const { t } = useTranslation('model');
-  const AIConfig = useStore((state) => state.AIConfig);
-  const configModel = useStore((state) => state.configModel);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const configModel = useModelStore((state) => state.configModel);
   const configMenuModal = useDisclosure();
 
   const ConfigItem = ({ label, value }) => (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import PopupModal from './popup-modal';
 import { Trash2 } from 'lucide-react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useInitializeNewChat } from '@/hooks/use-initialize-newchat';
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -14,7 +14,7 @@ const ClearConversationModal = ({ isOpen, onOpenChange, onClose }: { isOpen: boo
   const { t } = useTranslation();
   const removeAllChats = useMutation(api.chats.removeAllChats);
   const initializeNewChat = useInitializeNewChat();
-  const setFolders = useStore((state) => state.setFolders);
+  const setFolders = useDocumentStore((state) => state.setFolders);
 
   const handleConfirm = async () => {
     removeAllChats()

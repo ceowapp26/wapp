@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { exportPrompts } from '@/utils/prompt';
 import { Button, Card, CardBody, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/react';
 import { Download, CheckCircle } from 'lucide-react';
@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 
 const ExportPrompt = () => {
   const { t } = useTranslation();
-  const prompts = useStore.getState().prompts;
+  const prompts = useDocumentStore.getState().prompts;
   const [isExporting, setIsExporting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 

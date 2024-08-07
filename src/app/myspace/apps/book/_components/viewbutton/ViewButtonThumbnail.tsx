@@ -1,6 +1,6 @@
-"use client";
-import { useCallback } from 'react';
-import { showBookPreview } from '@/redux/features/apps/book/viewsSlice'; 
+import React from 'react';
+import { motion } from 'framer-motion';
+import { showBookPreview } from '@/stores/features/apps/book/viewsSlice'; 
 import { useAppDispatch } from '@/hooks/hooks';
 import Utils from '@/utils/bookUtils';
 import { useRouter } from 'next/navigation'; 
@@ -10,15 +10,29 @@ const ViewButtonThumbnail = ({ bookID, bookLink, volumeInfo }) => {
     const dispatch = useAppDispatch();
     const router = useRouter();
 
-    const handleInput = useCallback(() => {
+    const handleInput = () => {
         dispatch(showBookPreview(bookLink));
         router.push(bookLink);
-    }, [dispatch, router, bookLink]);
+    };
 
     return (
-        <a className="text-inherit text-decoration-none" onClick={handleInput}>
-            <img className="mr-8 mt-8 rounded-lg shadow-md min-w-[128px] min-h-[201px] transition duration-200 transform -translate-y-[64px] hover:scale-105" src={utils.extractThumbnail(volumeInfo)} width="128" height="201" alt='cover' />
-        </a>
+        <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="text-inherit text-decoration-none cursor-pointer"
+            onClick={handleInput}
+        >
+            <motion.img
+                initial={{ y: -64, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.5 }}
+                className="rounded-lg shadow-md min-w-[128px] min-h-[201px]"
+                src={utils.extractThumbnail(volumeInfo)}
+                width="128"
+                height="201"
+                alt='cover'
+            />
+        </motion.a>
     );
 };
 

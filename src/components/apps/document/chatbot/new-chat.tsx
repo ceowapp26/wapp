@@ -1,14 +1,14 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import PlusIcon from '@/icons/PlusIcon';
 import { useAddChat } from '@/hooks/use-add-chat';
 
 const NewChat = ({ folderId, cloudFolderId }: { folderId?: string, cloudFolderId?: string }) => {
   const { t } = useTranslation();
   const addChat = useAddChat();
-  const generating = useStore((state) => state.generating);
-  const isArchived = useStore((state) => state.archivedFolders[folderId]?.isArchived);
+  const generating = useDocumentStore((state) => state.generating);
+  const isArchived = useDocumentStore((state) => state.archivedFolders[folderId]?.isArchived);
 
   if (isArchived) {
     return null;

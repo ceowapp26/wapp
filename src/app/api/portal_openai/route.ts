@@ -199,13 +199,44 @@ export async function POST(req: Request): Promise<Response> {
     });
     const stream = OpenAIStream(response);
     return new StreamingTextResponse(stream); 
-  } catch (error) {
-    console.error("Error in POST request:", error);
-    return new Response(JSON.stringify({ error: "An unexpected error occurred" }), {
-      status: 500,
+  } catch (error: any) {  
+    let status = 500;
+    let errorMessage = "An unexpected error occurred";
+    let errorCode = "unknown_error";
+    let errorType = "internal_server_error";
+
+    if (error.response) {
+      status = error.response.status;
+      if (error.error && error.error.type) {
+        errorType = error.error.type;
+      }
+      if (error.error && error.error.code) {
+        errorCode = error.error.code;
+      }
+      if (status === 429) {
+        errorMessage = "Rate limit exceeded";
+        errorCode = "rate_limit_exceeded";
+      } else if (status === 403 && error.error && error.error.code === 'unsupported_country_region_territory') {
+        errorMessage = "Unsupported region";
+        errorCode = "unsupported_country_region_territory";
+        errorType = "request_forbidden";
+      }
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+
+    return new Response(JSON.stringify({ 
+      error: errorMessage, 
+      status,
+      code: errorCode,
+      type: errorType
+    }), {
+      status,
       headers: { "Content-Type": "application/json" },
     });
   }
 }
+
+
 
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useTranslation } from 'react-i18next';
 import { matchSorter } from 'match-sorter';
 import { Prompt } from '@/types/prompt';
@@ -14,7 +14,7 @@ const CommandPrompt = ({
   setCharacterCount: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const { t } = useTranslation();
-  const prompts = useStore((state) => state.prompts);
+  const prompts = useDocumentStore((state) => state.prompts);
   const [_prompts, _setPrompts] = useState(prompts);
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
@@ -27,7 +27,7 @@ const CommandPrompt = ({
   }, [dropDown]);
 
   useEffect(() => {
-    const filteredPrompts = matchSorter(useStore.getState().prompts, input, {
+    const filteredPrompts = matchSorter(useDocumentStore.getState().prompts, input, {
       keys: ['name'],
     });
     _setPrompts(filteredPrompts);

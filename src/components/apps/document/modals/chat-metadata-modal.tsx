@@ -5,7 +5,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { useGeneralContext } from '@/context/general-context-provider';
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { Wand2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
@@ -26,10 +26,11 @@ const ChatMetadataModal = () => {
   const [description, setDescription] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const setChats = useStore((state) => state.setChats);
-  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedChat } = useGeneralContext();
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
+  const setChats = useModelStore((state) => state.setChats);
+  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedChat } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ setIsLoading: setIsLoading, setError: setError, setTitle: setTitle, setDescription: setDescription, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
 
   const handleUpdateCloudChat = async (id, chatIndex, chat) => {
@@ -42,13 +43,12 @@ const ChatMetadataModal = () => {
   };
 
   const handleSetup = useCallback(() => {
+    setIsSystemModel(true);
     setAiContext("chatMetadata");
     setInputContext("general");
-    setAiModel("openAI");
-    setInputModel("gpt-3.5-turbo");
     setInputType("text-only");
     setOutputType("text");
-  }, [setAiContext, setAiModel, setInputContext, setInputModel, setInputType, setOutputType]);
+  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel]);
 
   const handleAIGenerate = useCallback(async () => {
     if (aiContext === "chatMetadata" && !isLoading) {
@@ -71,7 +71,7 @@ const ChatMetadataModal = () => {
   }, [handleSetup, handleAIGenerate]);
 
   const editTitle = (title) => {
-    const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+    const updatedChats = JSON.parse(JSON.stringify(useModelStore.getState().chats));
     const currentChat = updatedChats.find(chat => chat.cloudChatId === selectedChat);
     currentChat.chatTitle = title;
     setChats(updatedChats);
@@ -135,6 +135,7 @@ const ChatMetadataModal = () => {
           <Warning
             type={warningType}
             nextTimeUsage={nextTimeUsage}
+            inputModel={inputModel}
           />
         )}
       </DialogContent>

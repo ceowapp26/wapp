@@ -1,13 +1,13 @@
 import React from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import PlusIcon from '@/icons/PlusIcon';
 import MenuIcon from '@/icons/MenuIcon';
 import { useAddChat } from '@/hooks/use-add-chat';
 
 const MobileBar = () => {
-  const generating = useStore((state) => state.generating);
-  const setHideSideMenu = useStore((state) => state.setHideSideMenu);
-  const chatTitle = useStore((state) =>
+  const generating = useDocumentStore((state) => state.generating);
+  const setHideSideMenu = useDocumentStore((state) => state.setHideSideMenu);
+  const chatTitle = useDocumentStore((state) =>
     state.chats &&
     state.chats.length > 0 &&
     state.currentChatIndex >= 0 &&

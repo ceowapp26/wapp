@@ -15,7 +15,7 @@ const SettingsPage = () => {
   const [themeColor, setThemeColor] = useState('#ff4757');
 
   return (
-    <Box className="bg-gradient-to-r from-purple-100 to-pink-100 min-h-screen py-12">
+    <Box className="bg-gradient-to-r from-purple-100 to-pink-100 min-h-screen py-12 w-full">
       <div className="container mx-auto p-6 max-w-6xl">
         <Typography variant="h3" className="text-4xl font-bold mb-8 pb-4 text-center text-gray-800">
           <Settings className="inline mr-2 mb-1" size={36} />

@@ -1,10 +1,10 @@
 import React from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { motion } from 'framer-motion';
 
 const StopGeneratingButton = () => {
-  const setGenerating = useStore((state) => state.setGenerating);
-  const generating = useStore((state) => state.generating);
+  const setGenerating = useDocumentStore((state) => state.setGenerating);
+  const generating = useDocumentStore((state) => state.generating);
   if (!generating) return null;
 
   return (

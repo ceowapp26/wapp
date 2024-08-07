@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import SettingToggle from './setting-toggle';
 
 const AutoAdjustTokenToggle = () => {
-  const setAutoAdjustToken = useStore((state) => state.setAutoAdjustToken);
+  const setAutoAdjustToken = useModelStore((state) => state.setAutoAdjustToken);
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().autoAdjustToken
+    useModelStore.getState().autoAdjustToken
   );
 
   useEffect(() => {

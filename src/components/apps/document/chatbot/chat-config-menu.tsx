@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useTranslation } from 'react-i18next';
 import { Textarea, Button } from '@nextui-org/react';
 import PopupModal from './popup-modal';
@@ -30,16 +31,16 @@ const ChatConfigModal = ({
   onClose: () => void;
 }) => {
   const { t } = useTranslation('model');
-  const AIConfig = useStore((state) => state.AIConfig);
-  const configModel = useStore((state) => state.configModel);
-  const setAIConfig = useStore((state) => state.setAIConfig);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const configModel = useModelStore((state) => state.configModel);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
   const updateModel = useMutation(api.models.updateModel);
   const cloudModels = useQuery(api.models.getAllModels);
-  const setDefaultSystemMessage = useStore(
+  const setDefaultSystemMessage = useDocumentStore(
     (state) => state.setDefaultSystemMessage
   );
   const [_systemMessage, _setSystemMessage] = useState<string>(
-    useStore.getState().defaultSystemMessage
+    useDocumentStore.getState().defaultSystemMessage
   );
   const [_model, _setModel] = useState<ModelOption>(AIConfig[configModel].model);
   const [_maxToken, _setMaxToken] = useState<number>(AIConfig[configModel].max_tokens);

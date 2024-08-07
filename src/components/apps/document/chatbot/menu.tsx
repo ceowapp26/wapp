@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import NewChat from './new-chat';
 import NewFolder from './new-folder';
 import ChatHistoryList from './chat-history-list';
@@ -11,8 +11,8 @@ import { Button } from "@/components/ui/button";
 import { SquareArrowLeft } from 'lucide-react';
 
 const Menu = () => {
-  const hideSideMenu = useStore((state) => state.hideSideMenu);
-  const setHideSideMenu = useStore((state) => state.setHideSideMenu);
+  const hideSideMenu = useDocumentStore((state) => state.hideSideMenu);
+  const setHideSideMenu = useDocumentStore((state) => state.setHideSideMenu);
   const {
     isLeftSidebarOpened,
     setIsLeftSidebarOpened,

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import SettingsToggle from './settings-toggle';
 
 const AutoTitleToggle = () => {
   const { t } = useTranslation();
-  const setAutoTitle = useStore((state) => state.setAutoTitle);
+  const setAutoTitle = useDocumentStore((state) => state.setAutoTitle);
   const [isChecked, setIsChecked] = useState<boolean>(
-    useStore.getState().autoTitle
+    useDocumentStore.getState().autoTitle
   );
 
   useEffect(() => {

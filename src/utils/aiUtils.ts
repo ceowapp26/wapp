@@ -1,6 +1,6 @@
 import { ModelOption, Model, TotalTokenUsed, TimeLimitTokenUsed } from "@/types/ai"; 
 import { MessageInterface } from '@/types/chat';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { Tiktoken } from '@dqbd/tiktoken/lite';
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -191,9 +191,9 @@ export const updateTotalTokenUsed = async ({
   inputModelData,
   updateModel,
 }: UpdateTokenUsedParams): Promise<void> => {
-  const setTotalTokenUsed = useStore.getState().setTotalTokenUsed;
+  const setTotalTokenUsed = useModelStore.getState().setTotalTokenUsed;
   const totalTokenUsed: TotalTokenUsed = JSON.parse(
-    JSON.stringify(useStore.getState().totalTokenUsed)
+    JSON.stringify(useModelStore.getState().totalTokenUsed)
   );
   const newPromptTokens = getCountTokensFunc(aiModel, promptMessages, model, inputType, outputType, inputImage);
   const newCompletionTokens = getCountTokensFunc(aiModel, [completionMessage], model, inputType, outputType, inputImage);
@@ -224,9 +224,9 @@ export const updateTimeLimitTokenUsed = async ({
   inputModelData,
   updateModel,
 }: UpdateTokenUsedParams): Promise<void> => {
-  const setTimeLimitTokenUsed = useStore.getState().setTimeLimitTokenUsed;
+  const setTimeLimitTokenUsed = useModelStore.getState().setTimeLimitTokenUsed;
   const timeLimitTokenUsed: TimeLimitTokenUsed = JSON.parse(
-    JSON.stringify(useStore.getState().timeLimitTokenUsed)
+    JSON.stringify(useModelStore.getState().timeLimitTokenUsed)
   );
   const newPromptTokens = getCountTokensFunc(aiModel, promptMessages, model, inputType, outputType, inputImage);
   const newCompletionTokens = getCountTokensFunc(aiModel, [completionMessage], model, inputType, outputType, inputImage);

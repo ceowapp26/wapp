@@ -29,10 +29,12 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import UnreleaseFeature from '@/components/unrelease-feature';
 import { useSettings } from '@/hooks/use-settings';
 import { Spinner } from "@/components/spinner";
+import ColorfulLoadingCircle from "@/components/colorful-loading-circle";
 import dynamic from 'next/dynamic';
 
 const EmailSchedule = dynamic(() => import('@/components/apps/document/email-schedule'), {
   ssr: false,
+    loading: () => <ColorfulLoadingCircle width={16} height={16} background={'blue'} />,
 });
 
 const drawerWidth = 240;

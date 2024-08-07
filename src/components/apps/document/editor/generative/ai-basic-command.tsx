@@ -1,16 +1,16 @@
 import React, { useEffect } from "react";
 import { CommandGroup, CommandItem, CommandSeparator, CommandList } from "../ui/command";
 import { useEditor } from "../core/index";
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { Check, TextQuote, TrashIcon } from "lucide-react";
 
 export const AIBasicCommand = () => {
   const { editor } = useEditor();
-  const setReplaceAI = useStore((state) => state.setReplaceAI);
-  const setInsertAboveAI = useStore((state) => state.setInsertAboveAI);
-  const setInsertBelowAI = useStore((state) => state.setInsertBelowAI);
-  const setInsertLeftAI = useStore((state) => state.setInsertLeftAI);
-  const setInsertRightAI = useStore((state) => state.setInsertRightAI);
+  const setReplaceAI = useDocumentStore((state) => state.setReplaceAI);
+  const setInsertAboveAI = useDocumentStore((state) => state.setInsertAboveAI);
+  const setInsertBelowAI = useDocumentStore((state) => state.setInsertBelowAI);
+  const setInsertLeftAI = useDocumentStore((state) => state.setInsertLeftAI);
+  const setInsertRightAI = useDocumentStore((state) => state.setInsertRightAI);
 
   useEffect(() => {
     const replace = (content) => {

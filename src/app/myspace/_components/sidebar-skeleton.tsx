@@ -9,7 +9,6 @@ import React, { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { cn } from "@/lib/utils";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
-import { useStore } from '@/redux/features/apps/document/store';
 
 interface RightSidebarProps {
   children: React.ReactNode;

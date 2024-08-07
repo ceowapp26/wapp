@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useDocumentStore } from "@/stores/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useSubmit } from "@/hooks/use-submit";
 import { useAdvancedSubmit } from "@/hooks/use-advanced-submit";
 import { useAIImage } from "@/hooks/use-ai-image";
@@ -64,21 +65,23 @@ export const useDynamicSubmit = ({
   setEmailText,
   onSendMessage,
 }: AIDynamicProps = {}) => { 
-  const inputContext = useStore((state) => state.inputContext) as ChatContext | undefined;
-  const inputModel = useStore((state) => state.inputModel) as ModelOption | undefined;
-  const chats = useStore((state) => state.chats);
-  const setGenerating = useStore((state) => state.setGenerating);
-  const generating = useStore((state) => state.generating);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
-  const setChats = useStore((state) => state.setChats);
-  const _setError = useStore((state) => state.setError);
-  const _apiEndpoint = useStore((state) => state.apiEndpoint);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const timeLimitTokenUsed = useStore((state) => state.timeLimitTokenUsed);
-  const setTimeLimitTokenUsed = useStore((state) => state.setTimeLimitTokenUsed);
-  const totalTokenUsed = useStore((state) => state.totalTokenUsed);
-  const setAIConfig = useStore((state) => state.setAIConfig);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
+  const chats = useDocumentStore((state) => state.chats);
+  const chatModel = useDocumentStore((state) => state.chatModel) as ModelOption | undefined;
+  const chatContext = useDocumentStore((state) => state.chatContext) as ModelOption | undefined;
+  const setGenerating = useDocumentStore((state) => state.setGenerating);
+  const generating = useDocumentStore((state) => state.generating);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const _setError = useDocumentStore((state) => state.setError);
+  const inputContext = useModelStore((state) => state.inputContext) as ChatContext | undefined;
+  const inputModel = useModelStore((state) => state.inputModel) as ModelOption | undefined;
+  const _apiEndpoint = useModelStore((state) => state.apiEndpoint);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const timeLimitTokenUsed = useModelStore((state) => state.timeLimitTokenUsed);
+  const setTimeLimitTokenUsed = useModelStore((state) => state.setTimeLimitTokenUsed);
+  const totalTokenUsed = useModelStore((state) => state.totalTokenUsed);
+  const setAIConfig = useModelStore((state) => state.setAIConfig);
+  const countTotalTokens = useModelStore((state) => state.countTotalTokens);
   const askQuestionOpenAi = useAction(api.chats.askQuestionOpenAi);
   const askQuestionGoogleGemini = useAction(api.chats.askQuestionGoogleGemini);
   const { handleSubmit } = useSubmit();
@@ -94,7 +97,7 @@ export const useDynamicSubmit = ({
   const generateDocumentTitle = useAction(api.documents.generateDocumentTitle);
   const generateChatDescription = useAction(api.chats.generateChatDescription);
   const generateChatTitle = useAction(api.chats.generateChatTitle);
-  const { aiContext, inputType, outputType, setAiContext, aiModel, setAiModel, selectedDocument, selectedChat } = useGeneralContext();
+  const { aiContext, inputType, outputType, setAiContext, aiModel, setAiModel, selectedDocument, selectedChat, isSystemModel } = useGeneralContext();
   const models = useQuery(api.models.getAllModels);
   const { checkTokenUsage, updateTokenUsage } = useToken();
 
@@ -159,7 +162,6 @@ export const useDynamicSubmit = ({
   const handleGenerateDocumentMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
-    /*if (aiModel === "openAI") await handleLocationCheck();*/
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -171,6 +173,7 @@ export const useDynamicSubmit = ({
       const titleResult = await generateDocumentTitle({ 
         documentId: selectedDocument, 
         configs: {
+          model: inputModel,
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
@@ -216,6 +219,7 @@ export const useDynamicSubmit = ({
       const descriptionResult = await generateDocumentDescription({ 
         documentId: selectedDocument, 
         configs: {
+          model: inputModel,
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
@@ -270,7 +274,6 @@ export const useDynamicSubmit = ({
   const handleGenerateChatMetadata = async ({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage }: AISelectorProps) => {
     setIsLoading && setIsLoading(true);
     setError && setError(null);
-    /*if (aiModel === "openAI") await handleLocationCheck();*/
     const inputModelData = models?.find(model => model.model === inputModel);
     if (!inputModelData) {
       console.error("Input model data not found");
@@ -282,6 +285,7 @@ export const useDynamicSubmit = ({
       const titleResult = await generateChatTitle({ 
         chatId: selectedChat, 
         configs: {
+          model: inputModel,
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
@@ -327,6 +331,7 @@ export const useDynamicSubmit = ({
       const descriptionResult = await generateChatDescription({ 
         chatId: selectedChat, 
         configs: {
+          model: inputModel,
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
@@ -380,12 +385,11 @@ export const useDynamicSubmit = ({
   };
 
   const convexAIHandler = async (func: any) => {
-    if (useStore.getState().generating || !inputContext || !inputModel || currentChatIndex === undefined) return;
-    /*if (aiModel === "openAI") await handleLocationCheck();*/
-    const updatedChats = JSON.parse(JSON.stringify(useStore.getState().chats));
+    if (useDocumentStore.getState().generating || !chatContext || !chatModel || currentChatIndex === undefined) return;
+    const updatedChats = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
-    const inputModelData = models?.find(model => model.model === inputModel);
+    const inputModelData = models?.find(model => model.model === chatModel);
     if (!inputModelData) {
       console.error("Input model data not found");
       return; 
@@ -398,8 +402,8 @@ export const useDynamicSubmit = ({
       role: 'assistant',
       command: '',
       content: '',
-      context: inputContext,
-      model: inputModel,
+      context: chatContext,
+      model: chatModel,
     };
     currentChat.messages = [...currentChat.messages, newAssistantMessage];
     await handleUpdateCloudChat(currentChat.cloudChatId, currentChat.chatIndex, currentChat);
@@ -411,6 +415,7 @@ export const useDynamicSubmit = ({
       const aiResponse = await func({ 
         chat: updatedChats[currentChatIndex],
         configs: {
+          model: chatModel,
           RPM: inputModelData.base_RPM + inputModelData.floor_RPM,
           RPD: inputModelData.base_RPD + inputModelData.floor_RPD,
           max_tokens: inputModelData.max_tokens,
@@ -435,20 +440,18 @@ export const useDynamicSubmit = ({
         if (countTotalTokens) {
           await Promise.all([
             updateTotalTokenUsed({
-              model: inputModel,
+              model: chatModel,
               promptMessages: promptMessages,
               completionMessage: currentChat.messages[currentChat.messages.length - 1],
-              aiModel: aiModel,
               inputType: inputType, 
               outputType: outputType,
               inputModelData: inputModelData,
               updateModel: updateModel,
             }),
             updateTimeLimitTokenUsed({
-              model: inputModel,
+              model: chatModel,
               promptMessages: descPromtMessages,
               completionMessage: descCompletionMsg,
-              aiModel: aiModel,
               inputType: inputType, 
               outputType: outputType,
               inputModelData: inputModelData,
@@ -466,7 +469,14 @@ export const useDynamicSubmit = ({
   };
 
   const handleAIDynamicFunc = useCallback(async () => {
-    if (!inputContext || !inputModel) {
+    const modelToUse = isSystemModel ? inputModel : chatModel;
+    let contextToUse = isSystemModel ? inputContext : chatContext;
+    if (!modelToUse) {
+      toast.error("No input model detected. Please select a valid model.");
+      return;
+    }
+    if (!contextToUse) {
+      toast.error("No context provided. Please provide the necessary context.");
       return;
     }
     const actions: Record<string, () => Promise<void>> = {
@@ -513,7 +523,7 @@ export const useDynamicSubmit = ({
         await handleAIImage();
       },
     };
-    const actionKey = `${aiContext || 'basic'}-${inputContext || 'general'}-${determineModel(inputModel) || 'openAI'}`;
+    const actionKey = `${aiContext || 'basic'}-${contextToUse || 'general'}-${determineModel(modelToUse) || 'openAI'}`;
     const action = actions[actionKey];
     if (action) {
       try {
@@ -528,6 +538,8 @@ export const useDynamicSubmit = ({
     aiContext,
     inputContext,
     inputModel,
+    chatModel, 
+    chatContext,
     currentChatIndex,
     askQuestionOpenAi,
     askQuestionGoogleGemini,

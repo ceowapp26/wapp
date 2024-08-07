@@ -10,7 +10,7 @@ import { ConvexClientProvider } from '@/providers/convex-provider';
 import { GeneralModalProvider } from '@/components/providers/modal-provider';
 import { DocumentModalProvider } from '@/components/apps/document/providers/modal-provider';
 import { EdgeStoreProvider } from '@/lib/edgestore';
-import { ReduxProvider } from '@/redux/ReduxProvider';
+import { ReduxProvider } from '@/stores/ReduxProvider';
 import { NextUIProvider } from '@nextui-org/react';
 import './globals.css';
 

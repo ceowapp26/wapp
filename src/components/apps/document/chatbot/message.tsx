@@ -4,7 +4,7 @@ import { Role } from '@/types/chat';
 import RoleSelector from './role-selector';
 import ContextSelector from './context-selector';
 import ModelSelector from "./model-selector";
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import ChatAvatar from './chat-avatar';
 import CommandBadge from './command-badge';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
@@ -33,8 +33,8 @@ const Message = React.memo(
     messageIndex: number;
     sticky?: boolean;
   }) => {
-    const hideSideMenu = useStore((state) => state.hideSideMenu);
-    const advancedMode = useStore((state) => state.advancedMode);
+    const hideSideMenu = useDocumentStore((state) => state.hideSideMenu);
+    const advancedMode = useDocumentStore((state) => state.advancedMode);
     const { rightSidebarWidth } = useMyspaceContext();
     const SMALL_SCREEN_THRESHOLD = 375;
     const MEDIUM_SCREEN_THRESHOLD = 500;

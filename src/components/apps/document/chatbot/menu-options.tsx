@@ -1,11 +1,10 @@
 import React from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import SettingsMenu from './settings-menu';
 import CollapseOptions from './collapse-options';
 
 const MenuOptions = () => {
-  const hideMenuOptions = useStore((state) => state.hideMenuOptions);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
+  const hideMenuOptions = useDocumentStore((state) => state.hideMenuOptions);
   return (
     <>
       <CollapseOptions />

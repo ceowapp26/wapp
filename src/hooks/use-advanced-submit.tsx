@@ -1,14 +1,14 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
-import { useStore } from "@/redux/features/apps/document/store";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
+import { useModelStore } from "@/stores/features/models/store";
 import { useSubmit } from "@/hooks/use-submit";
 import { ChatInterface, MessageInterface } from "@/types/chat";
 import { api } from "@/convex/_generated/api";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed } from '@/utils/aiUtils';
+import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, determineModel } from '@/utils/aiUtils';
 import { useGeneralContext } from "@/context/general-context-provider";
 import { ModelOption, WarningType } from "@/app/types/ai";
-import { defaultAdvancedAPIEndPoint } from "@/constants/ai";
+import { defaultAdvancedAPIEndPoint, advancedAPIEndpointOptions } from "@/constants/ai";
 import { useCompletion } from "ai/react";
 import { useToken } from "./use-token";
 import { toast } from "sonner";
@@ -54,39 +54,58 @@ export const useAdvancedSubmit = ({
   const { t, i18n } = useTranslation('api');
   const [promptMessage, setPromptMessage] = useState<MessageInterface | null>(null);
   const [outputMessage, setOutputMessage] = useState<string>("");
-  const inputModel = useStore((state) => state.inputModel);
-  const inputContext = useStore((state) => state.inputContext);
-  const AIConfig = useStore((state) => state.AIConfig);
-  const countTotalTokens = useStore((state) => state.countTotalTokens);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const inputContext = useModelStore((state) => state.inputContext);
+  const AIConfig = useModelStore((state) => state.AIConfig);
+  const countTotalTokens = useModelStore((state) => state.countTotalTokens);
+  const setApiEndpoint = useModelStore((state) => state.setApiEndpoint);
   const { aiModel, inputType, outputType } = useGeneralContext();
   const { checkTokenUsage, updateTokenUsage } = useToken();
   const updateModel = useMutation(api.models.updateModel);
   const models = useQuery(api.models.getAllModels);
 
-  if (!defaultAdvancedAPIEndPoint || defaultAdvancedAPIEndPoint.length === 0) throw new Error(t('noApiKeyWarning') as string);
-  const { complete } = useCompletion({
-    api: defaultAdvancedAPIEndPoint,
-    onResponse: (response) => {
-      if (response.status === 429 || response.status === 403) {
-        setShowWarning && setShowWarning(true);
-        response.json().then(data => {
-          if (response.status === 429) {
-            setWarningType && setWarningType('CURRENT');
-            setNextTimeUsage && setNextTimeUsage(data.nextAllowedTime);
-          } else if (response.status === 403 && data.error.includes('Country, region, or territory not supported')) {
-            setWarningType && setWarningType('UNSUPPORTED');
-          }
-          setError && setError(data.error);
-        }).catch(() => {
-          toast.error('Failed to parse response');
-        });
+  const apiEndpoint = useMemo(() => {
+    const model = determineModel(inputModel);
+    const endpoint = advancedAPIEndpointOptions.find(option => option.key === model)?.value;
+    setApiEndpoint(endpoint);
+    return endpoint;
+  }, [inputModel, setApiEndpoint, advancedAPIEndpointOptions]);
 
+  const { complete } = useCompletion({
+    api: apiEndpoint,
+    onResponse: async (response) => {
+      if (!response.ok) {
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error("Error parsing JSON:", e);
+          errorData = { error: "An unexpected error occurred", status: response.status };
+        }
+        setError(errorData.error);
+        switch (response.status) {
+          case 429:
+            setShowWarning?.(true);
+            setWarningType?.('CURRENT');
+            setNextTimeUsage?.(errorData.nextAllowedTime);
+            break;
+          case 403:
+            if (errorData.error === "Unsupported region") {
+              setShowWarning?.(true);
+              setWarningType?.('UNSUPPORTED');
+            } else {
+              toast.error(errorData.error);
+            }
+            break;
+          default:
+            toast.error(errorData.error);
+        }
         return null;
       }
       return response;
     },
     onError: (e) => {
-      setError && setError(e.message);
+      setError(e.message);
       toast.error(e.message);
     },
     onFinish: (prompt, completion) => {
@@ -125,15 +144,7 @@ export const useAdvancedSubmit = ({
       await complete(prompt, { body: requestOption });
     } catch (e: unknown) {
       const err = (e as Error).message;
-      if (err.includes('Country, region, or territory not supported')) {
-        setError('Your region is not supported. Please try again later or contact support.');
-      } else if (err.includes('You have reached your request limit for the day.')) {
-        setError('You have reached your request limit for the day.');
-      } else if (err.includes('You have reached your request limit for the minute.')) {
-        setError('You have reached your request limit for the minute.');
-      } else {
-        setError(err);
-      }
+      console.error("Error in POST request:", err);
     } finally {
       setIsLoading && setIsLoading(false);
       if (countTotalTokens && promptMessage && outputMessage) {

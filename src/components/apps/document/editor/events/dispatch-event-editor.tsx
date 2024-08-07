@@ -1,14 +1,14 @@
 "use client"
 import { useEffect } from 'react';
 import { useEditor } from '../core';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { TextSelection } from '@tiptap/pm/state';
 import { useGeneralContext } from '@/context/general-context-provider';
 
 export const DispatchEventEditor = () => {
   const { editor } = useEditor();
   const { contextContent, setContextContent } = useGeneralContext();
-  const setInputContext = useStore((state) => state.setInputContext);
+  const setInputContext = useModelStore((state) => state.setInputContext);
 
   useEffect(() => {
     const handleSelectionChange = () => {

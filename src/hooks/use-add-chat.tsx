@@ -1,4 +1,4 @@
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { generateDefaultChat } from '@/constants/chat';
 import { ChatInterface } from '@/types/chat';
 import { useMutation, useQuery } from 'convex/react';
@@ -7,7 +7,7 @@ import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { toast } from 'sonner';
 
 export const useAddChat = () => {
-  const { setChats, setCurrentChatIndex } = useStore();
+  const { setChats, setCurrentChatIndex } = useDocumentStore();
   const { activeOrg, activeDocument } = useMyspaceContext();
   const createChat = useMutation(api.chats.createChat);
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -38,7 +38,7 @@ export const useAddChat = () => {
     }
 
     try {
-      const { chats, archivedChats } = useStore.getState();
+      const { chats, archivedChats } = useDocumentStore.getState();
       const allChats = [...Object.values(chats), ...Object.values(archivedChats).map(chat => chat.chat)];
       const title = getUniqueTitle(allChats);
       const newChat: ChatInterface = {

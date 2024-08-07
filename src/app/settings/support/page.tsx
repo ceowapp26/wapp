@@ -35,7 +35,7 @@ const SupportCard = ({ icon: Icon, title, description, action, actionText, extra
 
 const SupportPage = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 py-12 w-full">
       <Container maxWidth="lg">
         <Typography variant="h3" className="text-4xl font-bold mb-12 text-center text-gray-800 p-6">
           How Can We Help You?
@@ -97,7 +97,7 @@ const SupportPage = () => {
               For any other inquiries or assistance, please don't hesitate to reach out.
             </Typography>
             <Typography variant="body2" className="text-gray-500">
-              Email: thenguyenfiner@gmail.com
+              Email: ceowapp@gmail.com
             </Typography>
           </CardBody>
         </Card>

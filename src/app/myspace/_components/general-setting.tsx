@@ -22,7 +22,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import LanguageSelector from '@/components/language-selector';
 import { AIModelOptions, APIEndpointOptions } from "@/constants/ai";
 import { Select } from "@/components/ui/nextui-select";
-import { useStore } from '@/redux/features/apps/document/store';
+import { useModelStore } from '@/stores/features/models/store';
 import { useModelSettings } from "@/hooks/use-model-settings";
 import { useTokenSettings } from "@/hooks/use-token-settings";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
@@ -67,9 +67,9 @@ export const GeneralSetting = () => {
   const theme = useTheme();  
   const modelSettings = useModelSettings();
   const tokenSettings = useTokenSettings();
-  const inputModel = useStore((state) => state.inputModel);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const setApiEndpoint = useStore((state) => state.setApiEndpoint);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
+  const setApiEndpoint = useModelStore((state) => state.setApiEndpoint);
   const { setRightSidebarType, rightSidebarWidth } = useMyspaceContext();
   const isSmallScreen = useMemo(() => rightSidebarWidth < SMALL_SCREEN_THRESHOLD, [rightSidebarWidth]); 
 

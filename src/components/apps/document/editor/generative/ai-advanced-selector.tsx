@@ -68,7 +68,7 @@ import { defaultAdvancedAPIEndPoint } from "@/constants/chat";
 import ComponentWrapper from "@/components/subscriptions/wrapper";
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useTranslation } from "react-i18next";
 import Warning from '@/components/models/warning'; 
 
@@ -112,23 +112,23 @@ const AIAdvancedSelector = ({
   const [prompt, setPrompt] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const { aiContext, aiModel, resData, setResData, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
+  const { aiContext, aiModel, resData, setResData, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ prompt: prompt, option: _option, setIsLoading: setIsLoading, setError: setError, setResData: setResData, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
 
   const handleSetup = useCallback((selectedOption: string) => {
+    setIsSystemModel(true);    
     _setOption(selectedOption)
     setAiContext("advanced");
-    setAiModel("openAI");
     setInputContext("general");
     setInputType("text-only");
-    setInputModel("gpt-3.5-turbo");
-    setOutputType("text");    
+    setOutputType("text");
     const slice = editor.state.selection.content();
     const text = editor.storage.markdown.serializer.serialize(slice.content);
     setPrompt(text);
-  }, [editor, setAiContext, setAiModel, _setOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
+  }, [editor, setAiContext, setAiModel, setIsSystemModel, _setOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt]);
 
   const handleAIGenerate = useCallback(async () => {
     if (aiContext === "advanced" && prompt && _option && !isLoading) {
@@ -450,6 +450,7 @@ const AIAdvancedSelector = ({
         <Warning
           type={warningType}
           nextTimeUsage={nextTimeUsage}
+          inputModel={inputModel}
         />
       )}
     </React.Fragment>

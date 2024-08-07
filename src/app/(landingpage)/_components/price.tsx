@@ -21,6 +21,7 @@ import {
   Button,
   Spinner,
 } from "@nextui-org/react";
+import ColorfulLoadingCircle from "@/components/colorful-loading-circle";
 
 type PricingSwitchProps = {
   onSwitch: (value: string) => void;
@@ -222,14 +223,7 @@ const PriceSection = () => {
       <PricingSwitch onSwitch={togglePricingPeriod} />
       <AnimatePresence>
         {isLoading ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex justify-center items-center h-64"
-          >
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
-          </motion.div>
+          <ColorfulLoadingCircle width={32} height={32} background={'purple'} />
         ) : (
           <motion.section 
             className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8"

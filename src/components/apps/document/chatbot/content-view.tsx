@@ -5,7 +5,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypeHighlight from 'rehype-highlight';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { ChatInterface } from '@/types/chat';
 import { codeLanguageSubset } from '@/constants/chat';
@@ -88,15 +88,15 @@ const ContentView = memo(
   }) => {
     const { rightSidebarWidth } = useMyspaceContext();
     const [isDelete, setIsDelete] = useState<boolean>(false);
-    const currentChatIndex = useStore((state) => state.currentChatIndex);
-    const setChats = useStore((state) => state.setChats);
-    const lastMessageIndex = useStore((state) =>
+    const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+    const setChats = useDocumentStore((state) => state.setChats);
+    const lastMessageIndex = useDocumentStore((state) =>
       state.chats ? state.chats[state.currentChatIndex].messages.length - 1 : 0
     );
-    const inputContext = useStore((state) => state.inputContext);
-    const setInputContext = useStore((state) => state.setInputContext);
-    const inlineLatex = useStore((state) => state.inlineLatex);
-    const markdownMode = useStore((state) => state.markdownMode);
+    const chatContext = useDocumentStore((state) => state.chatContext);
+    const setChatContext = useDocumentStore((state) => state.setChatContext);
+    const inlineLatex = useDocumentStore((state) => state.inlineLatex);
+    const markdownMode = useDocumentStore((state) => state.markdownMode);
     const updateChat = useMutation(api.chats.updateChat);
     const MEDIUM_SCREEN_THRESHOLD = 540;
     const isMediumScreen = useMemo(() => rightSidebarWidth < MEDIUM_SCREEN_THRESHOLD, [rightSidebarWidth]); 
@@ -112,7 +112,7 @@ const ContentView = memo(
     };
 
     const handleDelete = () => {
-      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
       const currentChat = updatedChats[currentChatIndex];
       currentChat.messages.splice(messageIndex, 1);
       setChats(updatedChats);
@@ -120,7 +120,7 @@ const ContentView = memo(
     };
 
     const handleMove = (direction: 'up' | 'down') => {
-      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
       const currentChat = updatedChats[currentChatIndex];
       const updatedMessages = currentChat.messages;
       const temp = updatedMessages[messageIndex];
@@ -140,10 +140,10 @@ const ContentView = memo(
 
     const handleSetup = useCallback(() => {
       setAiContext("basic");
-      setInputContext("general");
+      setChatContext("general");
       setInputType("text-only");
       setOutputType("text");
-    }, [setAiContext, setInputContext, setInputType, setOutputType]);
+    }, [setAiContext, setChatContext, setInputType, setOutputType]);
 
     const handleGenerate = () => {
       handleSetup();
@@ -151,7 +151,7 @@ const ContentView = memo(
     }; 
     
     const handleRefresh = () => {
-      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useStore.getState().chats));
+      const updatedChats: ChatInterface[] = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
       const currentChat = updatedChats[currentChatIndex];
       const updatedMessages = currentChat.messages;
       updatedMessages.splice(updatedMessages.length - 1, 1);
@@ -161,11 +161,11 @@ const ContentView = memo(
     };
 
     const handleCopy = () => navigator.clipboard.writeText(content);
-    const handleReplace = () => useStore.getState().replaceAI(content);
-    const handleInsertAbove = () => useStore.getState().insertAboveAI(content);
-    const handleInsertBelow = () => useStore.getState().insertBelowAI(content);
-    const handleInsertLeft = () => useStore.getState().insertLeftAI(content);
-    const handleInsertRight = () => useStore.getState().insertRightAI(content);
+    const handleReplace = () => useDocumentStore.getState().replaceAI(content);
+    const handleInsertAbove = () => useDocumentStore.getState().insertAboveAI(content);
+    const handleInsertBelow = () => useDocumentStore.getState().insertBelowAI(content);
+    const handleInsertLeft = () => useDocumentStore.getState().insertLeftAI(content);
+    const handleInsertRight = () => useDocumentStore.getState().insertRightAI(content);
 
     return (
       <>
@@ -180,7 +180,7 @@ const ContentView = memo(
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${role === 'assistant' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
                 {role === 'assistant' ? 'AI' : 'You'}
               </span>
-              {useStore.getState().generating && role === "assistant" && messageIndex === lastMessageIndex && (
+              {useDocumentStore.getState().generating && role === "assistant" && messageIndex === lastMessageIndex && (
                 <AIGeneratingIndicator />
               )}
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { shallow } from 'zustand/shallow';
 import { getCountTokensFunc, determineModel } from '@/utils/aiUtils';
 import { modelCost } from '@/constants/ai';
@@ -9,13 +9,13 @@ import { FiDollarSign, FiCpu } from 'react-icons/fi';
 const TokenCount = React.memo(() => {
   const [tokenCount, setTokenCount] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
-  const generating = useStore((state) => state.generating);
-  const messages = useStore(
+  const generating = useDocumentStore((state) => state.generating);
+  const messages = useDocumentStore(
     (state) =>
       state.chats ? state.chats[state.currentChatIndex].messages : [],
     shallow
   );
-  const model = useStore((state) => state.inputModel);
+  const model = useDocumentStore((state) => state.chatModel);
 
   const cost = useMemo(() => {
     const price =

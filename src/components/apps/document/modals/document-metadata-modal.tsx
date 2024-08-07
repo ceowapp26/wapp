@@ -5,7 +5,7 @@ import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Button } from '@/components/ui/button';
 import { useGeneralContext } from '@/context/general-context-provider';
-import { useStore } from "@/redux/features/apps/document/store";
+import { useModelStore } from "@/stores/features/models/store";
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { Wand2, AlertTriangle } from 'lucide-react';
 import { useTranslation } from "react-i18next";
@@ -21,24 +21,24 @@ const AIGeneratingSpinner = () => (
 const DocumentMetadataModal = () => {
   const { t } = useTranslation();
   const { isOpen, onClose } = useDocumentMetadatas();
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setInputModel = useStore((state) => state.setInputModel);
+  const setInputContext = useModelStore((state) => state.setInputContext);
+  const inputModel = useModelStore((state) => state.inputModel);
+  const setInputModel = useModelStore((state) => state.setInputModel);
   const updateDocument = useMutation(api.documents.updateDocument);
   const [title, setTitle] = useState(null);
   const [description, setDescription] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedDocument } = useGeneralContext();
+  const { aiContext, showWarning, warningType, nextTimeUsage, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, setShowWarning, setWarningType, setNextTimeUsage, selectedDocument } = useGeneralContext();
   const { handleAIDynamicFunc } = useDynamicSubmit({ setIsLoading: setIsLoading, setError: setError, setTitle: setTitle, setDescription: setDescription, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage });
 
   const handleSetup = useCallback(() => {
+    setIsSystemModel(true);
     setAiContext("docMetadata");
     setInputContext("general");
-    setAiModel("openAI");
-    setInputModel("gpt-3.5-turbo");
     setInputType("text-only");
     setOutputType("text");
-  }, [setAiContext, setAiModel, setInputContext, setInputModel, setInputType, setOutputType]);
+  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel]);
 
   const handleAIGenerate = useCallback(async () => {
     if (aiContext === "docMetadata" && !isLoading) {
@@ -120,6 +120,7 @@ const DocumentMetadataModal = () => {
           <Warning
             type={warningType}
             nextTimeUsage={nextTimeUsage}
+            inputModel={inputModel}
           />
         )}
       </DialogContent>

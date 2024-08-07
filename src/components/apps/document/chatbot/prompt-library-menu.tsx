@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { useTranslation } from 'react-i18next';
 import { Button, Textarea, Link, Tooltip } from '@nextui-org/react';
 import { Prompt } from '@/types/prompt';
@@ -34,8 +34,8 @@ const PromptLibraryButton = ({ onCloseModal, onOpen }) => {
 
 const PromptLibraryModal = ({ isOpen, onOpenChange, onClose }) => {
   const { t } = useTranslation();
-  const setPrompts = useStore((state) => state.setPrompts);
-  const prompts = useStore((state) => state.prompts);
+  const setPrompts = useDocumentStore((state) => state.setPrompts);
+  const prompts = useDocumentStore((state) => state.prompts);
   const [_prompts, _setPrompts] = useState(JSON.parse(JSON.stringify(prompts)));
   const container = useRef(null);
 

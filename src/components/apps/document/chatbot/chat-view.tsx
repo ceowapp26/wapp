@@ -2,7 +2,7 @@ import React, { memo, useEffect, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
-import { useStore } from '@/redux/features/apps/document/store';
+import { useDocumentStore } from '@/stores/features/apps/document/store';
 import { ChatInterface } from '@/types/chat';
 import PopupModal from './popup-modal';
 import TokenCount from './token-count';
@@ -48,24 +48,22 @@ const ChatView = ({
   const MEDIUM_SCREEN_THRESHOLD = 540;
   const SMALL_SCREEN_THRESHOLD = 500;
   const { t } = useTranslation();
-  const inputRole = useStore((state) => state.inputRole);
-  const setInputRole = useStore((state) => state.setInputRole);
-  const inputContext = useStore((state) => state.inputContext);
-  const inputModel = useStore((state) => state.inputModel);
-  const setInputModel = useStore((state) => state.setInputModel);
-  const setInputContext = useStore((state) => state.setInputContext);
-  const setChats = useStore((state) => state.setChats);
-  const setApiEndpoint = useStore((state) => state.setApiEndpoint);
-  const setCurrentChatIndex = useStore((state) => state.setCurrentChatIndex);
-  const currentChatIndex = useStore((state) => state.currentChatIndex);
-  const apiEndpoint = useStore((state) => state.apiEndpoint);
-  const setLoading = useStore((state) => state.setLoading);
+  const chatRole = useDocumentStore((state) => state.chatRole);
+  const setChatRole = useDocumentStore((state) => state.setChatRole);
+  const chatContext = useDocumentStore((state) => state.chatContext);
+  const chatModel = useDocumentStore((state) => state.chatModel);
+  const setChatModel = useDocumentStore((state) => state.setChatModel);
+  const setChatContext = useDocumentStore((state) => state.setChatContext);
+  const setChats = useDocumentStore((state) => state.setChats);
+  const setCurrentChatIndex = useDocumentStore((state) => state.setCurrentChatIndex);
+  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const setLoading = useDocumentStore((state) => state.setLoading);
   const [_content, _setContent] = useState<string>(content);
   const [characterCount, setCharacterCount] = useState<number>(0);
   const textareaRef = React.createRef<HTMLTextAreaElement>();
   const updateChat = useMutation(api.chats.updateChat);
   const currentUser = useQuery(api.users.getCurrentUser);
-  const { aiContext, setAiContext, setAiModel, setInputType, setOutputType } = useGeneralContext();
+  const { aiContext, setAiContext, setAiModel, setInputType, setOutputType, setIsSystemModel } = useGeneralContext();
   const { rightSidebarWidth } = useMyspaceContext();
   const [isVertical, setIsVertical] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -103,7 +101,7 @@ const ChatView = ({
         navigator.userAgent
       );
     if (e.key === 'Enter' && !isMobile && !e.nativeEvent.isComposing) {
-      const enterToSubmit = useStore.getState().enterToSubmit;
+      const enterToSubmit = useDocumentStore.getState().enterToSubmit;
       if (e.ctrlKey && e.shiftKey) {
         e.preventDefault();
         handleGenerate();
@@ -124,13 +122,13 @@ const ChatView = ({
   };
 
   const handleSave = () => {
-    if (sticky && (_content === '' || _content.trim() === '' || useStore.getState().generating)) return;
+    if (sticky && (_content === '' || _content.trim() === '' || useDocumentStore.getState().generating)) return;
     const updatedChats: ChatInterface[] = JSON.parse(
-      JSON.stringify(useStore.getState().chats)
+      JSON.stringify(useDocumentStore.getState().chats)
     );
     const currentChat = updatedChats[currentChatIndex];
     if (sticky) {
-      currentChat.messages.push({ role: inputRole, content: _content, command: "zap", context: context, model: model });
+      currentChat.messages.push({ role: chatRole, content: _content, command: "zap", context: context, model: model });
       _setContent('');
     } else {
       currentChat.messages[messageIndex].content = _content;
@@ -141,29 +139,30 @@ const ChatView = ({
   };
 
   const handleSetup = useCallback(() => {
-    setInputRole("user");
+    setIsSystemModel(false);
+    setChatRole("user");
     setAiContext("basic");
-    setInputContext("general");
+    setChatContext("general");
     setInputType("text-only");
     setOutputType("text");
-  }, [setAiContext, setInputContext, setInputType, setOutputType]);
+  }, [setAiContext, setChatContext, setInputType, setOutputType, setIsSystemModel]);
 
   const handleGenerate = useCallback(async() => {
     handleSetup();
-    if (_content === '' || _content.trim() === '' || useStore.getState().generating) return;
+    if (_content === '' || _content.trim() === '' || useDocumentStore.getState().generating) return;
     const updatedChats: ChatInterface[] = JSON.parse(
-      JSON.stringify(useStore.getState().chats)
+      JSON.stringify(useDocumentStore.getState().chats)
     );
     const currentChat = updatedChats[currentChatIndex];
     if (!currentChat.messages) {
       currentChat.messages = [];
     }
     const newUserMessage = {
-      role: inputRole,
+      role: chatRole,
       content: _content,
       command: "zap",
-      context: inputContext,
-      model: inputModel,
+      context: chatContext,
+      model: chatModel,
     };
     if (sticky) {
       currentChat.messages = [...currentChat.messages, newUserMessage];
@@ -190,9 +189,9 @@ const ChatView = ({
     currentChatIndex,
     messageIndex,
     sticky,
-    inputRole,
-    inputContext,
-    inputModel,
+    chatRole,
+    chatContext,
+    chatModel,
     handleSetup,
     handleUpdateCloudChat,
     handleAIDynamicFunc,
@@ -269,7 +268,7 @@ const ChatView = ({
 
   const endContent = useMemo(() => (
     <div className="flex gap-4 justify-center items-center px-2 py-2 h-full">
-      <GenerateButton isGenerating={useStore.getState().generating} stop={stop} generate={handleGenerate} />
+      <GenerateButton isGenerating={useDocumentStore.getState().generating} stop={stop} generate={handleGenerate} />
       {isVertical && 
         <Popover>
           <PopoverTrigger>
@@ -409,8 +408,8 @@ const EditViewButtons: React.FC<EditViewButtonsProps> = memo(({
   isMediumScreen,
 }) => {
   const { t } = useTranslation();
-  const generating = useStore((state) => state.generating);
-  const advancedMode = useStore((state) => state.advancedMode);
+  const generating = useDocumentStore((state) => state.generating);
+  const advancedMode = useDocumentStore((state) => state.advancedMode);
 
   return (
     <motion.div 
