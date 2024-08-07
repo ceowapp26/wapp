@@ -44,7 +44,7 @@ const nextConfig = withBundleAnalyzer({
     };
     
     config.resolve.alias.canvas = false;
-
+    config.resolve.alias.encoding = false;
     // Properly handle .wasm files
     config.module.rules.push({
       test: /\.wasm$/,
