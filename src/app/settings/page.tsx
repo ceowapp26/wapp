@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Moon, Sun, Bell, Lock, User, HelpCircle, X } from "lucide-react";
+import Link from 'next/link';
 
 const SettingsPage = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -94,14 +95,16 @@ const SettingsPage = () => {
                 <h2 className="text-xl font-semibold">{item.title}</h2>
               </div>
               <p className="text-gray-600 dark:text-gray-400">{item.description}</p>
-              <motion.button
-                whileHover={{ scale: 1.05, boxShadow: "0px 0px 8px rgb(59, 130, 246)" }}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md transition-all duration-300"
-                onClick={() => setSelectedSetting(item)}
               >
-                Learn How
-              </motion.button>
+                <Link href="/support">
+                  <div className="mt-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-md transition-all duration-300 inline-block cursor-pointer">
+                    Learn How
+                  </div>
+                </Link>
+              </motion.div>
             </motion.div>
           ))}
         </motion.div>
@@ -145,3 +148,4 @@ const SettingsPage = () => {
 }
 
 export default SettingsPage;
+

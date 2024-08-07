@@ -12,6 +12,7 @@ import { ModeToggle } from "@/components/mode-toggle";
 import UserDropdown from "@/components/auth/user-dropdown";
 import { Search, X, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 import ColorfulLoadingCircle from "@/components/colorful-loading-circle";
 
 interface App {
@@ -90,18 +91,20 @@ const AppsPage: React.FC = () => {
   const toggleFilters = () => setShowFilters(!showFilters);
 
   return (
-    <div className="mx-auto px-10 py-10 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 min-h-screen w-full overflow-y-auto">
-      <header className="flex flex-col md:flex-row justify-between items-center mb-8">
-        <div className="text-center md:text-left mb-4 md:mb-0">
-          <h1 className="text-4xl font-bold text-purple-700 dark:text-purple-300 mb-2">WAPP'S APPS COLLECTION</h1>
-          <h2 className="text-xl text-gray-600 dark:text-gray-300">Find the best app for you or your business</h2>
+    <div className="mx-auto px-4 sm:px-6 lg:px-10 py-10 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 min-h-screen w-full overflow-y-auto">
+      <header className="flex flex-col sm:flex-row justify-between items-center mb-8">
+        <div className="text-center sm:text-left mb-4 sm:mb-0">
+          <h1 className="text-3xl sm:text-4xl font-bold text-purple-700 dark:text-purple-300 mb-2">WAPP'S APPS COLLECTION</h1>
+          <h2 className="text-lg sm:text-xl text-gray-600 dark:text-gray-300">Find the best app for you or your business</h2>
         </div>
-        <div className="flex gap-x-4">
+        <div className="flex items-center gap-x-4">
+          <Link href="/support" className="text-purple-600 dark:text-purple-300 hover:text-purple-800 dark:hover:text-purple-100 transition-colors">
+            Support Center
+          </Link>
           <ModeToggle />
           <UserDropdown />
         </div>
       </header>
-      
       <div className="flex flex-col md:flex-row items-center justify-center mb-8 gap-4">
         <div className="flex items-center w-full md:w-2/3 relative">
           <Input
@@ -183,3 +186,5 @@ const AppsPage: React.FC = () => {
 };
 
 export default AppsPage;
+
+

@@ -1,5 +1,5 @@
 import { Listbox, ListboxItem } from "@nextui-org/react"
-import { Home, Settings, HelpCircle, Mail, X } from 'lucide-react'
+import { Home, Settings, HelpCircle, MessageCircle, Mail, Users } from 'lucide-react';
 
 const items = [
   {
@@ -7,8 +7,9 @@ const items = [
     label: "Getting Started",
     icon: <Home className="w-5 h-5" />,
     children: [
-      { key: "account-setup", label: "Account Setup" },
       { key: "basic-navigation", label: "Basic Navigation" },
+      { key: "document", label: "Document" },
+      { key: "video", label: "Video" },
     ],
   },
   {
@@ -17,20 +18,28 @@ const items = [
     icon: <Settings className="w-5 h-5" />,
     children: [
       { key: "profile-settings", label: "Profile Settings" },
-      { key: "notifications", label: "Notifications" },
+      { key: "ai-settings", label: "AI Settings" },
+      { key: "chatbot-settings", label: "Chatbot Settings" },
+      { key: "wapp-settings", label: "WApp Settings" },
     ],
   },
   {
-    key: "faqs",
-    label: "FAQs",
+    key: "forum",
+    label: "Forum",
     icon: <HelpCircle className="w-5 h-5" />,
+  },
+  {
+    key: "community",
+    label: "Community",
+    icon: <Users className="w-5 h-5" />,
   },
   {
     key: "contact",
     label: "Contact Support",
     icon: <Mail className="w-5 h-5" />,
   },
-]
+];
+
 
 export default function Sidebar({ activeItem, setActiveItem, isOpen, setIsOpen }) {
   return (
@@ -73,3 +82,4 @@ export default function Sidebar({ activeItem, setActiveItem, isOpen, setIsOpen }
     </div>
   )
 }
+

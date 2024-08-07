@@ -3,13 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node swEnvBuild.js && next dev",
-    "build": "cross-env NODE_OPTIONS='--max_old_space_size=4096' next build && node swEnvBuild.js && prisma generate && prisma migrate deploy && npx convex deploy",
+    "dev": "node scripts/swEnvBuild.js && next dev",
+    "build": "cross-env NODE_OPTIONS='--max_old_space_size=4096' next build && node scripts/swEnvBuild.js",
     "start": "next start",
     "lint": "next lint --cache",
     "vercel-install": "npm install --legacy-peer-deps",
-    "analyze": "ANALYZE=true npm run build",
-    "postinstall": "prisma generate"
+    "analyze": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
@@ -163,6 +162,7 @@
     "react-markdown": "^9.0.1",
     "react-moveable": "^0.56.0",
     "react-multi-carousel": "^2.8.5",
+    "react-pdf": "^9.1.0",
     "react-phone-number-input": "^3.4.3",
     "react-redux": "^9.1.2",
     "react-scroll-to-bottom": "^4.2.0",
