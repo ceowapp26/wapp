@@ -133,7 +133,7 @@ export const SupportSidebar = () => {
         <StyledListItem sx={{ flexDirection: isSmallScreen ? 'column' : 'row', alignItems: isSmallScreen ? 'flex-start' : 'center' }}>
           <Box>
             <Link href="/support">
-              Support Document
+              Support Page
             </Link>
           </Box>
         </StyledListItem>

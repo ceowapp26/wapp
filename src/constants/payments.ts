@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, User, type LucideIcon } from "lucide-react";
+import { CreditCard, User, AppWindow, type LucideIcon } from "lucide-react";
 
 type UserCreditPurchaseProps = {
   id: string;
@@ -14,7 +14,74 @@ type UserCreditPurchaseProps = {
   otp?: string;
 };
 
-export const USER_CREDIT_PURCHASE_FORM: UserCreditPurchaseProps[] = [
+export const APP_PURCHASE_FORM: UserCreditPurchaseProps[] = [
+  {
+    id: '1',
+    inputType: 'input',
+    label: 'App Name',
+    type: 'text',
+    name: 'name',
+    placeholder: 'Enter the app name',
+    icon: AppWindow
+  },
+  {
+    id: '2',
+    inputType: 'input',
+    label: 'Quantity',
+    type: 'number',
+    name: 'quantity',
+    placeholder: 'Enter the number of licenses',
+  },
+  {
+    id: '3',
+    inputType: 'select',
+    label: 'Subscription Duration',
+    type: 'text',
+    name: 'duration',
+    options: [
+      { value: 'monthly', label: 'Monthly' },
+      { value: 'yearly', label: 'Yearly' },
+    ],
+  },
+];
+
+export const EXTENSION_PURCHASE_FORM: UserCreditPurchaseProps[] = [
+  {
+    id: '1',
+    inputType: 'input',
+    label: 'Extension Name',
+    type: 'text',
+    name: 'name',
+    placeholder: 'Enter the extension name',
+    icon: AppWindow
+  },
+  {
+    id: '2',
+    inputType: 'select',
+    label: 'Extension Type',
+    type: 'text',
+    name: 'type',
+    options: [
+      { value: 'productivity', label: 'Productivity' },
+      { value: 'development', label: 'Development' },
+      { value: 'design', label: 'Design' },
+      { value: 'other', label: 'Other' },
+    ],
+  },
+  {
+    id: '3',
+    inputType: 'select',
+    label: 'Subscription Duration',
+    type: 'text',
+    name: 'duration',
+    options: [
+      { value: 'monthly', label: 'Monthly' },
+      { value: 'yearly', label: 'Yearly' },
+    ],
+  },
+];
+
+export const USER_TOKEN_PURCHASE_FORM: UserCreditPurchaseProps[] = [
   {
     id: '1',
     inputType: 'select',
@@ -60,3 +127,44 @@ export const USER_CREDIT_PURCHASE_FORM: UserCreditPurchaseProps[] = [
     icon: User,
   },
 ];
+
+export const OTHER_PURCHASE_FORM: UserCreditPurchaseProps[] = [
+  {
+    id: '1',
+    inputType: 'input',
+    label: 'Service Name',
+    type: 'text',
+    name: 'name',
+    placeholder: 'Enter the service name',
+    icon: AppWindow
+  },
+  {
+    id: '2',
+    inputType: 'textarea',
+    label: 'Service Description',
+    type: 'text',
+    name: 'description',
+    placeholder: 'Briefly describe the service you need',
+  },
+  {
+    id: '3',
+    inputType: 'select',
+    label: 'Service Duration',
+    type: 'text',
+    name: 'duration',
+    options: [
+      { value: 'oneTime', label: 'One-time' },
+      { value: 'monthly', label: 'Monthly' },
+      { value: 'yearly', label: 'Yearly' },
+    ],
+  },
+  {
+    id: '4',
+    inputType: 'textarea',
+    label: 'Custom Requirements',
+    type: 'text',
+    name: 'information',
+    placeholder: 'Any specific requirements or additional information',
+  },
+];
+

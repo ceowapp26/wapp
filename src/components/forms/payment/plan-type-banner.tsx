@@ -1,14 +1,11 @@
 'use client'
-import { Card, CardContent, CardDescription } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
-import { ShieldCheck } from 'lucide-react'
 import React from 'react'
+import { motion } from 'framer-motion'
 import { FieldValues, UseFormRegister } from 'react-hook-form'
+import { ShieldCheck, Award, Zap } from 'lucide-react'
 
 type Props = {
-  value: string
+  value: 'STANDARD' | 'PRO' | 'ULTIMATE'
   title: string
   text: string
   register: UseFormRegister<FieldValues>
@@ -24,61 +21,75 @@ const PlanTypeBanner = ({
   setPlanType,
   value,
 }: Props) => {
+  const isSelected = planType === value
+
+  const getIcon = (value: string) => {
+    switch (value) {
+      case 'STANDARD':
+        return <ShieldCheck size={24} />
+      case 'PRO':
+        return <Award size={24} />
+      case 'ULTIMATE':
+        return <Zap size={24} />
+      default:
+        return <ShieldCheck size={24} />
+    }
+  }
+
   return (
-    <Label htmlFor={value}>
-      <Card
-        className={cn(
-          'w-full cursor-pointer mb-4', 
-          planType === value && 'border-orange'
-        )}
-      >
-        <CardContent className="flex flex-col justify-between p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Card
-              className={cn(
-                'flex justify-center p-3',
-                planType === value && 'border-orange'
-              )}
-            >
-              <ShieldCheck
-                size={30}
-                className={cn(
-                  planType === value ? 'text-orange' : 'text-gray-400'
-                )}
-              />
-            </Card>
-            <div className="">
-              <CardDescription className="text-iridium">
-                {title}
-              </CardDescription>
-              <CardDescription className="text-gray-400">
-                {text}
-              </CardDescription>
-            </div>
+    <motion.label
+      htmlFor={value}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className={`
+        block cursor-pointer rounded-xl overflow-hidden transition-all duration-300
+        bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl
+        ${isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400' : 'ring-1 ring-gray-200 dark:ring-gray-700'}
+      `}
+    >
+      <div className="p-6">
+        <div className="flex items-center mb-4">
+          <div className={`
+            p-3 rounded-full
+            ${isSelected 
+              ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' 
+              : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}
+          `}>
+            {getIcon(value)}
           </div>
-          <div className="self-end">
-            <div
-              className={cn(
-                'w-4 h-4 rounded-full',
-                planType === value ? 'bg-orange' : 'bg-transparent'
-              )}
-            >
-              <Input
-                {...register('type', {
-                  onChange: (e) => {
-                    setPlanType(e.target.value)
-                  }
-                })}
-                value={value}
-                id={value}
-                className="hidden"
-                type="radio"
-              />
-            </div>
+          <div className="ml-4">
+            <h3 className={`
+              text-lg font-semibold mb-1
+              ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}
+            `}>
+              {title}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{text}</p>
           </div>
-        </CardContent>
-      </Card>
-    </Label>
+        </div>
+        <div className="flex justify-end">
+          <motion.div
+            initial={false}
+            animate={{ scale: isSelected ? 1 : 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+          >
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </motion.div>
+        </div>
+      </div>
+      <input
+        {...register('type', {
+          onChange: (e) => setPlanType(e.target.value as 'STANDARD' | 'PRO' | 'ULTIMATE'),
+        })}
+        value={value}
+        id={value}
+        className="hidden"
+        type="radio"
+      />
+    </motion.label>
   )
 }
 

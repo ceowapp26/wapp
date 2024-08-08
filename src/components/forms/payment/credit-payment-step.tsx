@@ -5,7 +5,47 @@ import { useFormContext } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 import { Spinner } from '@/components/spinner';
 
-const CreditInput = dynamic(() => import('./credit-input'), {
+const ProductSelectionForm = dynamic(() => import('./product-selection-form'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const TokenInput = dynamic(() => import('./token-input'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const AppInput = dynamic(() => import('./app-input'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const ExtensionInput = dynamic(() => import('./extension-input'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const OtherInput = dynamic(() => import('./other-input'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const AppPriceCard = dynamic(() => import('./app-price-card'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const ExtensionPriceCard = dynamic(() => import('./extension-price-card'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const TokenPriceCard = dynamic(() => import('./token-price-card'), {
+  ssr: false,
+  loading: () => <Spinner />,
+});
+
+const OtherPriceCard = dynamic(() => import('./other-price-card'), {
   ssr: false,
   loading: () => <Spinner />,
 });
@@ -20,10 +60,6 @@ const PaymentGatewayCard = dynamic(() => import('./payment-gateway-card'), {
   loading: () => <Spinner />,
 });
 
-const CreditPriceCard = dynamic(() => import('./credit-price-card'), {
-  ssr: false,
-  loading: () => <Spinner />,
-});
 
 type Props = {};
 
@@ -34,21 +70,68 @@ const CreditPaymentStep = (props: Props) => {
     control,
     setValue,
   } = useFormContext();  
-  const { currentStep, setCurrentStep, paymentGateway, setPaymentGateway } = usePaymentContextHook();
+  const { currentStep, setCurrentStep, paymentGateway, setPaymentGateway, productType, setProductType } = usePaymentContextHook();
+
   switch (currentStep) {
     case 1:
       return (
-        <CreditInput
-          errors={errors}
+        <ProductSelectionForm
           register={register}
-          control={control}
+          productType={productType}
+          setProductType={setProductType}
         />
       );
     case 2:
-      return (
-        <CreditPriceCard />
-      );
+      switch (productType) {
+        case 'APPS':
+          return (
+            <AppInput
+              errors={errors}
+              register={register}
+              control={control}
+            />
+          );
+        case 'EXTENSIONS':
+          return (
+            <ExtensionInput
+              errors={errors}
+              register={register}
+              control={control}
+            />
+          );
+        case 'AIMODELS':
+          return (
+            <TokenInput
+              errors={errors}
+              register={register}
+              control={control}
+            />
+          );
+        case 'OTHERS':
+          return (
+            <OtherInput
+              errors={errors}
+              register={register}
+              control={control}
+            />
+          );
+        default:
+          return null;
+      }
     case 3:
+      switch (productType) {
+        case 'AIMODELS':
+          return <TokenPriceCard />;
+        case 'APPS':
+          return <AppPriceCard />;
+        case 'EXTENSIONS':
+          return <ExtensionPriceCard />;
+        case 'OTHERS':
+          return <OtherCard />;
+        default:
+          return null;
+      }
+    case 4:
       return (
         <GatewaySelectionForm
           register={register}
@@ -56,11 +139,8 @@ const CreditPaymentStep = (props: Props) => {
           setPaymentGateway={setPaymentGateway}
         />
       );
-    case 4:
-      return (
-        <PaymentGatewayCard />
-      );
-  
+    case 5:
+      return <PaymentGatewayCard />;
     default:
       return <div>CreditPaymentStep</div>;
   }

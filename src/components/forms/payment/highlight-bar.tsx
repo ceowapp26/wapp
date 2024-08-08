@@ -32,7 +32,7 @@ const HighLightBar: React.FC<Props> = (props: Props) => {
           ></div>
         </div>
       ) : (
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-5 gap-5">
           <div
             className={cn(
               'rounded-full h-2 col-span-1',
@@ -55,6 +55,12 @@ const HighLightBar: React.FC<Props> = (props: Props) => {
             className={cn(
               'rounded-full h-2 col-span-1',
               currentStep === 4 ? 'bg-orange' : 'bg-platinum'
+            )}
+          ></div>
+          <div
+            className={cn(
+              'rounded-full h-2 col-span-1',
+              currentStep === 5 ? 'bg-orange' : 'bg-platinum'
             )}
           ></div>
         </div>
