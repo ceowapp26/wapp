@@ -25,7 +25,7 @@ const PortalPage = () => {
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
   const [showHelp, setShowHelp] = useState(false);
-  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'Wapp-Portal';
+  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'Portal';
   
   useEffect(() => {
     if (isLeftSidebarOpened) {
