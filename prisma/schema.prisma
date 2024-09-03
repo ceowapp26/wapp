@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model App {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  version       String
+  category      String
+  deployedDate  DateTime
+  releasedDate  DateTime
+  description   String?
+  developers    Json     @default("{}")
+  releaseNotes  Json     @default("[]")
+  license       String?
+  platform      String
+  watermark     String?
+  domain        String
+  logo          String?
+  plan          Plans
+
+  appBillings   AppBillings[]
+  subscribers   Subscriber[]
+  features      Feature[]
+}
+
+model Feature {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  version       String
+  deployedDate  DateTime
+  releasedDate  DateTime
+  description   String?
+  developers    Json     @default("{}")
+  releaseNotes  Json     @default("[]")
+  appId         String     @db.Uuid
+  serviceId     String?    @db.Uuid
+  app           App?       @relation(fields: [appId], references: [id], onDelete: Cascade)
+  service       Service?   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  plan          Plans
+}
+
+model Service {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  version         String
+  deployedDate    DateTime
+  releasedDate    DateTime
+  description     String?
+  developers      Json     @default("{}")
+  releaseNotes    Json     @default("[]")
+  license         Json     @default("{}")
+  platforms       String
+  watermark       String?
+  domain          String
+
+  serviceBillings ServiceBillings[]
+  subscribers     Subscriber[]
+  features        Feature[]
+}
+
+model AppBillings {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  appId         String     @db.Uuid
+  app           App        @relation(fields: [appId], references: [id], onDelete: Cascade)
+  price         String
+}
+
+model ServiceBillings {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  serviceId     String     @db.Uuid
+  service       Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  price         String
+}
+
+model User {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerkId       String
+  username      String?
+  fullname      String?
+  email         String
+  role          Role       @default(user)
+  permission    String?
+  stripeId      String?
+  phone         String?
+  pictureUrl    String?
+  password      String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Admin {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  clerkId       String
+  username      String?
+  fullname      String?
+  email         String
+  role          Role       @default(admin)
+  permission    String?
+  stripeId      String?
+  phone         String?
+  pictureUrl    String?
+  password      String?
+}
+
+model Campaign {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  customers     String[]
+  template      String?
+}
+
+model Cost {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  service       String
+  price         String
+  dueDate       DateTime
+}
+
+model Management {
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  numOfUsers          Int
+  numOfSubscribers    Int
+  totalRevenue        Float
+  totalCost           Float
+  totalProfit         Float
+}
+
+model Subscriber {
+  id                  String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  numOfSubscribers    Int
+  appId               String?    @db.Uuid
+  app                 App?       @relation(fields: [appId], references: [id], onDelete: Cascade)
+  serviceId           String?    @db.Uuid
+  service             Service?   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  plan                Plans
+}
+
+model Notification {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  from          String
+  to            String
+  title         String
+  content       String
+  date          DateTime
+  senderAvatar  String
+}
+
+model PlanModel {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  model         PlanAIModel[] 
+  plan          Plans
+}
+
+model PlanAIModel {
+  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                    String   // Model name
+  modelId                 String   @db.Uuid
+  model                   PlanModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  version                 String   // Model version
+  updatedDate             DateTime // Last updated date
+  description             String?  // Optional description
+  
+  // Subscription limits
+  maxRPM                  Int      // Max requests per minute
+  floorRPM                Int      // Floor requests per minute
+  ceilingRPM              Int      // Ceiling requests per minute
+  maxRPD                  Int      // Max requests per day
+  floorRPD                Int      // Floor requests per day
+  ceilingRPD              Int      // Ceiling requests per day
+  maxTPM                  Int      // Max tokens per minute
+  floorTPM                Int      // Floor tokens per minute
+  ceilingTPM              Int      // Ceiling tokens per minute
+  maxTPD                  Int      // Max tokens per day / BATCH QUEUE LIMITS
+  floorTPD                Int      // Floor tokens per day / BATCH QUEUE LIMITS
+  ceilingTPD              Int      // Ceiling tokens per day / BATCH QUEUE LIMITS
+  purchasedAmount         Int      //Total spend per model
+}
+
+model CreditAIModel {
+  id                   String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                 String     // Model name
+  modelId              String     @db.Uuid
+  version              String     // Model version
+  updatedDate          DateTime   // Last updated date
+  description          String?    // Optional description
+
+  // Credit limits
+  maxRPM              Int       // Maximum Requests Per Minute
+  ceilingRPM          Int       // Ceiling Requests Per Minute (some margin below maxRPM)
+  floorRPM            Int       // Floor Requests Per Minute (minimum number of requests allowed)
+  maxRPD              Int       // Maximum Requests Per Day
+  ceilingRPD          Int       // Ceiling Requests Per Day (some margin below maxRPD)
+  floorRPD            Int       // Floor Requests Per Day (minimum number of requests allowed)
+  maxInputTokens      Int       // Maximum input tokens per request
+  ceilingInputTokens  Int       // Ceiling input tokens per request (some margin below maxinputTokens)
+  floorInputTokens    Int       // Floor input tokens per request (minimum number of input tokens allowed)
+  maxOutputTokens     Int       // Maximum output tokens per request
+  ceilingOutputTokens Int       // Ceiling output tokens per request (some margin below maxoutputTokens)
+  floorOutputTokens   Int       // Floor output tokens per request (minimum number of output tokens allowed)
+  purchasedAmount         Int      //Total spend per model
+}
+
+enum Plans {
+  FREE
+  STANDARD
+  PRO
+  ULTIMATE
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum Model {
+  gpt_4
+  gpt_4_32k
+  gpt_4_1106_preview
+  gpt_4_0125_preview
+  gpt_4_turbo
+  gpt_4_turbo_2024_04_09
+  gpt_3_5_turbo
+  gpt_3_5_turbo_16k
+  gpt_3_5_turbo_1106
+  gpt_3_5_turbo_0125
+  gemini_1_0_pro
+  gemini_1_5_pro
+  gemini_1_5_flash
+  dall_e_3
+  // gpt_3_5_turbo_0301
+  // gpt_4_0314
+  // gpt_4_32k_0314
+}
+

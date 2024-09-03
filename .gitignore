@@ -1,0 +1,19 @@
+# Environment variables
+.env
+.env.development.local
+.env.local
+.env.production
+
+# Node modules
+node_modules
+
+# Credentials
+src/configs/
+public/swenv.js
+
+# Vercel configuration
+.vercel
+
+#Next configuration
+.next
+.env.local
