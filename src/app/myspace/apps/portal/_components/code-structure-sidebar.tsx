@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePortalContext } from '@/context/portal-context-provider';
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -68,12 +68,16 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     setProjectStructure(project.structure);
   };
 
-  const extractProjectId = (path: string): string | null => {
+  const extractProjectId = useCallback((path: string): string | null => {
     const match = path.match(/\/myspace\/apps\/portal\/code\/([^\/]+)$/);
-    return match ? match[1] : null;
-  };
+    if (match) {
+      return match[1] || null;
+    } else {
+      return activeProject || null;
+    }
+  }, [activeProject]);
 
-  const projectId = extractProjectId(currentPath);
+  const projectId = useMemo(() => extractProjectId(currentPath), [currentPath, activeProject]);
 
   useEffect(() => {
     if (projectId && context === "code-structure") {
@@ -205,7 +209,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   };
 
   if (projectStructure === undefined || projectStructure === null || Object.keys(projectStructure).length === 0) {
-    return <NoStructureComponent onRetry={fetchProjectStructure} />;
+    return <NoStructureComponent onRetry={() => fetchProjectStructure(activeProject)} />;
   }
 
   return (
@@ -259,5 +263,6 @@ const getAllFilePaths = (obj: ProjectStructure, currentPath: string = ''): strin
   }
   return paths;
 };
+
 
 

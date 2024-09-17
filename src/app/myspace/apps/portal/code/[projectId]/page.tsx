@@ -551,7 +551,7 @@ const ProjectPage = ({
   const [currentEmbeddedFile, setCurrentEmbeddedFile] = useState<FileInterface>(undefined)
   const [insertedContent, setInsertedContent] = useState<string>("")
   const [isInsertedContent, setIsInsertedContent] = useState<FileInterface>(undefined)
-  const { currentComponent, setCurrentComponent, currentFileContent, setCurrentFileContent } = usePortalContext();
+  const { currentComponent, setCurrentComponent, currentFileContent, setCurrentFileContent, activeProject, setActiveProject } = usePortalContext();
   const {
     isLeftSidebarOpened,
     setIsLeftSidebarOpened,
@@ -574,6 +574,12 @@ const ProjectPage = ({
   const project = useQuery(api.codes.getProjectById, {
     projectId: params.projectId
   });
+
+  useEffect(() => {
+    if (!activeProject && params.projectId) {
+      setActiveProject(params.projectId)
+    }
+  }, [activeProject, params]);
 
   const projectStructure = useMemo(() => 
     project && project.structure || {},
