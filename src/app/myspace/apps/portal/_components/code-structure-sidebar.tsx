@@ -21,11 +21,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ButtonWrapper } from "./custom-button";
 import { ActionButtons } from "./action-buttons";
 
-const NoStructureComponent = ({ onRetry }) => {
+const NoStructureComponent = ({ onRetry, isEmpty }) => {
   return (
     <TooltipProvider>
       <motion.div
-        className="w-full h-full bg-background text-foreground flex flex-col pt-20"
+        className="w-full h-full bg-background text-foreground flex flex-col pt-24"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -34,9 +34,13 @@ const NoStructureComponent = ({ onRetry }) => {
         <div className="w-full h-full bg-background flex flex-col items-center">
           <Alert variant="warning" className="mb-6 max-w-md">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>No Project Structure Found</AlertTitle>
+            <AlertTitle>
+              {isEmpty ? "Project Structure is Empty" : "No Project Structure Found"}
+            </AlertTitle>
             <AlertDescription>
-              We couldn't load the project structure. This might be due to an empty project or a temporary issue.
+              {isEmpty 
+                ? "This project structure is empty. This might be due to an empty project or a temporary issue."
+                : "We couldn't load the project structure. This might be due to a temporary issue."}
             </AlertDescription>
           </Alert>
           <Button onClick={onRetry} className="mb-6">
@@ -77,6 +81,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
       setProject(project);
       setProjectStructure(project.structure);
     } catch (error) {
+      setProjectStructure(null);
       console.error("Error fetching project structure:", error);
     }
   }, [getProjectId, getProject, setProject, setProjectStructure]);
@@ -210,8 +215,12 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     });
   };
 
-  if (projectStructure === undefined || projectStructure === null || Object.entries(projectStructure).length === 0) {
-    return <NoStructureComponent onRetry={fetchProjectStructure} />;
+  if (projectStructure === null) {
+    return <NoStructureComponent onRetry={fetchProjectStructure} isEmpty={false} />;
+  }
+
+  if (projectStructure && Object.keys(projectStructure).length === 0) {
+    return <NoStructureComponent onRetry={fetchProjectStructure} isEmpty={true} />;
   }
 
   return (
