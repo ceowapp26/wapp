@@ -64,7 +64,6 @@ const PaymentPage: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
         toast.success('Plan created successfully!');
-        console.log('Created Plan:', result);
       } else {
         const errorData = await response.json();
         toast.error(`Failed to create plan: ${errorData.error}`);
