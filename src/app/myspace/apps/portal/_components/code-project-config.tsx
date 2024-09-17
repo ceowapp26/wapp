@@ -25,6 +25,7 @@ import {
 } from "@nextui-org/react";
 import { Settings, HelpCircle, Save, X, ChevronDown, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ModelSelector from "./model-selector";
 import { PROJECT_CONFIG_OPTIONS } from '@/constants/code';
 
 interface CodeProjectConfigProps {
@@ -235,53 +236,56 @@ const CodeProjectConfig: React.FC<CodeProjectConfigProps> = ({ projectConfigs, s
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-start space-x-2 mb-4">
-        <Button auto color="primary" onPress={projectConfigModal.onOpen}>
-          <Settings size={18} />
-          Config
-        </Button>
-         <Popover placement="bottom-end">
-          <PopoverTrigger>
-            <Button auto color="secondary">
-              <Wrench size={18} />
-              Tools
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Card>
-              <CardBody className="flex flex-col max-w-64">
-                <Button 
-                  onClick={generateSuggestions}
-                  className="mt-4"
-                  isLoading={isGenerating}
-                >
-                  Generate Suggestions
-                </Button>
-              </CardBody>
-            </Card>
-          </PopoverContent>
-        </Popover>
-        <Popover placement="bottom-end">
-          <PopoverTrigger>
-            <Button auto color="secondary">
-              <HelpCircle size={18} />
-              Help
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Card>
-              <CardBody className="flex flex-col max-w-64">
-                <p className="text-sm">
-                  Configure your project settings here. Click on the Config button to open the configuration modal.
-                  You can set up various aspects of your project including general settings, development environment,
-                  testing, database, deployment, security, performance, and metadata.
-                </p>
-              </CardBody>
-            </Card>
-          </PopoverContent>
-        </Popover>
-      </div>
+   <div className="p-4">
+      <div className="flex justify-between items-center mb-4 pr-24"> 
+        <div className="flex space-x-2">
+          <Button auto color="primary" onPress={projectConfigModal.onOpen}>
+            <Settings size={18} />
+            Config
+          </Button>
+          <Popover placement="bottom-end">
+            <PopoverTrigger>
+              <Button auto color="secondary">
+                <Wrench size={18} />
+                Tools
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Card>
+                <CardBody className="flex flex-col max-w-64">
+                  <Button 
+                    onClick={generateSuggestions}
+                    className="mt-4"
+                    isLoading={isGenerating}
+                  >
+                    Generate Suggestions
+                  </Button>
+                </CardBody>
+              </Card>
+            </PopoverContent>
+          </Popover>
+          <Popover placement="bottom-end">
+            <PopoverTrigger>
+              <Button auto color="secondary">
+                <HelpCircle size={18} />
+                Help
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Card>
+                <CardBody className="flex flex-col max-w-64">
+                  <p className="text-sm">
+                    Configure your project settings here. Click on the Config button to open the configuration modal.
+                    You can set up various aspects of your project including general settings, development environment,
+                    testing, database, deployment, security, performance, and metadata.
+                  </p>
+                </CardBody>
+              </Card>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <ModelSelector />
+      </div>      
       <Modal
         size="3xl"
         scrollBehavior="inside"

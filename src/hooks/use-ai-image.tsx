@@ -30,7 +30,7 @@ const determineAPIEndpoint = (option: string) => {
   if (isGemini) {
     return { APIEndpoint: "/api/image_gemini", model: 'gemini' };
   } else {
-    return { APIEndpoint: "/api/image_openai", model: 'openAI' };
+    return { APIEndpoint: "/api/image_openai", model: 'openai' };
   }
 };
 
@@ -153,12 +153,12 @@ export const useAIImage = ({
         return result;
       };
 
-      if (model === "openAI") {
+      if (model === "openai") {
         const promptMessage: MessageInterface = convertToMessageInterface("user", "", prompt, inputContext, inputModel);
         const messages = await limitMessageTokens([promptMessage], AIConfig[inputModel].max_tokens, inputModel, aiModel, inputType, outputType);
         if (messages.length === 0) {
           toast.error("Message exceeds max token!");
-          throw new Error('Message exceeds max token!');
+          return;
         }
         const result = await fetchAPI();
         setResData && setResData(result.response);

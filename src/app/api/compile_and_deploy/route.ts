@@ -1,20 +1,6 @@
-import { NextResponse } from 'next/server';
-import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import { NextRequest, NextResponse } from 'next/server';
 import { Octokit } from '@octokit/rest';
 import { Base64 } from 'js-base64';
-
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
-
-const vercelToken = process.env.VERCEL_TOKEN;
 
 export async function POST(req: NextRequest) {
   const encoder = new TextEncoder();
@@ -22,29 +8,29 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const { projectStructure, projectId } = await req.json();
+        const { projectStructure, configurations } = await req.json();
+
+        const octokit = new Octokit({ auth: configurations.GITHUB_TOKEN });
 
         const sendUpdate = async (step, status, extra = {}) => {
           controller.enqueue(encoder.encode(JSON.stringify({ step, status, ...extra }) + '\n'));
         };
 
         // Clear existing resources
-        await clearExistingResources(projectId);
+        await clearExistingResources(configurations, octokit);
 
-        // Step 1: Save files to AWS S3
-        await sendUpdate('upload', 'pending');
-        const s3Status = await saveFilesToS3(projectStructure, projectId);
-        await sendUpdate('upload', s3Status);
+        // Step 1: Create GitHub repository and push code
+        await sendUpdate('push', 'pending');
+        const { repoUrl, githubStatus } = await createGitHubRepoAndPushCode(projectStructure, configurations, octokit);
+        await sendUpdate('push', githubStatus);
 
-        // Step 2: Create GitHub repository and push code
-        await sendUpdate('deploy', 'pending');
-        const { repoUrl, githubStatus } = await createGitHubRepoAndPushCode(projectStructure, projectId);
-        await sendUpdate('deploy', githubStatus);
-
-        // Step 3: Deploy to Vercel
-        await sendUpdate('build', 'pending');
-        const { deploymentUrl, vercelStatus, error } = await deployToVercel(repoUrl, projectId);
-        await sendUpdate('build', vercelStatus, { deploymentUrl, error });
+        // Step 2: Dynamic deployment based on chosen platform
+        if (githubStatus === 'success') {
+          const deployResult = await dynamicDeploy(repoUrl, configurations, sendUpdate);
+          if (deployResult.status === 'success') {
+            await dynamicBuild(deployResult.deploymentId, configurations, sendUpdate);
+          }
+        }
 
         controller.close();
       } catch (error) {
@@ -64,24 +50,42 @@ export async function POST(req: NextRequest) {
   });
 }
 
-async function clearExistingResources(projectId: string) {
-  // Clear S3
-  const listParams = {
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Prefix: `${projectId}/`,
-  };
-  const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
-  if (listedObjects.Contents?.length > 0) {
-    await Promise.all(listedObjects.Contents.map(({ Key }) => 
-      s3Client.send(new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key }))
-    ));
+async function dynamicDeploy(repoUrl, configurations, sendUpdate) {
+  switch (configurations.platform.toLowerCase()) {
+    case 'vercel':
+      await sendUpdate('deploy', 'pending');
+      const { deploymentId, vercelStatus: deployStatus, error: deployError } = await deployToVercel(repoUrl, configurations);
+      await sendUpdate('deploy', deployStatus, { error: deployError });
+      return { status: deployStatus, deploymentId };
+    case 'railway':
+      // Implement Railway deployment logic here
+      break;
+    default:
+      throw new Error(`Unsupported platform: ${configurations.platform}`);
   }
+}
 
+async function dynamicBuild(deploymentId, configurations, sendUpdate) {
+  switch (configurations.platform.toLowerCase()) {
+    case 'vercel':
+      await sendUpdate('build', 'pending');
+      const { deploymentUrl, vercelStatus: buildStatus, error: buildError } = await buildOnVercel(deploymentId, configurations);
+      await sendUpdate('build', buildStatus, { deploymentUrl, error: buildError });
+      return { status: buildStatus, deploymentUrl };
+    case 'railway':
+      // Implement Railway build logic here
+      break;
+    default:
+      throw new Error(`Unsupported platform: ${configurations.platform}`);
+  }
+}
+
+async function clearExistingResources(configurations, octokit) {
   // Delete GitHub repo if exists
   try {
     await octokit.repos.delete({
-      owner: process.env.GITHUB_USERNAME,
-      repo: `project-${projectId}`,
+      owner: configurations.GITHUB_USERNAME,
+      repo: `project-${configurations.projectId}`,
     });
   } catch (error) {
     // Ignore if repo doesn't exist
@@ -90,14 +94,14 @@ async function clearExistingResources(projectId: string) {
   // Delete Vercel project if exists
   try {
     const projectsResponse = await fetch(`https://api.vercel.com/v9/projects`, {
-      headers: { 'Authorization': `Bearer ${vercelToken}` },
+      headers: { 'Authorization': `Bearer ${configurations.VERCEL_TOKEN}` },
     });
     const projects = await projectsResponse.json();
-    const existingProject = projects.projects.find(p => p.name === `project-${projectId}`);
+    const existingProject = projects.projects.find(p => p.name === `project-${configurations.projectId}`);
     if (existingProject) {
       await fetch(`https://api.vercel.com/v9/projects/${existingProject.id}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${vercelToken}` },
+        headers: { 'Authorization': `Bearer ${configurations.VERCEL_TOKEN}` },
       });
     }
   } catch (error) {
@@ -105,54 +109,25 @@ async function clearExistingResources(projectId: string) {
   }
 }
 
-async function saveFilesToS3(projectStructure: any, projectId: string, currentPath = '') {
-  try {
-    for (const [key, value] of Object.entries(projectStructure)) {
-      const newPath = currentPath ? `${currentPath}/${key}` : key;
-      
-      if (typeof value === 'string') {
-        // It's a file, upload it using Upload
-        const upload = new Upload({
-          client: s3Client,
-          params: {
-            Bucket: process.env.AWS_S3_BUCKET_NAME,
-            Key: `${projectId}/${newPath}`,
-            Body: value,
-          },
-        });
-
-        await upload.done();
-      } else if (typeof value === 'object' && value !== null) {
-        // It's a directory, recurse
-        await saveFilesToS3(value, projectId, newPath);
-      }
-    }
-    return 'success';
-  } catch (error) {
-    console.error('Error saving to S3:', error);
-    return 'failed';
-  }
-}
-
-async function createGitHubRepoAndPushCode(projectStructure: any, projectId: string) {
+async function createGitHubRepoAndPushCode(projectStructure, configurations, octokit) {
   try {
     const { data: repo } = await octokit.repos.createForAuthenticatedUser({
-      name: `project-${projectId}`,
+      name: `project-${configurations.projectId}`,
       private: true,
     });
 
-    async function createOrUpdateFile(path: string, content: string) {
+    async function createOrUpdateFile(path, content) {
       await octokit.repos.createOrUpdateFileContents({
         owner: repo.owner.login,
         repo: repo.name,
         path,
-        message: `Add ${path}`,
+        message: configurations.commitMessage || `Add ${path}`,
         content: Base64.encode(content),
-        branch: 'main',
+        branch: configurations.branch || 'main',
       });
     }
 
-    async function pushFiles(structure: any, currentPath = '') {
+    async function pushFiles(structure, currentPath = '') {
       for (const [key, value] of Object.entries(structure)) {
         const newPath = currentPath ? `${currentPath}/${key}` : key;
         
@@ -175,26 +150,26 @@ async function createGitHubRepoAndPushCode(projectStructure: any, projectId: str
   }
 }
 
-async function deployToVercel(repoUrl: string, projectId: string) {
+async function deployToVercel(repoUrl, configurations) {
   try {
     // Step 1: Create a new project
-     const createProjectResponse = await fetch('https://api.vercel.com/v9/projects', {
+    const createProjectResponse = await fetch('https://api.vercel.com/v9/projects', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${vercelToken}`,
+        'Authorization': `Bearer ${configurations.VERCEL_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: `project-${projectId}`,
+        name: `project-${configurations.projectId}`,
         gitRepository: {
           type: 'github',
           repo: repoUrl.split('github.com/')[1],
         },
-        framework: 'nextjs',
-        buildCommand: null,
-        devCommand: null,
-        installCommand: null,
-        outputDirectory: null,
+        framework: configurations.framework || 'nextjs',
+        buildCommand: configurations.buildCommand,
+        devCommand: configurations.devCommand,
+        installCommand: configurations.installCommand,
+        outputDirectory: configurations.outputDirectory,
       }),
     });
 
@@ -221,23 +196,23 @@ async function deployToVercel(repoUrl: string, projectId: string) {
     const deployResponse = await fetch(`https://api.vercel.com/v13/deployments?forceNew=1&skipAutoDetectionConfirmation=1`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${vercelToken}`,
+        'Authorization': `Bearer ${configurations.VERCEL_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        name: `project-${projectId}`,
-        deploymentId: projectId,
+        name: `project-${configurations.projectId}`,
+        deploymentId: configurations.projectId,
         project: projectData.id,
         target: 'production',
         gitSource: {
           type: 'github',
           repo: repoUrl.split('github.com/')[1],
-          ref: 'main',
+          ref: configurations.branch || 'main',
           repoId: repoId,
         },
         projectSettings: {
-          framework: 'nextjs',
-          nodeVersion: '20.x',
+          framework: configurations.framework || 'nextjs',
+          nodeVersion: configurations.nodeVersion || '20.x',
         },
       }),
     });
@@ -248,18 +223,26 @@ async function deployToVercel(repoUrl: string, projectId: string) {
 
     const deployData = await deployResponse.json();
 
-    // Step 4: Poll for deployment status
-    let deploymentStatus = deployData.readyState;
-    let deploymentUrl = deployData.url;
+    return { deploymentId: deployData.id, vercelStatus: 'success' };
+  } catch (error) {
+    console.error('Error deploying to Vercel:', error);
+    return { deploymentId: null, vercelStatus: 'failed', error: error.message };
+  }
+}
+
+async function buildOnVercel(deploymentId, configurations) {
+  try {
+    let deploymentStatus = 'INITIALIZING';
+    let deploymentUrl = '';
     let attempts = 0;
-    const maxAttempts = 60; // 5 minutes maximum waiting time
+    const maxAttempts = configurations.maxBuildAttempts || 60; // 5 minutes maximum waiting time
     
     while (['QUEUED', 'INITIALIZING', 'ANALYZING', 'BUILDING'].includes(deploymentStatus) && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
 
-      const statusResponse = await fetch(`https://api.vercel.com/v13/deployments/${deployData.id}`, {
+      const statusResponse = await fetch(`https://api.vercel.com/v13/deployments/${deploymentId}`, {
         headers: {
-          'Authorization': `Bearer ${vercelToken}`,
+          'Authorization': `Bearer ${configurations.VERCEL_TOKEN}`,
         },
       });
 
@@ -279,9 +262,9 @@ async function deployToVercel(repoUrl: string, projectId: string) {
       throw new Error(`Deployment timed out after ${maxAttempts * 5} seconds`);
     } else {
       // Fetch detailed error information
-      const errorResponse = await fetch(`https://api.vercel.com/v13/deployments/${deployData.id}`, {
+      const errorResponse = await fetch(`https://api.vercel.com/v13/deployments/${deploymentId}`, {
         headers: {
-          'Authorization': `Bearer ${vercelToken}`,
+          'Authorization': `Bearer ${configurations.VERCEL_TOKEN}`,
         },
       });
       const errorData = await errorResponse.json();
@@ -289,11 +272,7 @@ async function deployToVercel(repoUrl: string, projectId: string) {
       throw new Error(`Deployment failed with status: ${deploymentStatus}. Check console for details.`);
     }
   } catch (error) {
-    console.error('Error deploying to Vercel:', error);
+    console.error('Error building on Vercel:', error);
     return { deploymentUrl: null, vercelStatus: 'failed', error: error.message };
   }
 }
-
-
-
-

@@ -8,6 +8,7 @@ import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, det
 import { useGeneralContext } from "@/context/general-context-provider";
 import { ModelOption, WarningType } from "@/app/types/ai";
 import { defaultAdvancedAPIEndPoint, advancedAPIEndpointOptions } from "@/constants/ai";
+import { getAPIEndpoint } from "@/utils/aiUtils";
 import { useCompletion } from "ai/react";
 import { useToken } from "./use-token";
 import { toast } from "sonner";
@@ -57,14 +58,13 @@ export const useAdvancedSubmit = ({
   const inputContext = useModelStore((state) => state.inputContext);
   const AIConfig = useModelStore((state) => state.AIConfig);
   const countTotalTokens = useModelStore((state) => state.countTotalTokens);
-  const setApiEndpoint = useModelStore((state) => state.setApiEndpoint);
   const { inputType, outputType } = useGeneralContext();
   const { checkTokenUsage, updateTokenUsage } = useToken();
   const updateModel = useMutation(api.models.updateModel);
   const models = useQuery(api.models.getAllModels);
   
   const { complete } = useCompletion({
-    api: useModelStore.getState().apiEndpoint,
+    api: getAPIEndpoint(advancedAPIEndpointOptions, inputModel),
     onResponse: async (response) => {
       if (!response.ok) {
         let errorData;
@@ -121,7 +121,6 @@ export const useAdvancedSubmit = ({
       const messages = await limitMessageTokens([_promptMessage], AIConfig[inputModel].max_tokens, inputModel, determineModel(inputModel), inputType, outputType);
       if (messages.length === 0) {
         toast.error("Message exceeds max token!");
-        throw new Error('Message exceeds max token!');
         return;
       }
       let requestOption = {

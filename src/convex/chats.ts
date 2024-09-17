@@ -186,6 +186,12 @@ export const createChat = mutation({
           role: v.optional(v.string()),
           command: v.optional(v.string()),
           content: v.optional(v.string()),
+          embeddedContent: v.optional(v.array(v.object({
+            name: v.string(),
+            content: v.string(),
+            type: v.string(),
+            size: v.optional(v.number()),
+          }))),
           context: v.optional(v.string()),
           model: v.optional(v.string()),
         })
@@ -291,6 +297,12 @@ export const updateChat = mutation({
           role: v.optional(v.string()),
           command: v.optional(v.string()),
           content: v.optional(v.string()),
+          embeddedContent: v.optional(v.array(v.object({
+            name: v.string(),
+            content: v.string(),
+            type: v.string(),
+            size: v.optional(v.number()),
+          }))),
           context: v.optional(v.string()),
           model: v.optional(v.string()),
         })
@@ -1770,6 +1782,12 @@ export const askQuestionOpenAi = action({
           role: v.optional(v.string()),
           command: v.optional(v.string()),
           content: v.optional(v.string()),
+          embeddedContent: v.optional(v.array(v.object({
+            name: v.string(),
+            content: v.string(),
+            type: v.string(),
+            size: v.optional(v.number()),
+          }))),
           context: v.optional(v.string()),
           model: v.optional(v.string()),
         })
@@ -1952,6 +1970,12 @@ export const askQuestionGoogleGemini = action({
           role: v.optional(v.string()),
           command: v.optional(v.string()),
           content: v.optional(v.string()),
+          embeddedContent: v.optional(v.array(v.object({
+            name: v.string(),
+            content: v.string(),
+            type: v.string(),
+            size: v.optional(v.number()),
+          }))),
           context: v.optional(v.string()),
           model: v.optional(v.string()),
         })

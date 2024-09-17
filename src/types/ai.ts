@@ -1,7 +1,7 @@
 import { Prompt } from './prompt';
 import { Theme } from './theme';
 
-export type Model = 'openAI' | 'gemini' | 'dalle' | 'anthropic';
+export type Model = 'openai' | 'gemini' | 'dalle' | 'claude';
 
 export type ModelStatus = 'create' | 'update';
 
@@ -36,6 +36,10 @@ export type ModelOption =
   | 'gemini-1.0-pro'
   | 'gemini-1.5-pro'
   | 'gemini-1.5-flash'
+  | 'claude-3.5-sonnet-20240620'
+  | 'claude-3-opus-20240229'
+  | 'claude-3-sonnet-20240229'
+  | 'claude-3-haiku-20240307'
   | 'dall-e-3';
 
 export type NormalizedModelOption =
@@ -56,6 +60,10 @@ export type NormalizedModelOption =
   | 'gemini_1_0_pro'
   | 'gemini_1_5_pro'
   | 'gemini_1_5_flash'
+  | 'claude_3_5_sonnet_20240620'
+  | 'claude_3_opus_20240229'
+  | 'claude_3_sonnet_20240229'
+  | 'claude_3_haiku_20240307'
   | 'dall_e_3';
 
 export const modelMapping: { [key in NormalizedModelOption]: ModelOption } = {
@@ -76,6 +84,10 @@ export const modelMapping: { [key in NormalizedModelOption]: ModelOption } = {
   'gemini_1_0_pro': 'gemini-1.0-pro',
   'gemini_1_5_pro': 'gemini-1.5-pro',
   'gemini_1_5_flash': 'gemini-1.5-flash',
+  'claude_3_5_sonnet_20240620': 'claude-3.5-sonnet-20240620',
+  'claude_3_opus_20240229': 'claude-3-opus-20240229',
+  'claude_3_sonnet_20240229': 'claude-3-sonnet-20240229',
+  'claude_3_haiku_20240307': 'claude-3-haiku-20240307', 
   'dall_e_3': 'dall-e-3'
 };
 
@@ -129,6 +141,27 @@ export interface CloudModelConfigInterface {
   presence_penalty?: number;
   top_p?: number;
   frequency_penalty?: number;
+}
+
+export interface ChatSession {
+  autoStrip: boolean;
+  autoSummarized: boolean;
+  messages: MessageInterface[];
+  maxTokens: number;
+  warning: boolean;
+
+  // Constructor
+  new (model: string): ChatSession;
+
+  // Methods
+  addMessage(message: MessageInterface): void;
+  getMessages(): MessageInterface[];
+  setAutoStrip(value: boolean): void;
+  setAutoSummarized(value: boolean): void;
+  isWarning(): boolean;
+  handleAutoStrip(): void;
+  handleAutoSummarize(): void;
+  handleCancel(): void;
 }
 
 export interface SummaryData {

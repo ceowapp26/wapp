@@ -51,12 +51,12 @@ export const Select: React.FC<SelectComponentProps> = ({
         onChange={handleSelectionChange}
         selectorIcon={<ChevronDown className="text-purple-500 transition-transform duration-300 group-data-[open=true]:rotate-180" />}
         classNames={{
-          base: "w-full min-w-[142px] max-w-[150px]", 
-          trigger: "group bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600",
+          base: "w-full", 
+          trigger: "min-w-[142px] max-w-[150px] group bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 border-2 border-purple-200 dark:border-purple-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 focus:ring-2 focus:ring-purple-400 dark:focus:ring-purple-600",
           label: "text-purple-600 dark:text-purple-300 font-semibold",
           value: "text-gray-800 dark:text-gray-100",
           listbox: "bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-purple-100 dark:border-purple-800",
-          popover: "border-0",
+          popoverContent: "border-0 w-[256px]",
           innerWrapper: "gap-3",
           mainWrapper: "p-1",
         }}
@@ -65,7 +65,7 @@ export const Select: React.FC<SelectComponentProps> = ({
           <SelectItem 
             key={option.key} 
             value={option.key}
-            className="text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors duration-150 rounded-md"
+            className="text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-800 transition-colors duration-150 rounded-md whitespace-nowrap"
           >
             {option.value}
           </SelectItem>
@@ -74,4 +74,6 @@ export const Select: React.FC<SelectComponentProps> = ({
     </motion.div>
   );
 };
+
+
 

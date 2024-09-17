@@ -1,4 +1,4 @@
-import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { generateDefaultChat } from '@/constants/chat';
 import { ChatInterface } from '@/types/chat';
 import { useMutation, useQuery } from 'convex/react';
@@ -7,7 +7,7 @@ import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { toast } from 'sonner';
 
 export const useAddChat = () => {
-  const { setChats, setCurrentChatIndex } = useDocumentStore();
+  const { setChats, setCurrentChatIndex } = usePortalStore();
   const { activeOrg, activeDocument } = useMyspaceContext();
   const createChat = useMutation(api.chats.createChat);
   const currentUser = useQuery(api.users.getCurrentUser);
@@ -38,7 +38,7 @@ export const useAddChat = () => {
     }
 
     try {
-      const { chats, archivedChats } = useDocumentStore.getState();
+      const { chats, archivedChats } = usePortalStore.getState();
       const allChats = [...Object.values(chats), ...Object.values(archivedChats).map(chat => chat.chat)];
       const title = getUniqueTitle(allChats);
       const newChat: ChatInterface = {

@@ -14,14 +14,14 @@ import {
 import { useAppSelector, useAppDispatch } from '@/hooks/hooks';
 import { setPortalContext } from '@/stores/features/apps/portal/portalsSlice';
 import { useMyspaceContext } from '@/context/myspace-context-provider';
-import { usePortalContextHook } from '@/context/portal-context-provider';
+import { usePortalContext } from '@/context/portal-context-provider';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ChevronDown, Check } from "lucide-react";
 import { portalOptions } from "@/constants/portals";
 
 export const PortalSwitcher = () => {
   const dispatch = useAppDispatch();
-  const { portalContext, setPortalContext } = usePortalContextHook();
+  const { portalContext, setPortalContext } = usePortalContext();
   const [isOpen, setIsOpen] = useState(false);
   const {
     isLeftSidebarOpened,
@@ -50,9 +50,9 @@ export const PortalSwitcher = () => {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger className="flex items-center justify-between w-48 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out">
+      <DropdownMenuTrigger className="flex items-center justify-between w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 transition-all duration-300 ease-in-out">
         {currentPortal ? (
-          <div className="flex items-center">
+          <div className="flex w-48 items-center">
             <Avatar className="w-6 h-6 mr-2">
               <AvatarFallback>
                 <currentPortal.icon className="w-4 h-4" />

@@ -6,7 +6,7 @@ import { useUser } from "@clerk/clerk-react";
 import { Settings, HandHelping } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
-import { usePortalContextHook } from "@/context/portal-context-provider";
+import { usePortalContext } from "@/context/portal-context-provider";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@nextui-org/react";
 import { portalOptions } from "@/constants/portals";
@@ -20,12 +20,12 @@ function capitalizeFirstLetter(str: string) {
 type ContextType = "TEXT" | "CODE" | "IMAGE" | "AUDIO" | "VIDEO";
 
 const PortalPage = () => {
-  const { portalContext, setPortalContext } = usePortalContextHook();
+  const { portalContext, setPortalContext } = usePortalContext();
   const { isAppbarCollapsed, isLeftSidebarOpened, setIsLeftSidebarOpened, leftSidebarWidth, setLeftSidebarWidth, isRightSidebarOpened, setIsRightSidebarOpened, RightSidebarWidth, setRightSidebarWidth } = useMyspaceContext();
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
   const [showHelp, setShowHelp] = useState(false);
-  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'WApp';
+  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'Wapp-Portal';
   
   useEffect(() => {
     if (isLeftSidebarOpened) {
@@ -71,12 +71,12 @@ const PortalPage = () => {
           backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
         }}
       >
-        <h2 className="text-2xl font-bold mb-4">Welcome to Wapp-Portal</h2>
+        <h2 className="text-3xl font-bold mb-4">Welcome to Wapp-Portal</h2>
         <motion.p
           initial={{ width: 0 }}
           animate={{ width: "100%" }}
           transition={{ duration: 5, repeat: Infinity, repeatType: "loop" }}
-          className="overflow-hidden whitespace-nowrap"
+          className="overflow-hidden whitespace-nowrap text-blue-900 dark:text-blue-500 text-xl"
         >
           Discover a world of possibilities with our intuitive and powerful portal system.
         </motion.p>
@@ -89,7 +89,7 @@ const PortalPage = () => {
         className="w-full max-w-7xl flex justify-between items-center mb-8"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {userName}'s Portal
+          {userName}'s Wapp-Portal
         </h1>
 
         <Button

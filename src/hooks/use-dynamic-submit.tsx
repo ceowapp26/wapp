@@ -1,6 +1,6 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { useDocumentStore } from "@/stores/features/apps/document/store";
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { useModelStore } from "@/stores/features/models/store";
 import { useSubmit } from "@/hooks/use-submit";
 import { useAdvancedSubmit } from "@/hooks/use-advanced-submit";
@@ -64,15 +64,16 @@ export const useDynamicSubmit = ({
   setEmailSubject,
   setEmailText,
   onSendMessage,
+  chatSession,
 }: AIDynamicProps = {}) => { 
-  const chats = useDocumentStore((state) => state.chats);
-  const chatModel = useDocumentStore((state) => state.chatModel) as ModelOption | undefined;
-  const chatContext = useDocumentStore((state) => state.chatContext) as ModelOption | undefined;
-  const setGenerating = useDocumentStore((state) => state.setGenerating);
-  const generating = useDocumentStore((state) => state.generating);
-  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
-  const setChats = useDocumentStore((state) => state.setChats);
-  const _setError = useDocumentStore((state) => state.setError);
+  const chats = usePortalStore((state) => state.chats);
+  const chatModel = usePortalStore((state) => state.chatModel) as ModelOption | undefined;
+  const chatContext = usePortalStore((state) => state.chatContext) as ModelOption | undefined;
+  const setGenerating = usePortalStore((state) => state.setGenerating);
+  const generating = usePortalStore((state) => state.generating);
+  const currentChatIndex = usePortalStore((state) => state.currentChatIndex);
+  const setChats = usePortalStore((state) => state.setChats);
+  const _setError = usePortalStore((state) => state.setError);
   const inputContext = useModelStore((state) => state.inputContext) as ChatContext | undefined;
   const inputModel = useModelStore((state) => state.inputModel) as ModelOption | undefined;
   const _apiEndpoint = useModelStore((state) => state.apiEndpoint);
@@ -84,7 +85,7 @@ export const useDynamicSubmit = ({
   const countTotalTokens = useModelStore((state) => state.countTotalTokens);
   const askQuestionOpenAi = useAction(api.chats.askQuestionOpenAi);
   const askQuestionGoogleGemini = useAction(api.chats.askQuestionGoogleGemini);
-  const { handleSubmit } = useSubmit();
+  const { handleSubmit, handleStop } = useSubmit();
   const { handlAdvancedSubmit } = useAdvancedSubmit({ option: option, prompt: prompt, setIsLoading: setIsLoading, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage, setResData: setResData, setError: setError });
   const { handleAIPortal } = useAIPortal({ option: option, prompt: prompt, setIsLoading: setIsLoading, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage, onSendMessage: onSendMessage, setError: setError });
   const { handleGenerateEmail } = useEmailGenerator({ prompt: prompt, setIsLoading: setIsLoading, setShowWarning: setShowWarning, setWarningType: setWarningType, setNextTimeUsage: setNextTimeUsage, setResData: setResData, setError: setError, setEmailSubject: setEmailSubject, setEmailText: setEmailText });
@@ -383,8 +384,8 @@ export const useDynamicSubmit = ({
   ]);
 
   const convexAIHandler = useCallback(async (func: any) => {
-    if (useDocumentStore.getState().generating || !chatContext || !chatModel || currentChatIndex === undefined) return;
-    const updatedChats = JSON.parse(JSON.stringify(useDocumentStore.getState().chats));
+    if (usePortalStore.getState().generating || !chatContext || !chatModel || currentChatIndex === undefined) return;
+    const updatedChats = JSON.parse(JSON.stringify(usePortalStore.getState().chats));
     const currentChat = updatedChats[currentChatIndex];
     const lastMessage = currentChat.messages[currentChat.messages.length - 1];
     const inputModelData = models?.find(model => model.model === chatModel);
@@ -501,37 +502,58 @@ export const useDynamicSubmit = ({
       return;
     }
     const actions: Record<string, () => Promise<void>> = {
-      "basic-document-openAI": async () => {
+      "basic-document-openai": async () => {
         await convexAIHandler(askQuestionOpenAi);
       },
       "basic-document-gemini": async () => {
         await convexAIHandler(askQuestionGoogleGemini);
       },
-      "basic-general-openAI": async () => {
+      "basic-general-openai": async () => {
         await handleSubmit();
       },
       "basic-general-gemini": async () => {
         await handleSubmit();
       },
-      "basic-selection-openAI": async () => {
+      "basic-general-claude": async () => {
+        await handleSubmit();
+      },
+      "basic-selection-openai": async () => {
         await handleSubmit();
       },
       "basic-selection-gemini": async () => {
         await handleSubmit();     
       },
-      "docMetadata-general-openAI": async () => {
+      "basic-file-openai": async () => {
+        await handleSubmit();
+      },
+      "basic-project-openai": async () => {
+        await handleSubmit();
+      },
+      "basic-file-gemini": async () => {
+        await handleSubmit();
+      },
+      "basic-project-gemini": async () => {
+        await handleSubmit();
+      },
+      "basic-file-claude": async () => {
+        await handleSubmit();
+      },
+      "basic-project-claude": async () => {
+        await handleSubmit();
+      },
+      "docMetadata-general-openai": async () => {
         await handleGenerateDocumentMetadata({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage });
       },
-      "chatMetadata-general-openAI": async () => {
+      "chatMetadata-general-openai": async () => {
         await handleGenerateChatMetadata({ setIsLoading, setError, setTitle, setDescription, setShowWarning, setWarningType, setNextTimeUsage });
       },
-      "email-general-openAI": async () => {
+      "email-general-openai": async () => {
         await handleGenerateEmail();
       },
-      "advanced-general-openAI": async () => {
+      "advanced-general-openai": async () => {
         await handlAdvancedSubmit();
       },
-      "portal-general-openAI": async () => {
+      "portal-general-openai": async () => {
         await handleAIPortal();
       },
       "portal-general-anthropic": async () => {
@@ -544,7 +566,7 @@ export const useDynamicSubmit = ({
         await handleAIImage();
       },
     };
-    const actionKey = `${aiContext || 'basic'}-${contextToUse || 'general'}-${determineModel(modelToUse) || 'openAI'}`;
+    const actionKey = `${aiContext || 'basic'}-${contextToUse || 'general'}-${determineModel(modelToUse) || 'openai'}`;
     const action = actions[actionKey];
     if (action) {
       try {
@@ -586,7 +608,11 @@ export const useDynamicSubmit = ({
     onSendMessage,
   ]);
 
-  return { handleAIDynamicFunc };
+  const handleStopChat = () => {
+    handleStop();
+  }
+
+  return { handleAIDynamicFunc, handleStopChat };
 };
 
  

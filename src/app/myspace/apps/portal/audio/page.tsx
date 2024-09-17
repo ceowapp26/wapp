@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Grid, Container, useMediaQuery, ThemeProvider, createTheme, Button, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import AudioEditor from '../_components/audio-editor';
-import { usePortalContextHook } from '@/context/portal-context-provider';
+import { usePortalContext } from '@/context/portal-context-provider';
 import { styled } from '@mui/system';
 import { useTheme } from '@mui/material/styles';
 import ViewColumnIcon from '@mui/icons-material/ViewColumn';
@@ -65,7 +65,7 @@ const ControlPanel = styled('div')(({ theme }) => ({
 
 const AudioPage = () => {
   const [chatHistory, setChatHistory] = useState([]);
-  const { portalContext, setPortalContext } = usePortalContextHook();
+  const { portalContext, setPortalContext } = usePortalContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [layout, setLayout] = useState('two-column');

@@ -1,3 +1,7 @@
+export interface CodeFile {
+  [key: string]: string;
+}
+
 export interface FileContent {
   content: string;
   type: 'file';
@@ -163,3 +167,94 @@ export const createDirectory = (content: Record<string, ProjectStructure>): Dire
   ...content,
   type: 'directory',
 });
+
+interface SettingItem {
+  uid: string;
+  name: string;
+  editable: "EDITABLE" | "READONLY"; 
+}
+
+export interface ProjectSettings {
+  general: SettingItem[];
+  development: SettingItem[];
+  testing: SettingItem[];
+  database: SettingItem[];
+  deployment: SettingItem[];
+  security: SettingItem[];
+  performance: SettingItem[];
+  metadata: SettingItem[];
+}
+
+export interface ProjectConfigs {
+  general: {
+    projectType: string[];
+  };
+  development: {
+    language: string[];
+    framework: string[];
+    buildTool: string[];
+    packageManager: string[];
+  };
+  testing: {
+    framework: string[];
+    e2eFramework: string[];
+  };
+  database: {
+    type: string[];
+    name: string[];
+    orm: string[];
+  };
+  deployment: {
+    platform: string[];
+    cicdTool: string[];
+    containerization: string[];
+  };
+  mobile: {
+    platform: string[];
+    framework: string[];
+  };
+  desktop: {
+    framework: string[];
+    targetOS: string[];
+  };
+  security: {
+    authentication: string[];
+    authorization: string[];
+  };
+  performance: {
+    caching: string[];
+    cdn: string[];
+  };
+  metadata: {
+    developers: string[];
+    status: string[];
+    license: string[];
+  };
+}
+
+export interface BasicSetupOptions {
+  lineNumbers?: boolean;
+  highlightActiveLineGutter?: boolean;
+  highlightSpecialChars?: boolean;
+  history?: boolean;
+  foldGutter?: boolean;
+  drawSelection?: boolean;
+  dropCursor?: boolean;
+  allowMultipleSelections?: boolean;
+  indentOnInput?: boolean;
+  syntaxHighlighting?: boolean;
+  bracketMatching?: boolean;
+  closeBrackets?: boolean;
+  autocompletion?: boolean;
+  rectangularSelection?: boolean;
+  crosshairCursor?: boolean;
+  highlightActiveLine?: boolean;
+  highlightSelectionMatches?: boolean;
+  closeBracketsKeymap?: boolean;
+  defaultKeymap?: boolean;
+  searchKeymap?: boolean;
+  historyKeymap?: boolean;
+  foldKeymap?: boolean;
+  completionKeymap?: boolean;
+  lintKeymap?: boolean;
+}

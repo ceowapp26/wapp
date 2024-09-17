@@ -3,7 +3,7 @@ import { Command, CommandGroup, CommandItem, CommandSeparator, CommandList } fro
 import { useCompletion } from "ai/react";
 import { useEditor } from "../core/index";
 import { useModelStore } from '@/stores/features/models/store';
-import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useMutation } from "convex/react";
@@ -28,8 +28,6 @@ import {
   ListPlus,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { chatAPIEndpointOptions } from "@/constants/ai";
-import { setAPIEndpoint } from '@/utils/aiUtils';
 import Warning from '@/components/models/warning'; 
 
 const optionsEdit = [
@@ -108,10 +106,10 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
     setRightSidebarType,
   } = useMyspaceContext();
   const { aiContext, setAiContext, setAiModel, setIsSystemModel, setInputType, setOutputType, showWarning, warningType, nextTimeUsage } = useGeneralContext();
-  const setChatModel = useDocumentStore((state) => state.setChatModel);
-  const setChatContext = useDocumentStore((state) => state.setChatContext);
-  const setChats = useDocumentStore((state) => state.setChats);
-  const currentChatIndex = useDocumentStore((state) => state.currentChatIndex);
+  const setChatModel = usePortalStore((state) => state.setChatModel);
+  const setChatContext = usePortalStore((state) => state.setChatContext);
+  const setChats = usePortalStore((state) => state.setChats);
+  const currentChatIndex = usePortalStore((state) => state.currentChatIndex);
   const inputModel = useModelStore((state) => state.inputModel);
   const updateChat = useMutation(api.chats.updateChat);
   const { handleAIDynamicFunc } = useDynamicSubmit();
@@ -132,17 +130,16 @@ const AIBasicSelector = ({ open, onOpenChange }: AIBasicSelectorProps) => {
     setInputType("text-only");
     setOutputType("text");
     setAiContext("basic");
-    setAPIEndpoint(chatAPIEndpointOptions, inputModel);
-  }, [setAiContext, setChatContext, setChatModel, setInputType, setOutputType, setIsSystemModel, setAPIEndpoint, chatAPIEndpointOptions, inputModel]);
+  }, [setAiContext, setChatContext, setChatModel, setInputType, setOutputType, setIsSystemModel, inputModel]);
 
   const handleGenerate = useCallback(async (role, command, content) => {
     handleSetup();
-    if (!content || content.trim() === '' || useDocumentStore.getState().generating) return;
+    if (!content || content.trim() === '' || usePortalStore.getState().generating) return;
     const updatedChats: ChatInterface[] = JSON.parse(
-      JSON.stringify(useDocumentStore.getState().chats)
+      JSON.stringify(usePortalStore.getState().chats)
     );
-    const chatContext = useDocumentStore.getState().chatContext;
-    const chatModel = useDocumentStore.getState().chatModel;
+    const chatContext = usePortalStore.getState().chatContext;
+    const chatModel = usePortalStore.getState().chatModel;
     const currentChat = updatedChats[currentChatIndex];
     const chatId = currentChat.chatId;
     if (!currentChat.messages) {

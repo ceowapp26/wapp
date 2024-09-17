@@ -46,7 +46,7 @@ import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { handleImageDrop, handleImagePaste, handleFileDrop, handleFilePaste } from "./plugins/index";
 import { uploadFn } from "./image-upload";
 import { uploadFile } from "./plugins/upload-files";
-import Warning from "@/components/apps/document/modals/warning-modal";
+import Warning from "@/components/apps/modals/warning-modal";
 import TableBubbleMenu from "./tables/table-bubble-menu";
 import { exportToWord } from "./export";
 import { useUploadFile } from "@/hooks/use-upload-file";

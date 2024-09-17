@@ -40,7 +40,7 @@ interface GeneralContextType {
 const GeneralContext = createContext<GeneralContextType | undefined>(undefined);
 
 export const GeneralContextProvider: React.FC = ({ children }: { children: React.ReactNode }) => {
-  const [aiModel, setAiModel] = useState<Model>('openAI');
+  const [aiModel, setAiModel] = useState<Model>('openai');
   const [aiContext, setAiContext] = useState<Context>(undefined);
   const [inputType, setInputType] = useState<InputType>("text-only");
   const [outputType, setOutputType] = useState<OutputType>("text");

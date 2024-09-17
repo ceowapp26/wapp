@@ -1,16 +1,16 @@
 import React, { useEffect } from "react";
 import { CommandGroup, CommandItem, CommandSeparator, CommandList } from "../ui/command";
 import { useEditor } from "../core/index";
-import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { Check, TextQuote, TrashIcon } from "lucide-react";
 
 export const AIBasicCommand = () => {
   const { editor } = useEditor();
-  const setReplaceAI = useDocumentStore((state) => state.setReplaceAI);
-  const setInsertAboveAI = useDocumentStore((state) => state.setInsertAboveAI);
-  const setInsertBelowAI = useDocumentStore((state) => state.setInsertBelowAI);
-  const setInsertLeftAI = useDocumentStore((state) => state.setInsertLeftAI);
-  const setInsertRightAI = useDocumentStore((state) => state.setInsertRightAI);
+  const setReplaceAI = usePortalStore((state) => state.setReplaceAI);
+  const setInsertAboveAI = usePortalStore((state) => state.setInsertAboveAI);
+  const setInsertBelowAI = usePortalStore((state) => state.setInsertBelowAI);
+  const setInsertLeftAI = usePortalStore((state) => state.setInsertLeftAI);
+  const setInsertRightAI = usePortalStore((state) => state.setInsertRightAI);
 
   useEffect(() => {
     const replace = (content) => {

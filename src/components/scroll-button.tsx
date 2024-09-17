@@ -41,11 +41,12 @@ export interface ScrollButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof scrollButtonVariants> {
   asChild?: boolean;
+  isCode?: boolean;
   scrollContainerRef: React.RefObject<HTMLDivElement>;
 }
 
 const ScrollButton = React.memo(
-  React.forwardRef<HTMLButtonElement, ScrollButtonProps>(({ className, theme, asChild = false, scrollContainerRef, ...props }, ref) => {
+  React.forwardRef<HTMLButtonElement, ScrollButtonProps>(({ className, theme, asChild = false, scrollContainerRef, isCode, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button';
     const scrollToTop = useScrollToTop();
     const scrollToBottom = useScrollToBottom();
@@ -53,11 +54,21 @@ const ScrollButton = React.memo(
     const [atTop] = useAtTop();
     const [atBottom] = useAtBottom();
     const [showButton, setShowButton] = useState(false);
+    const [buttonPosition, setButtonPosition] = useState<number | null>(null);
     const [isOpen, setIsOpen] = useState(false);
+    const scrollContainerWidth = scrollContainerRef?.current?.clientWidth;
 
     useEffect(() => {
       setShowButton(!atTop && !atBottom);
     }, [atTop, atBottom]);
+
+    useEffect(() => {
+      if (isCode && scrollContainerWidth) {
+        setButtonPosition(scrollContainerWidth - 16);
+      } else {
+        setButtonPosition(null);
+      }
+    }, [isCode, scrollContainerWidth]);
 
     const handleScrollToTop = useCallback(() => scrollToTop(), [scrollToTop]);
     const handleScrollToBottom = useCallback(() => scrollToBottom(), [scrollToBottom]);
@@ -73,7 +84,12 @@ const ScrollButton = React.memo(
       <AnimatePresence>
         {showButton && (
           <motion.div
-            className={cn(scrollButtonVariants({ theme }), 'right-4 bottom-4', className)}
+            className={cn(
+              scrollButtonVariants({ theme }),
+              'bottom-4',
+              className
+            )}
+            style={isCode ? { left: `${buttonPosition}px` } : { right: '16px' }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}

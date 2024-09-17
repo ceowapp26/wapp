@@ -6,7 +6,7 @@ import { useUser } from "@clerk/clerk-react";
 import { FileText, SquareTerminal, FileImage, FileAudio, FileVideo } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
-import { usePortalContextHook } from "@/context/portal-context-provider";
+import { usePortalContext } from "@/context/portal-context-provider";
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 
@@ -17,7 +17,7 @@ function capitalizeFirstLetter(str: string) {
 type ContextType = "TEXT" | "CODE" | "IMAGE" | "AUDIO" | "VIDEO";
 
 const PortalPage = () => {
-  const { portalContext, setPortalContext } = usePortalContextHook();
+  const { portalContext, setPortalContext } = usePortalContext();
   const { setLeftSidebarWidth, setRightSidebarWidth, isAppbarCollapsed } = useMyspaceContext();
   const { user } = useUser();
   const { theme } = useTheme();

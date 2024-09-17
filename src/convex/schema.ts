@@ -199,6 +199,12 @@ export default defineSchema({
         role: v.optional(v.string()),
         command: v.optional(v.string()),
         content: v.optional(v.string()),
+        embeddedContent: v.optional(v.array(v.object({
+          name: v.string(),
+          content: v.string(),
+          type: v.string(),
+          size: v.optional(v.number()),
+        }))),
         context: v.optional(v.string()),
         model: v.optional(v.string()),
       })

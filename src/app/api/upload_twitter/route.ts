@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { NextResponse } from 'next/server';
 import { TwitterApi } from 'twitter-api-v2';
 
-const client = new TwitterApi({
+const client = new Twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
   access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,

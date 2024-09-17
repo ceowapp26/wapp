@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ChatInterface, ConfigCollectionInterface } from '@/types/chat';
 import { ModelOption } from '@/types/ai';
 import { _defaultModel } from '@/constants/ai';
-import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { GoogleGenerativeAI, HarmBlockThreshold, HarmCategory } from '@google/generative-ai';
 import { GoogleGenerativeAIStream, Message, StreamingTextResponse } from 'ai';
 
@@ -71,11 +71,17 @@ export const FilterChatOptions = [
   {key: "organizatino", value: "This Organization"},
 ];
 
-export const AIContextOptions = [
-  {key: "general", value: "General"},
-  {key: "selection", value: "Selection"},
-  {key: "document", value: "This document"},
-];
+export const generateAIContextOptions = (isCode?: boolean) => {
+  return isCode ? [
+    {key: "general", value: "General"},
+    {key: "file", value: "This File"},
+    {key: "project", value: "This project"},
+  ] : [
+    {key: "general", value: "General"},
+    {key: "selection", value: "Selection"},
+    {key: "document", value: "This document"},
+  ];
+}
 
 export const generateDefaultChat = (
   chatTitle?: string,
@@ -87,8 +93,8 @@ export const generateDefaultChat = (
   cloudChatId: '',
   chatTitle: chatTitle ? chatTitle : 'New Chat',
   messages:
-    useDocumentStore.getState().defaultSystemMessage.length > 0
-      ? [{ role: 'system', context: 'general', command: '', content: useDocumentStore.getState().defaultSystemMessage, model: _defaultModel}]
+    usePortalStore.getState().defaultSystemMessage.length > 0
+      ? [{ role: 'system', context: 'general', command: '', embeddedContent: [], content: usePortalStore.getState().defaultSystemMessage, model: _defaultModel}]
       : [],
   titleSet: false,
   tokenUsed: {},

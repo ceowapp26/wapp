@@ -4,6 +4,7 @@ import TextEditor from './text-editor';
 import ImageEditor from './image-editor';
 import AudioEditor from './audio-editor';
 import VideoEditor from './video-editor';
+import dynamic from 'next/dynamic';
 
 const CodeEditor = dynamic(() => import('./code-editor'), { ssr: false });
 

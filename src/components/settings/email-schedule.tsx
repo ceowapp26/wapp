@@ -35,8 +35,6 @@ import { useMyspaceContext } from "@/context/myspace-context-provider";
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { styled } from '@mui/system';
-import { emailAPIEndpointOptions } from "@/constants/ai";
-import { setAPIEndpoint } from '@/utils/aiUtils';
 import { useTranslation } from "react-i18next";
 import Warning from '@/components/models/warning'; 
 
@@ -227,8 +225,7 @@ const EmailSchedule = () => {
     setInputContext("general");
     setInputType("text-only");
     setOutputType("text");
-    setAPIEndpoint(emailAPIEndpointOptions, inputModel);
-  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel, setAPIEndpoint, emailAPIEndpointOptions, inputModel]);
+  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel, inputModel]);
 
   const handleAIGenerate = useCallback(async () => {
     handleSetup();

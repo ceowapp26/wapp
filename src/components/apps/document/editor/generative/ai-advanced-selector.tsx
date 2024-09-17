@@ -71,8 +71,6 @@ import { useGeneralContext } from '@/context/general-context-provider';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { useModelStore } from "@/stores/features/models/store";
 import { useTranslation } from "react-i18next";
-import { advancedAPIEndpointOptions } from "@/constants/ai";
-import { setAPIEndpoint } from '@/utils/aiUtils';
 import Warning from '@/components/models/warning'; 
 
 const textOptions = [
@@ -131,8 +129,7 @@ const AIAdvancedSelector = ({
     const slice = editor.state.selection.content();
     const text = editor.storage.markdown.serializer.serialize(slice.content);
     setPrompt(text);
-    setAPIEndpoint(advancedAPIEndpointOptions, inputModel)
-  }, [editor, setAiContext, setAiModel, setIsSystemModel, _setOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt, setAPIEndpoint, advancedAPIEndpointOptions, inputModel]);
+  }, [editor, setAiContext, setAiModel, setIsSystemModel, _setOption, setInputContext, setInputModel, setInputType, setOutputType, setPrompt, inputModel]);
 
   const handleAIGenerate = useCallback(async () => {
     if (aiContext === "advanced" && prompt && _option && !isLoading) {

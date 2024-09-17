@@ -6,12 +6,13 @@ import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Trash, Plus, MoreHorizontal, ChevronDown, ChevronRight, Building, Settings2 } from "lucide-react";
+import { Trash, Plus, MoreHorizontal, ChevronDown, ChevronRight, Building, Settings2, Rocket } from "lucide-react";
 import { useMyspaceContext } from '@/context/myspace-context-provider';
 import { useGeneralContext } from "@/context/general-context-provider";
 import { useDocumentMetadatas } from "@/hooks/use-document-metadatas";
 import { useDocumentManagement } from "@/hooks/use-document-management";
 import { useProjectSettings } from "@/hooks/use-project-settings";
+import { useProjectDeployments } from "@/hooks/use-project-deployments";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -52,6 +53,7 @@ export const Item: React.FC<ItemProps> & { Skeleton: React.FC<{ level?: number }
   const metadatas = useDocumentMetadatas();
   const managements = useDocumentManagement();
   const settings = useProjectSettings();
+  const deployments = useProjectDeployments();
 
   const ChevronIcon = expanded ? ChevronDown : ChevronRight;
 
@@ -73,6 +75,11 @@ export const Item: React.FC<ItemProps> & { Skeleton: React.FC<{ level?: number }
   const handleSetting = (e: React.MouseEvent) => {
     e.stopPropagation();
     settings.onOpen();
+  };
+
+  const handleDeployment = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    deployments.onOpen();
   };
 
   const onArchive = (e: React.MouseEvent) => {
@@ -138,6 +145,10 @@ export const Item: React.FC<ItemProps> & { Skeleton: React.FC<{ level?: number }
             <DropdownMenuItem onClick={handleSetting} className="hover:bg-green-100 dark:hover:bg-green-900 transition-colors duration-200">
               <Settings2 className="h-4 w-4 mr-2" />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleDeployment} className="hover:bg-green-100 dark:hover:bg-green-900 transition-colors duration-200">
+              <Rocket className="h-4 w-4 mr-2" />
+              Deployment
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <div className="text-xs text-muted-foreground p-2 bg-neutral-100 dark:bg-neutral-800 rounded-b-md">

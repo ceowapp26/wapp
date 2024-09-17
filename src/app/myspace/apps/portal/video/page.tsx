@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dynamic from 'next/dynamic';
 import { Grid, Container, useMediaQuery, ThemeProvider, createTheme, Button, Menu, MenuItem, IconButton, Tooltip } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePortalContextHook } from '@/context/portal-context-provider';
+import { usePortalContext } from '@/context/portal-context-provider';
 import VideoEditor from '../_components/video-editor';
 import { styled } from '@mui/system';
 import { useTheme } from '@mui/material/styles';
@@ -66,7 +66,7 @@ const ControlPanel = styled('div')(({ theme }) => ({
 
 const VideoPage = () => {
   const [chatHistory, setChatHistory] = useState([]);
-  const { portalContext, setPortalContext } = usePortalContextHook();
+  const { portalContext, setPortalContext } = usePortalContext();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [layout, setLayout] = useState('two-column');

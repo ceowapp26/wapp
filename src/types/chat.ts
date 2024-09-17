@@ -22,6 +22,13 @@ type FilterChatOption = {
   value: string
 }
 
+export interface FileInterface {
+  name: string;
+  content: string;
+  type: string;
+  size?: number;
+}
+
 export interface OrganizationDataInterface {
   orgId?: string;
   roles?: string[];
@@ -48,9 +55,10 @@ export type FilterChatOptions = FilterChatOption[];
 export interface MessageInterface {
   role: Role;
   content: string;
-  command: string;
-  context: string;
-  model: string;
+  embeddedContent?: FileInterface[];
+  command?: string;
+  context?: string;
+  model?: string;
 }
 
 export interface ChatMetaDataInterface {

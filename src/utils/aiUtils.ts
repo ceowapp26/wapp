@@ -1,5 +1,6 @@
 import { ModelOption, Model, TotalTokenUsed, TimeLimitTokenUsed, APIEndpointOption } from "@/types/ai"; 
-import { MessageInterface } from '@/types/chat';
+import { modelMaxToken } from '@/constants/ai';
+import { MessageInterface, FileInterface } from '@/types/chat';
 import { useModelStore } from '@/stores/features/models/store';
 import { Tiktoken } from '@dqbd/tiktoken/lite';
 import { api } from "@/convex/_generated/api";
@@ -19,6 +20,8 @@ interface UpdateTokenUsedParams {
   inputType?: InputType;
   outputType?: OutputType;
   inputImage?: any;
+  claude_input_tokens?: number;
+  claude_output_tokens?: number;
   inputModelData: CloudModelConfigInterface;
   updateModel: (params: { id: Id<"models">; data: Partial<CloudModelConfigInterface> }) => Promise<void>;
 }
@@ -79,7 +82,7 @@ export const countTokensOpenAi = (
   }
 };
 
-const formatAndCountTokens = async (
+const formatAndCountGeminiTokens = async (
   geminiModel: any,
   messages: MessageInterface[]
 ): Promise<number> => {
@@ -113,7 +116,7 @@ export const countTokensGoogleGemini = async (
   });
   switch (inputType) {
     case "text-only": {
-      return formatAndCountTokens(geminiModel, messagesToCount);
+      return formatAndCountGeminiTokens(geminiModel, messagesToCount);
     }
     case "text-image": {
       let totalTokens = formatAndCountTokens(geminiModel, messagesToCount);
@@ -130,11 +133,50 @@ export const countTokensGoogleGemini = async (
   }
 };
 
+const countTokens = (input: string): number => {
+  const tokens = input
+    .trim()
+    .split(/\s+|(?=[.,!?;])|(?<=[.,!?;])/)
+    .filter(token => token.length > 0); 
+
+  return tokens.length;
+};
+
+const formatAndCountClaudeTokens = async (
+  messages: MessageInterface[]
+): Promise<number> => {
+  if (messages.length === 0) return 0;
+  const tokenCounts = await Promise.all(
+    messages.map(async (message) => {
+      return countTokens(message.content);
+    })
+  );
+
+  return tokenCounts.reduce((acc, tokens) => acc + tokens, 0); 
+};
+
+export const countTokensClaudeAi = (
+  outputType?: OutputType,
+  messages: MessageInterface[],
+): Promise<number> => {
+  switch (outputType) {
+    case "text": {
+      return formatAndCountClaudeTokens(messages);
+    }
+    case "image":
+      return Promise.resolve(1);
+    default:
+      throw new Error(`Unsupported output type: ${outputType}`);
+  }
+};
+
 export const getCountTokensFunc = async (aiModel: Model, messages: MessageInterface[], model: ModelOption, inputType?: InputType, outputType?: OutputType, inputImage?: any) => {
   if (aiModel === 'gemini') {
     return countTokensGoogleGemini(inputType, inputImage, messages, model);
-  } else {
+  } else if (aiModel === "openai") {
     return countTokensOpenAi(outputType, messages, model);
+  } else if (aiModel === "claude") {
+    return countTokensClaudeAi(outputType, messages);
   }
 };
 
@@ -190,11 +232,14 @@ export const updateTotalTokenUsed = async ({
   inputImage,
   inputModelData,
   updateModel,
+  claude_input_tokens,
+  claude_output_tokens,
 }: UpdateTokenUsedParams): Promise<void> => {
   const setTotalTokenUsed = useModelStore.getState().setTotalTokenUsed;
   const totalTokenUsed: TotalTokenUsed = JSON.parse(
     JSON.stringify(useModelStore.getState().totalTokenUsed)
   );
+
   try {
     const newPromptTokens = await getCountTokensFunc(aiModel, promptMessages, model, inputType, outputType, inputImage);
     const newCompletionTokens = await getCountTokensFunc(aiModel, [completionMessage], model, inputType, outputType, inputImage);
@@ -203,13 +248,14 @@ export const updateTotalTokenUsed = async ({
     }
     const currentUsage = totalTokenUsed[model];
     const updatedUsage = {
-      inputTokens: currentUsage.inputTokens + newPromptTokens,
-      outputTokens: currentUsage.outputTokens + newCompletionTokens,
+      inputTokens: currentUsage.inputTokens + (aiModel === "claude" ? claude_input_tokens : newPromptTokens),
+      outputTokens: currentUsage.outputTokens + (aiModel === "claude" ? claude_output_tokens : newCompletionTokens),
     };
     const updatedCloudData = {
       ...inputModelData,
       totalTokenUsed: updatedUsage,
     };
+
     await updateModel({ id: inputModelData.cloudModelId, data: updatedCloudData });
     setTotalTokenUsed({ ...totalTokenUsed, [model]: updatedUsage });
   } catch (error) {
@@ -228,24 +274,34 @@ export const updateTimeLimitTokenUsed = async ({
   inputImage,
   inputModelData,
   updateModel,
+  claude_input_tokens,
+  claude_output_tokens,
 }: UpdateTokenUsedParams): Promise<void> => {
   const setTimeLimitTokenUsed = useModelStore.getState().setTimeLimitTokenUsed;
   const timeLimitTokenUsed: TimeLimitTokenUsed = JSON.parse(
     JSON.stringify(useModelStore.getState().timeLimitTokenUsed)
   );
-
   try {
     const newPromptTokens = await getCountTokensFunc(aiModel, promptMessages, model, inputType, outputType, inputImage);
     const newCompletionTokens = await getCountTokensFunc(aiModel, [completionMessage], model, inputType, outputType, inputImage);
-    const currentUsage = timeLimitTokenUsed[model];
+    const currentUsage = timeLimitTokenUsed[model] || {
+      inputTokens: [],
+      outputTokens: [],
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      isTokenExceeded: false,
+      remainingTokens: 0,
+      lastTokenUpdateTime: Date.now(),
+      tokenLimit: 0,
+    };
     const updatedUsage = {
-      inputTokens: [...currentUsage.inputTokens, newPromptTokens],
-      outputTokens: [...currentUsage.outputTokens, newCompletionTokens],
-      totalInputTokens: currentUsage.totalInputTokens + newPromptTokens,
-      totalOutputTokens: currentUsage.totalOutputTokens + newCompletionTokens,
+      inputTokens: [...currentUsage.inputTokens, aiModel === "claude" ? claude_input_tokens : newPromptTokens],
+      outputTokens: [...currentUsage.outputTokens, aiModel === "claude" ? claude_output_tokens : newCompletionTokens],
+      totalInputTokens: currentUsage.totalInputTokens + (aiModel === "claude" ? claude_input_tokens : newPromptTokens),
+      totalOutputTokens: currentUsage.totalOutputTokens + (aiModel === "claude" ? claude_output_tokens : newCompletionTokens),
       isTokenExceeded: currentUsage.isTokenExceeded,
       remainingTokens: currentUsage.remainingTokens,
-      lastTokenUpdateTime: currentUsage.lastTokenUpdateTime ?? Date.now(),
+      lastTokenUpdateTime: Date.now(), // Update to current time
       tokenLimit: currentUsage.tokenLimit,
     };
     const updatedCloudData = {
@@ -262,21 +318,22 @@ export const updateTimeLimitTokenUsed = async ({
 
 export const determineModel = (model: ModelOption): string => {
   if (model.includes("gpt")) {
-    return "openAI";
+    return "openai";
   } else if (model.includes("gemini")) {
     return "gemini";
+  } else if (model.includes("claude")) {
+    return "claude";
   } else if (model.includes("dall")) {
     return "dalle";
   }
+  console.error(`Model not recognized: ${model}`);
 };
 
-export const setAPIEndpoint = async (options: APIEndpointOption[], inputModel: ModelOption) => {
-  const setApiEndpoint = useModelStore.getState().setApiEndpoint;
+export const getAPIEndpoint = (options: APIEndpointOption[], inputModel: ModelOption) => {
   const model = determineModel(inputModel);
   const endpointOption = options.find(option => option.key === model);
   if (endpointOption) {
     const endpoint = endpointOption.value;
-    setApiEndpoint(endpoint);
     return endpoint;
   } else {
     console.error(`No API endpoint found for model: ${model}`);
@@ -284,6 +341,122 @@ export const setAPIEndpoint = async (options: APIEndpointOption[], inputModel: M
     return null;
   }
 };
+
+export class ChatSession {
+  private autoStrip: boolean;
+  private autoSummarized: boolean;
+  private messages: MessageInterface[];
+  private maxTokens: number;
+  private warning: boolean;
+
+  constructor(model: string) {
+    this.autoStrip = false;
+    this.autoSummarized = false;
+    this.messages = [];
+    this.maxTokens = modelMaxToken[model] || 4096;
+    this.warning = false;
+  }
+
+  private approximateTokenCount(text: string): number {
+    return Math.ceil(text.length / 4);
+  }
+
+  private getMessageTokens(message: MessageInterface): number {
+    const contentTokens = this.approximateTokenCount(message.content);
+    const embeddedTokens = message.embeddedContent.reduce((sum, file) => 
+      sum + this.approximateTokenCount(file.content), 0);
+    return contentTokens + embeddedTokens;
+  }
+
+  private getTotalTokens(): number {
+    return this.messages.reduce((sum, message) => sum + this.getMessageTokens(message), 0);
+  }
+
+  addMessage(message: MessageInterface): void {
+    const { context, model, ...strippedMessage } = message;
+    this.messages.push(strippedMessage);
+
+    if (this.getTotalTokens() > this.maxTokens) {
+      if (!this.autoStrip && !this.autoSummarized) {
+        this.showWarningModal();
+      } else if (this.autoStrip) {
+        this.stripMessages();
+      } else if (this.autoSummarized) {
+        this.summarizeMessages();
+      }
+    }
+  }
+
+  private showWarningModal(): void {
+    this.warning = true;
+  }
+
+  private stripMessages(): void {
+    while (this.getTotalTokens() > this.maxTokens && this.messages.length > 1) {
+      this.messages.shift();
+    }
+  }
+
+  private summarizeMessages(): void {
+    const summaryLength = Math.floor(this.maxTokens * 0.1); // Use 10% of max tokens for summary
+    let summary = "Summary of previous conversation:\n";
+    let currentLength = this.approximateTokenCount(summary);
+
+    for (let i = 0; i < this.messages.length; i++) {
+      const message = this.messages[i];
+      const messageContent = `${message.role}: ${message.content}\n`;
+      const messageTokens = this.approximateTokenCount(messageContent);
+
+      if (currentLength + messageTokens > summaryLength) {
+        break;
+      }
+
+      summary += messageContent;
+      currentLength += messageTokens;
+    }
+
+    const summaryMessage: MessageInterface = {
+      role: 'system',
+      content: summary,
+      embeddedContent: [],
+      command: '',
+    };
+
+    this.messages = [summaryMessage, ...this.messages.slice(-Math.floor(this.messages.length / 2))];
+  }
+
+  getMessages(): MessageInterface[] {
+    return this.messages;
+  }
+
+  setAutoStrip(value: boolean): void {
+    this.autoStrip = value;
+  }
+
+  setAutoSummarized(value: boolean): void {
+    this.autoSummarized = value;
+  }
+
+  isWarning(): boolean {
+    return this.warning;
+  }
+
+  handleAutoStrip(): void {
+    this.autoStrip = true;
+    this.stripMessages();
+    this.warning = false;
+  }
+
+  handleAutoSummarize(): void {
+    this.autoSummarized = true;
+    this.summarizeMessages();
+    this.warning = false;
+  }
+
+  handleCancel(): void {
+    this.warning = false;
+  }
+}
 
 export const testTokensChat = async (ModelOption, chat) => {
   const model = new GenerativeModel(ModelOption);

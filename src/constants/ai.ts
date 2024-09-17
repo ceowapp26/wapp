@@ -28,8 +28,39 @@ export const modelOptions: ModelOption[] = [
   'gemini-1.0-pro',
   'gemini-1.5-pro',
   'gemini-1.5-flash',
-  'dall-e-3'
-];
+  'claude-3.5-sonnet-20240620',
+  'claude-3-opus-20240229',
+  'claude-3-sonnet-20240229',
+  'claude-3-haiku-20240307',
+  'dall-e-3',
+ ];
+
+export const modelContextWindow = {
+  'gpt-3.5-turbo': 4096,
+  'gpt-3.5-turbo-0301': 4096,
+  'gpt-3.5-turbo-0613': 4096,
+  'gpt-3.5-turbo-16k': 16384,
+  'gpt-3.5-turbo-16k-0613': 16384,
+  'gpt-3.5-turbo-1106': 16384,
+  'gpt-3.5-turbo-0125': 16384,
+  'gpt-4o': 128000,
+  'gpt-4o-2024-05-13': 128000,
+  'gpt-4o-mini': 128000,
+  'gpt-4o-mini-2024-07-18': 128000,
+  'gpt-4': 8192,
+  'gpt-4-32k': 32768,
+  'gpt-4-1106-preview': 128000,
+  'gpt-4-0125-preview': 128000,
+  'gpt-4-turbo': 128000,
+  'gpt-4-turbo-2024-04-09': 128000,
+  'gemini-1.0-pro': 128000,
+  'gemini-1.5-pro': 128000,
+  'gemini-1.5-flash': 128000,
+  'claude-3.5-sonnet-20240620': 200000,
+  'claude-3-opus-20240229': 200000,
+  'claude-3-sonnet-20240229': 200000,
+  'claude-3-haiku-20240307': 200000,
+};
 
 export const modelMaxToken = {
   'gpt-3.5-turbo': 4096,
@@ -52,6 +83,10 @@ export const modelMaxToken = {
   'gemini-1.0-pro': 128000,
   'gemini-1.5-pro': 128000,
   'gemini-1.5-flash': 128000,
+  'claude-3.5-sonnet-20240620': 8192,
+  'claude-3-opus-20240229': 4096,
+  'claude-3-sonnet-20240229': 4096,
+  'claude-3-haiku-20240307': 4096,
 };
 
 export const modelCost = {
@@ -135,6 +170,22 @@ export const modelCost = {
     inputTokens: { price: 0.035, unit: 1000 },
     outputTokens: { price: 0.105, unit: 1000 },
   },
+  'claude-3.5-sonnet-20240620': {
+    inputTokens: { price: 0.003, unit: 1000 },
+    outputTokens: { price: 0.015, unit: 1000 },
+  },
+  'claude-3-opus-20240229': {
+    inputTokens: { price: 0.015, unit: 1000 },
+    outputTokens: { price: 0.075, unit: 1000 },
+  },
+  'claude-3-sonnet-20240229': {
+    inputTokens: { price: 0.003, unit: 1000 },
+    outputTokens: { price: 0.015, unit: 1000 },
+  },
+  'claude-3-haiku-20240307': {
+    inputTokens: { price: 0.00025, unit: 1000 },
+    outputTokens: { price: 0.0125, unit: 1000 },
+  },
 };
 
 export const imageModelCost = {
@@ -216,6 +267,10 @@ export const generateDefaultAIConfig = (): LocalModelConfigCollectionInterface =
     'gemini-1.0-pro',
     'gemini-1.5-pro',
     'gemini-1.5-flash',
+    'claude-3.5-sonnet-20240620',
+    'claude-3-opus-20240229',
+    'claude-3-sonnet-20240229',
+    'claude-3-haiku-20240307',
     'dall-e-3'
   ];
 
@@ -294,6 +349,10 @@ export const PLAN_MODEL_FORM: FormFieldProps[] = [
       { value: 'gemini-1.0-pro', label: 'gemini-1.0-pro', id: 'gemini-1.0-pro' },
       { value: 'gemini-1.5-pro', label: 'gemini-1.5-pro', id: 'gemini-1.5-pro' },
       { value: 'gemini-1.5-flash', label: 'gemini-1.5-flash', id: 'gemini-1.5-flash' },
+      { value: 'claude-3.5-sonnet-20240620', label: 'claude-3.5-sonnet-20240620', id: 'claude-3.5-sonnet-20240620' },
+      { value: 'claude-3-opus-20240229', label: 'claude-3-opus-20240229', id: 'claude-3-opus-20240229' },
+      { value: 'claude-3-sonnet-20240229', label: 'claude-3-sonnet-20240229', id: 'claude-3-sonnet-20240229' },
+      { value: 'claude-3-haiku-20240307', label: 'claude-3-haiku-20240307', id: 'claude-3-haiku-20240307' },
       { value: 'dall-e-3', label: 'dall-e-3', id: 'dall-e-3' },
     ],
   },
@@ -464,6 +523,10 @@ export const CREDIT_MODEL_FORM: FormFieldProps[] = [
       { value: 'gemini-1.0-pro', label: 'gemini-1.0-pro', id: 'gemini-1.0-pro' },
       { value: 'gemini-1.5-pro', label: 'gemini-1.5-pro', id: 'gemini-1.5-pro' },
       { value: 'gemini-1.5-flash', label: 'gemini-1.5-flash', id: 'gemini-1.5-flash' },
+      { value: 'claude-3.5-sonnet-20240620', label: 'claude-3.5-sonnet-20240620', id: 'claude-3.5-sonnet-20240620' },
+      { value: 'claude-3-opus-20240229', label: 'claude-3-opus-20240229', id: 'claude-3-opus-20240229' },
+      { value: 'claude-3-sonnet-20240229', label: 'claude-3-sonnet-20240229', id: 'claude-3-sonnet-20240229' },
+      { value: 'claude-3-haiku-20240307', label: 'claude-3-haiku-20240307', id: 'claude-3-haiku-20240307' },
       { value: 'dall-e-3', label: 'dall-e-3', id: 'dall-e-3' },
     ],
   },
@@ -654,27 +717,51 @@ export const AIModelOptions = [
   { key: "gemini-1.0-pro", value: "gemini-1.0-pro" },
   { key: "gemini-1.5-pro", value: "gemini-1.5-pro" },
   { key: "gemini-1.5-flash", value: "gemini-1.5-flash" },
+  { key: "claude-3.5-sonnet-20240620", value: "claude-3.5-sonnet-20240620" },
+  { key: "claude-3-opus-20240229", value: "claude-3-opus-20240229" },
+  { key: "claude-3-sonnet-20240229", value: "claude-3-sonnet-20240229" },
+  { key: "claude-3-haiku-20240307", value: "claude-3-haiku-20240307" },
 ];
 
 export const chatAPIEndpointOptions: APIEndpointOption[] = [
-  { key: "openAI", value: "/api/generate_openai" },
+  { key: "openai", value: "/api/generate_openai" },
   { key: "gemini", value: "/api/generate_gemini" },
+  { key: "claude", value: "/api/generate_claude" },
 ];
 
 export const emailAPIEndpointOptions: APIEndpointOption[] = [
-  { key: "openAI", value: "/api/email_openai" },
+  { key: "openai", value: "/api/email_openai" },
   { key: "gemini", value: "/api/email_gemini" },
+  { key: "claude", value: "/api/generate_claude" },
 ];
 
 export const portalAPIEndpointOptions: APIEndpointOption[] = [
-  { key: "openAI", value: "/api/portal_openai" },
+  { key: "openai", value: "/api/portal_openai" },
   { key: "gemini", value: "/api/portal_gemini" },
+  { key: "claude", value: "/api/generate_claude" },
 ];
 
 export const advancedAPIEndpointOptions: APIEndpointOption[] = [
-  { key: "openAI", value: "/api/enhance_openai" },
+  { key: "openai", value: "/api/enhance_openai" },
   { key: "gemini", value: "/api/enhance_gemini" },
+  { key: "claude", value: "/api/generate_claude" },
 ];
 
+export const projectAPIEndpointOptions: APIEndpointOption[] = [
+  { key: "openai", value: "/api/generate_project_openai" },
+  { key: "gemini", value: "/api/generate_project_gemini" },
+  { key: "claude", value: "/api/generate_project_claude" },
+];
 
+export const editorAPIEndpointOptions: APIEndpointOption[] = [
+  { key: "openai", value: "/api/generate_openai" },
+  { key: "gemini", value: "/api/generate_gemini" },
+  { key: "claude", value: "/api/generate_claude" },
+];
+
+export const debugAPIEndpointOptions: APIEndpointOption[] = [
+  { key: "openai", value: "/api/debug_openai" },
+  { key: "gemini", value: "/api/debug_gemini" },
+  { key: "claude", value: "/api/debug_claude" },
+];
 

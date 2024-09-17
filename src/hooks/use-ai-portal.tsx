@@ -7,6 +7,7 @@ import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, det
 import { useGeneralContext } from "@/context/general-context-provider";
 import { ModelOption } from "@/app/types/ai";
 import { portalAPIEndpointOptions } from "@/constants/ai";
+import { getAPIEndpoint } from "@/utils/aiUtils";
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
@@ -64,7 +65,7 @@ export const useAIPortal = ({
   const models = useQuery(api.models.getAllModels);
 
   const { complete, stop } = useCompletion({
-    api: useModelStore.getState().apiEndpoint,
+    api: getAPIEndpoint(portalAPIEndpointOptions, inputModel),
     onResponse: async (response) => {
       if (!response.ok) {
         let errorData;
@@ -122,7 +123,7 @@ export const useAIPortal = ({
       const messages = await limitMessageTokens([_promptMessage], AIConfig[inputModel].max_tokens, inputModel, determineModel(inputModel), inputType, outputType);
       if (messages.length === 0) {
         toast.error("Message exceeds max token!");
-        throw new Error('Message exceeds max token!');
+        return;
       }
       let requestOption = {
         command: option,

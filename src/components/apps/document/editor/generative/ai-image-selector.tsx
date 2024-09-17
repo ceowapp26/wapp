@@ -84,7 +84,7 @@ const AIImageSelector: React.FC<AIImageSelectorProps> = ({ open, onOpenChange, i
       setInputType("text-image");
       setOutputType("text");
     } else {
-      setAiModel("openAI");
+      setAiModel("openai");
       setInputModel("dall-e-3");
       setInputType("text-only");
       setOutputType("image");

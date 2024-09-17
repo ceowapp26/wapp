@@ -1,9 +1,8 @@
 "use client"
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import Viewport from '../../_components/code-viewport'
-import ComponentEditor from '../../_components/component-editor'
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense, memo } from 'react';
 import { useMyspaceContext } from '@/context/myspace-context-provider'
-import { usePortalContextHook } from '@/context/portal-context-provider'
+import { usePortalContext } from '@/context/portal-context-provider'
+import { usePortalStore } from '@/stores/features/apps/portal/store'
 import { LiveProvider, LiveEditor, LiveError, LivePreview } from 'react-live'
 import dynamic from 'next/dynamic'
 import { useTheme } from 'next-themes'
@@ -14,6 +13,7 @@ import SettingsModal from '../../_components/settings-modal'
 import {
   Button,
   Card,
+  CardHeader,
   CardContent,
   CardBody,
   Tabs, 
@@ -32,132 +32,170 @@ import {
 } from "@nextui-org/react";
 import { FaMicrophone, FaUpload } from 'react-icons/fa';
 import CrazySpinnerIcon from "@/icons/CrazySpinnerIcon";
-import { AudioUploadModal } from "../../_components/audio-upload-modal";
-import { FileUploadModal } from "../../_components/file-upload-modal";
-import { ImageUploadModal } from "../../_components/image-upload-modal";
-import UnreleasePopover from "@/components/apps/document/chatbot/unrelease-popover";
+import UnreleasePopover from "@/components/apps/chatbot/unrelease-popover";
 import { Cover } from "@/components/apps/document/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCw, Send, StopCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCw, Send, StopCircle, ChevronLeft, ChevronRight, Loader2, Code, Eye, Settings } from 'lucide-react';
 import { useQuery, useMutation } from "convex/react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { FileInterface } from "@/types/chat";
 import { createFlaskProjectStructure, createNodeProjectStructure, createAngularProjectStructure, createReactProjectStructure, createNextJsProjectStructure } from "@/constants/code";
-import { ProjectStructure } from '@/types/code';
+import { ProjectStructure, CodeFile } from '@/types/code';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { GradientLoadingCircle } from "@/components/gradient-loading-circle";
+import FileContentPreview from "../../_components/file-content-preview";
+import { 
+  detectFramework,  
+  processReactCode, 
+  processVueCode, 
+  processGoCode, 
+  processPythonCode,
+  getFileName,
+  getTestFileName,  
+} from "@/utils/codeUtils";
+
+const ChatContent = dynamic(() => import("@/components/apps/chatbot/chat-content"), {
+  suspense: true,
+  loading: () => <GradientLoadingCircle size={70} thickness={5} />,
+});
+
+const ComponentEditor = dynamic(() => import("../../_components/component-editor"), {
+  suspense: true,
+  loading: () => <GradientLoadingCircle size={70} thickness={5} />,
+});
 
 interface TestResult {
   passed: boolean;
   output: string;
 }
 
-const AudioInput = ({ onTranscriptionUpdate, onTranscriptionComplete }) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [recognition, setRecognition] = useState(null);
-  const [error, setError] = useState(null);
+const MIN_WIDTH = 300;
 
-  useEffect(() => {
-    if ('webkitSpeechRecognition' in window) {
-      const speechRecognition = new webkitSpeechRecognition();
-      speechRecognition.continuous = true;
-      speechRecognition.interimResults = true;
-      speechRecognition.lang = 'en-US';
-
-      speechRecognition.onresult = (event) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          } else {
-            interimTranscript += event.results[i][0].transcript;
-          }
-        }
-
-        onTranscriptionUpdate(interimTranscript);
-        if (finalTranscript) {
-          onTranscriptionComplete(finalTranscript);
-        }
-      };
-
-      speechRecognition.onerror = (event) => {
-        console.error('Speech recognition error', event.error);
-        if (event.error === 'no-speech') {
-          setError('No speech was detected. Listening again...');
-          setTimeout(() => {
-            if (isRecording) {
-              recognition.stop();
-              recognition.start();
-            }
-          }, 100);
-        } else {
-          setError(`Error occurred: ${event.error}`);
-          setIsRecording(false);
-        }
-      };
-
-      speechRecognition.onend = () => {
-        setIsRecording(false);
-      };
-
-      setRecognition(speechRecognition);
-    } else {
-      setError('Web Speech API is not supported in this browser.');
-    }
-  }, [onTranscriptionUpdate, onTranscriptionComplete]);
-
-  /*useEffect(() => {
-    let restartInterval;
-    if (isRecording) {
-      restartInterval = setInterval(() => {
-        recognition.stop();
-        recognition.start();
-      }, 5000); 
-    }
-    return () => clearInterval(restartInterval);
-  }, [isRecording, recognition]);*/
-
-  const startRecording = useCallback(() => {
-    if (recognition) {
-      setError(null);
-      recognition.start();
-      setIsRecording(true);
-    }
-  }, [recognition]);
-
-  const stopRecording = useCallback(() => {
-    if (recognition) {
-      recognition.stop();
-      setIsRecording(false);
-    }
-  }, [recognition]);
-
+const TopToolbar = ({ isSettingsOpen, setIsSettingsOpen, settings, handleSettingChange }) => {
   return (
-    <div className="flex flex-col items-start space-y-2">
-      <div className="flex items-center space-x-4">
-        <Button
-          isIconOnly
-          color={isRecording ? "danger" : "primary"}
-          variant="faded"
-          aria-label={isRecording ? "Stop Recording" : "Start Recording"}
-          onClick={isRecording ? stopRecording : startRecording}
-        >
-          {isRecording ? <StopCircle /> : <Mic />}
-        </Button>
-        <span>{isRecording ? "Recording..." : "Click to record audio"}</span>
-      </div>
-      {error && <p className="text-red-500">{error}</p>}
-    </div>
+    <motion.div
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="fixed top-28 left-0 right-0 flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-[40]"
+    >
+      <motion.h1 className="text-2xl font-bold">Code Generator</motion.h1>
+      <Button auto light icon={<Settings size={20} />} onClick={() => setIsSettingsOpen(true)}>Settings</Button>
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100000] flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <Card className="w-full max-w-md">
+              <CardBody>
+                <h2 className="text-xl font-bold mb-4">Settings</h2>
+                {Object.entries(settings).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between mb-2">
+                    <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                    <Button auto color={value ? "primary" : "default"} onClick={() => handleSettingChange(key, !value)}>
+                      {value ? 'On' : 'Off'}
+                    </Button>
+                  </div>
+                ))}
+                <Button auto color="danger" className="mt-4" onClick={() => setIsSettingsOpen(false)}>Close</Button>
+              </CardBody>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
-const renderComponent = (framework: string, componentCode: string, theme: string, scope?: any) => {
+const ResizableSplitView = ({ theme, children }) => {
+  const [leftWidth, setLeftWidth] = useState('50%');
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startLeftWidth, setStartLeftWidth] = useState(0);
+  const containerRef = useRef(null);
+  const leftPanelRef = useRef(null);
+  const dividerRef = useRef(null);
+
+  const handleMouseDown = useCallback((e) => {
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setStartLeftWidth(leftPanelRef.current.offsetWidth);
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging) return;
+    
+    const containerWidth = containerRef.current.offsetWidth;
+    const deltaX = e.clientX - startX;
+    const newLeftWidth = Math.max(MIN_WIDTH, Math.min(startLeftWidth + deltaX, containerWidth - MIN_WIDTH));
+    
+    setLeftWidth(`${(newLeftWidth / containerWidth) * 100}%`);
+  }, [isDragging, startX, startLeftWidth]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  return (
+    <motion.div 
+      ref={containerRef}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className={`flex flex-col min-h-screen h-full w-full overflow-hidden ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}
+    >
+      <div className="flex h-full relative">
+        <div 
+          ref={leftPanelRef}
+          style={{ width: leftWidth, minWidth: MIN_WIDTH }} 
+          layout
+        >
+          {children[0]}
+        </div>
+        <div
+          ref={dividerRef}
+          className={`w-1 cursor-col-resize ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'} hover:bg-blue-500 transition-colors`}
+          onMouseDown={handleMouseDown}
+        />
+        <div 
+          style={{ width: `calc(100% - ${leftWidth})`, minWidth: MIN_WIDTH }} 
+          layout
+        >
+          {children[1]}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const renderComponent = (framework: string | null | undefined, code: string, theme: string) => {
+  if (!framework) {
+    return <div>No framework specified.</div>;
+  }
   switch (framework.toLowerCase()) {
     case 'react':
       return (
-        <LiveProvider code={componentCode} scope={scope} noInline>
+        <LiveProvider code={processReactCode(code).code} scope={{}} noInline>
           <div className="grid grid-cols-2 gap-4">
             <LiveEditor className={`font-mono ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`} />
             <LivePreview className={`p-4 border rounded ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`} />
@@ -182,7 +220,7 @@ const renderComponent = (framework: string, componentCode: string, theme: string
       return <div>ASP.NET component preview is not supported yet.</div>;
     case 'nextjs':
       return (
-        <LiveProvider code={componentCode} scope={scope} noInline>
+        <LiveProvider code={processReactCode(code).code} scope={{}} noInline>
           <div className="grid grid-cols-2 gap-4">
             <LiveEditor className={`font-mono ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`} />
             <LivePreview className={`p-4 border rounded ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`} />
@@ -191,10 +229,9 @@ const renderComponent = (framework: string, componentCode: string, theme: string
         </LiveProvider>
       );
     default:
-      return <div>Framework not supported.</div>;
+      return <div>Framework not supported or not recognized.</div>;
   }
 };
-
 
 const ProjectSkeleton = () => (
   <motion.div
@@ -229,6 +266,271 @@ const ProjectNotFound = () => (
   </motion.div>
 );
 
+const RenderContent = ({
+  settings,
+  isSettingsOpen,
+  setIsSettingsOpen,
+  handleSettingChange,
+  theme,
+  insertedContent,
+  isInsertedContent,
+  setIsInsertedContent,
+  setInsertedContent,
+  handleOnInsert,
+  handleReplaceCode,
+  handleInsertAboveCode,
+  handleInsertBelowCode,
+  handleInsertLeftCode,
+  handleInsertRightCode,
+  currentComponent,
+  setCurrentComponent,
+  currentCodeFile,
+  setCurrentCodeFile,
+  currentEmbeddedFile,
+  setCurrentEmbeddedFile,
+  componentName,
+  componentContent,
+  componentTest,
+  updateCode,
+  runUnitTests,
+  regenerateComponent,
+  testResults,
+  runIntegrationTests,
+  integrationTestResults,
+  activeTab,
+  setActiveTab,
+  showFilePreview,
+  showComponentEditor,
+  detectFramework,
+}) => {
+  const toolbar = (
+    <TopToolbar 
+      isSettingsOpen={isSettingsOpen}
+      setIsSettingsOpen={setIsSettingsOpen} 
+      settings={settings} 
+      handleSettingChange={handleSettingChange} 
+    />
+  );
+
+  if (settings.showChatbot && settings.showEditor) {
+    return (
+      <div>
+        {toolbar}
+        <ResizableSplitView theme={theme}>
+          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
+            <Card className="pt-10 h-screen flex flex-col overflow-y-auto">
+              <CardBody>
+                <ChatContent 
+                  insertedContent={insertedContent}
+                  isInsertedContent={isInsertedContent}
+                  setIsInsertedContent={setIsInsertedContent}
+                  setInsertedContent={setInsertedContent}
+                  handleReplaceCode={handleReplaceCode}
+                  handleInsertAboveCode={handleInsertAboveCode}
+                  handleInsertBelowCode={handleInsertBelowCode}
+                  handleInsertLeftCode={handleInsertLeftCode}
+                  handleInsertRightCode={handleInsertRightCode}
+                  setCurrentComponent={setCurrentComponent} 
+                  currentCodeFile={currentCodeFile}
+                  setCurrentCodeFile={setCurrentCodeFile}
+                  currentEmbeddedFile={currentEmbeddedFile}
+                  setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+                  isCode
+                />
+              </CardBody>
+            </Card>
+          </motion.div>
+          <div className="relative h-full w-full">
+            {showFilePreview && (
+              <div className="absolute top-0 left-0 w-full h-full z-30">
+                <FileContentPreview file={currentEmbeddedFile} />
+              </div>
+            )}
+            {showComponentEditor && (
+              <div className="absolute top-32 left-0 w-full h-full z-20">
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
+                  <Tabs selectedKey={activeTab} onSelectionChange={setActiveTab} className="p-2">
+                    <Tab key="editor" title={<div className="flex items-center space-x-2"><Code size={18} /><span>Editor</span></div>}>
+                      <AnimatePresence mode="wait">
+                        <motion.div key="editor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                          <ComponentEditor
+                            componentName={componentName}
+                            code={componentContent}
+                            test={componentTest}
+                            updateCode={updateCode}
+                            onRunTests={() => runUnitTests(currentComponent)}
+                            onRegenerate={() => regenerateComponent(currentComponent)}
+                            testResults={testResults[currentComponent]}
+                            onRunIntegrationTests={runIntegrationTests}
+                            integrationTestResults={integrationTestResults}
+                            currentComponent={currentComponent}
+                            setCurrentComponent={setCurrentComponent} 
+                            currentCodeFile={currentCodeFile}
+                            setCurrentCodeFile={setCurrentCodeFile}
+                            currentEmbeddedFile={currentEmbeddedFile}
+                            setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+                            handleReplaceCode={handleReplaceCode}
+                            handleInsertAboveCode={handleInsertAboveCode}
+                            handleInsertBelowCode={handleInsertBelowCode}
+                            handleInsertLeftCode={handleInsertLeftCode}
+                            handleInsertRightCode={handleInsertRightCode}
+                            handleOnInsert={handleOnInsert}
+                            isShowChatbot={settings.showChatbot}
+                            isShowEditor={settings.showEditor}
+                          />
+                        </motion.div>
+                      </AnimatePresence>
+                    </Tab>
+                    <Tab key="preview" title={<div className="flex items-center space-x-2"><Eye size={18} /><span>Preview</span></div>}>
+                      <AnimatePresence mode="wait">
+                        {settings.showComponentPreview && (
+                          <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                            {renderComponent(detectFramework(componentContent), componentContent, theme)}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Tab>
+                  </Tabs>
+                </motion.div>
+              </div>
+            )}
+          </div>
+        </ResizableSplitView>
+      </div>
+    );
+  } else if (settings.showChatbot || !settings.showEditor) {
+    return (
+      <div>
+        {toolbar}
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
+          <Card className="py-10 h-full">
+            <CardBody className="overflow-auto">
+              <ChatContent 
+                insertedContent={insertedContent}
+                isInsertedContent={isInsertedContent}
+                setIsInsertedContent={setIsInsertedContent}
+                setInsertedContent={setInsertedContent}
+                handleReplaceCode={handleReplaceCode}
+                handleInsertAboveCode={handleInsertAboveCode}
+                handleInsertBelowCode={handleInsertBelowCode}
+                handleInsertLeftCode={handleInsertLeftCode}
+                handleInsertRightCode={handleInsertRightCode}
+                setCurrentComponent={setCurrentComponent} 
+                currentCodeFile={currentCodeFile}
+                setCurrentCodeFile={setCurrentCodeFile}
+                currentEmbeddedFile={currentEmbeddedFile}
+                setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+                isCode
+              />
+            </CardBody>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  } else if (settings.showEditor || !settings.showChatbot) {
+    return (
+      <div>
+        {toolbar}
+        <div className="relative h-full w-full">
+          {showFilePreview && (
+            <div className="absolute top-0 left-0 w-full h-full z-30">
+              <FileContentPreview file={currentEmbeddedFile} />
+            </div>
+          )}
+          {showComponentEditor && (
+            <div className="absolute top-32 left-0 w-full h-full z-20">
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
+                <Tabs selectedKey={activeTab} onSelectionChange={setActiveTab} className="p-2">
+                  <Tab key="editor" title={<div className="flex items-center space-x-2"><Code size={18} /><span>Editor</span></div>}>
+                    <AnimatePresence mode="wait">
+                      <motion.div key="editor" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                        <ComponentEditor
+                          componentName={componentName}
+                          code={componentContent}
+                          test={componentTest}
+                          updateCode={updateCode}
+                          onRunTests={() => runUnitTests(currentComponent)}
+                          onRegenerate={() => regenerateComponent(currentComponent)}
+                          testResults={testResults[currentComponent]}
+                          onRunIntegrationTests={runIntegrationTests}
+                          integrationTestResults={integrationTestResults}
+                          currentComponent={currentComponent}
+                          setCurrentComponent={setCurrentComponent} 
+                          currentCodeFile={currentCodeFile}
+                          setCurrentCodeFile={setCurrentCodeFile}
+                          currentEmbeddedFile={currentEmbeddedFile}
+                          setCurrentEmbeddedFile={setCurrentEmbeddedFile}                          
+                          handleReplaceCode={handleReplaceCode}
+                          handleInsertAboveCode={handleInsertAboveCode}
+                          handleInsertBelowCode={handleInsertBelowCode}
+                          handleInsertLeftCode={handleInsertLeftCode}
+                          handleInsertRightCode={handleInsertRightCode}
+                          handleOnInsert={handleOnInsert}
+                          isShowChatbot={settings.showChatbot}
+                          isShowEditor={settings.showEditor}
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+                  </Tab>
+                  <Tab key="preview" title={<div className="flex items-center space-x-2"><Eye size={18} /><span>Preview</span></div>}>
+                    <AnimatePresence mode="wait">
+                      {settings.showComponentPreview && (
+                        <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                          {renderComponent(detectFramework(componentContent), componentContent, theme)}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </Tab>
+                </Tabs>
+              </motion.div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {toolbar}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.8 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center justify-center h-full bg-gray-100 dark:bg-gray-800 rounded-lg shadow-lg p-6"
+      >
+        <div className="text-center">
+          <p className="text-gray-700 dark:text-gray-300 text-lg font-semibold">Select an option to get started!</p>
+          <motion.div
+            className="mt-4"
+            animate={{ rotate: [0, 15, -15, 0] }}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            <svg
+              className="w-16 h-16 text-gray-500 dark:text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <circle cx="12" cy="12" r="10" strokeWidth="2" />
+              <path d="M12 6v6l4 2" strokeWidth="2" />
+            </svg>
+          </motion.div>
+          <motion.p
+            className="mt-2 text-gray-500 dark:text-gray-400"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            Your code journey starts here!
+          </motion.p>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 interface ProjectIdPageProps {
   params: {
     projectId: Id<"codes">;
@@ -241,12 +543,15 @@ const ProjectPage = ({
   const currentUser = useQuery(api.users.getCurrentUser);
   const [integrationTestResults, setIntegrationTestResults] = useState<TestResult | null>(null)
   const [testResults, setTestResults] = React.useState<Record<string, TestResult>>({})
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [scope, setScope] = React.useState<Record<string, any>>({});
   const [isGenerating, setIsGenerating] = React.useState(false)
   const [suggestion, setSuggestion] = React.useState('')
-  const [compiledCode, setCompiledCode] = useState('')
-  const [batchCompleted, setBatchCompleted] = React.useState(false)
-  const { projectStructure, setProjectStructure, currentComponent, setCurrentComponent } = usePortalContextHook();
+  const [currentCodeFile, setCurrentCodeFile] = useState<CodeFile>(undefined)
+  const [currentEmbeddedFile, setCurrentEmbeddedFile] = useState<FileInterface>(undefined)
+  const [insertedContent, setInsertedContent] = useState<string>("")
+  const [isInsertedContent, setIsInsertedContent] = useState<FileInterface>(undefined)
+  const { currentComponent, setCurrentComponent, currentFileContent, setCurrentFileContent } = usePortalContext();
   const {
     isLeftSidebarOpened,
     setIsLeftSidebarOpened,
@@ -254,46 +559,34 @@ const ProjectPage = ({
     setLeftSidebarType,
     setLeftSidebarWidth,
   } = useMyspaceContext();
-
   const [settings, setSettings] = useState({
-    showinputInput: true,
+    showChatbot: true,
+    showEditor: true,
     showComponentEditor: true,
     showComponentPreview: true,
-    showSuggestions: true,
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [viewportHeight, setViewportHeight] = useState(400);
-  const [isViewportExpanded, setIsViewportExpanded] = useState(false);
-  const viewportRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState('editor');
   const { theme } = useTheme();
-  const [isCompiling, setIsCompiling] = useState(false);
-  const [deploymentStatus, setDeploymentStatus] = useState({
-    upload: 'pending',
-    deploy: 'pending',
-    build: 'pending',
-    step: 0
-  });
-  const [deploymentUrl, setDeploymentUrl] = useState('');
-  const [deploymentError, setDeploymentError] = useState('');
-  const MAX_WORDS = 255;
-  const [_isInputValid, _setIsInputValid] = useState<boolean>(true);
-  const [transcription, setTranscription] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [audioOption, setAudioOption] = useState<string | null>(null);
-  const [fileFormat, setFileFormat] = useState<string | null>(null);
-  const [input, setInput] = useState<string>("");
-  const [isVertical, setIsVertical] = useState<boolean>(true);
-  const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
-  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
   const createProject = useMutation(api.codes.createProject);
+  const updateProject = useMutation(api.codes.updateProject);
 
   const project = useQuery(api.codes.getProjectById, {
     projectId: params.projectId
   });
+
+  const projectStructure = useMemo(() => 
+    project && project.structure || {},
+    [project]
+  );
+
+  const showComponentEditor = useMemo(() => 
+    settings.showComponentEditor && (currentComponent || usePortalStore.getState().codeGenerator || currentCodeFile),
+  [settings.showComponentEditor, currentComponent, currentCodeFile]);
+
+  const showFilePreview = useMemo(() => 
+    (!currentComponent && currentEmbeddedFile),
+  [currentComponent, currentEmbeddedFile]);
 
   const [projectConfigs, setProjectConfigs] = useState({
     general: {
@@ -437,8 +730,6 @@ const ProjectPage = ({
         body: JSON.stringify(projectInputs),
       });
       const data: ProjectStructure = await response.json();
-      setProjectStructure(data);
-      localStorage.setItem('projectStructure', JSON.stringify(data));
       await onCreateProject(data);
     } catch (error) {
       console.error('Error generating project structure:', error);
@@ -452,16 +743,17 @@ const ProjectPage = ({
     setIsGenerating(true)
     try {
       const segments = componentPath.split('/');
-      const fileName = segments[segments.length - 1].replace(/\.tsx$/, '');
-      const { originalCode }= getComponentCode(componentPath, projectStructure);
-      const test = getComponentTest(componentPath);
+      const fileName = getFileName(path.split('/').pop() || '');
+      const code = getComponentCode(componentPath, projectStructure);
+      const test = getComponentTest(componentPath, projectStructure);
       const response = await fetch('/api/run_unit_tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId: currentUser._id,
+          framework: project.testing.framework,
           componentName: fileName, 
-          code: originalCode, 
+          code: code, 
           test 
         }),
       });
@@ -485,6 +777,7 @@ const ProjectPage = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId: currentUser._id,
+          framework: project.testing.framework,
           projectStructure: projectStructure, 
         }),
       });
@@ -505,19 +798,20 @@ const ProjectPage = ({
     setIsGenerating(true);
     try {
       const segments = componentPath.split('/');
-      const fileName = segments[segments.length - 1].replace(/\.tsx$/, '');
-      const { originalCode } = getComponentCode(componentPath, projectStructure);
+      const fileName = getFilename(segments[segments.length - 1]);
+      const code = getComponentCode(componentPath, projectStructure);
       const response = await fetch('/api/generate_component', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileName: fileName, existingCode: originalCode, existingStructure: projectStructure }),
+        body: JSON.stringify({ fileName: fileName, existingCode: code, existingStructure: projectStructure }),
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data: { code: string; test: string } = await response.json();
-      updateComponentCode(componentPath, data.code);
-      updateComponentTest(componentPath, data.test);
+      updateCode(componentPath, data.code);
+      const testFilePath = getComponentTest(currentComponent, projectStructure).path
+      if (testFilePath !== "") updateCode(testFilePath, data.test);
     } catch (error) {
       console.error('Error regenerating component:', error);
     } finally {
@@ -525,216 +819,110 @@ const ProjectPage = ({
     }
   };
 
-  const runAllCode = async () => {
-    setIsCompiling(true);
-    try {
-      const response = await fetch('/api/compile_and_deploy', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          projectStructure,
-          projectId: currentUser._id 
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      setDeploymentStatus({
-        upload: 'pending',
-        deploy: 'pending',
-        build: 'pending',
-        step: 0
-      });
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const decodedChunk = decoder.decode(value, { stream: true });
-        const lines = decodedChunk.split('\n').filter(line => line.trim() !== '');
-        for (const line of lines) {
-          const data = JSON.parse(line);          
-          setDeploymentStatus(prevStatus => {
-            let newStep = prevStatus.step;
-            if (data.step === 'upload' && data.status === 'success') newStep = 1;
-            if (data.step === 'deploy' && data.status === 'success') newStep = 2;
-            if (data.step === 'build' && data.status === 'success') newStep = 3;
-            return { 
-              ...prevStatus, 
-              [data.step]: data.status,
-              step: newStep
-            };
-          });
-          if (data.step === 'build' && data.status === 'success') {
-            setPreviewUrl(data.deploymentUrl);
-          }
-          if (data.error) {
-            setDeploymentError(data.error);
-            break;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error compiling and running code:', error);
-      setDeploymentError(error.message);
-    } finally {
-      setIsCompiling(false);
-      setBatchCompleted(true);
-    }
-  };  
-
-  const generateSuggestions = async () => {
-    setIsGenerating(true);
-    try {
-      const response = await fetch('/api/generate_suggestions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectConfigs }),
-      })
-      const data: { suggestion: string } = await response.json()
-      setSuggestion(data.suggestion)
-    } catch (error) {
-      console.error('Error generating suggestions:', error)
-    } finally {
-      setIsGenerating(false);
-    }
-  }
-
-  const getComponentCode = useCallback((path: string, projectStructure: ProjectStructure) => {
-    const segments = path.split('/');
-    let currentPath: any = projectStructure; 
-    for (const segment of segments) {
-      if (currentPath && typeof currentPath === 'object') {
-        if (currentPath[segment] && currentPath[segment].type === 'directory') {
-          currentPath = currentPath[segment];
-        } else if (currentPath[segment] && currentPath[segment].type === 'file') {
-          currentPath = currentPath[segment];
-          break;
-        } else {
-          console.warn(`Invalid path segment: ${segment}`);
-          return { code: '', originalCode: '', importStatements: [] };
-        }
-      } else {
-        console.warn(`Path segment not found: ${segment}`);
-        return { code: '', originalCode: '', importStatements: [] };
-      }
-    }
-    if (!currentPath || typeof currentPath !== 'object' || !('content' in currentPath)) {
-      console.warn(`Invalid path or missing filename: ${path}`);
-      return { code: '', originalCode: '', importStatements: [] };
-    }
-    let code = currentPath.content;
-    let originalCode = code;
-    if (!code) {
-      console.warn(`No code found for path: ${path}`);
-      return { code: '', originalCode: '', importStatements: [] };
-    }
-    // Extract import statements for all supported languages
-    const importStatements = code.match(/(?:import|from|require|use|#include|package)\s+.*?(?:;|\n)/g) || [];
-    // Language-specific processing
-    if (path.endsWith('.tsx') || path.endsWith('.jsx')) {
-      code = processReactCode(code);
-    } else if (path.endsWith('.vue')) {
-      code = processVueCode(code);
-    } else if (path.endsWith('.py')) {
-      code = processPythonCode(code);
-    } else if (path.endsWith('.go')) {
-      code = processGoCode(code);
-    }
-    return { code, originalCode, importStatements };
-  }, []);
-
-  const getComponentTest = (path: string, projectStructure: ProjectStructure) => {
-    const segments = path.split('/');
-    let currentPath: any = projectStructure;
-    let fileName = '';
-    for (const segment of segments) {
-      if (typeof currentPath === 'object') {
-        if (currentPath[segment] && currentPath[segment].type === 'directory') {
-          currentPath = currentPath[segment];
-        } else if (currentPath[segment] && currentPath[segment].type === 'file') {
-          fileName = segment;
-          break;
-        } else {
-          console.warn(`Invalid path segment: ${segment}`);
-          return '';
-        }
-      } else {
-        console.warn(`Path segment not found: ${segment}`);
+  const getComponentCode = useCallback((path: string, projectStructure: ProjectStructure): string => {
+    let current: any = projectStructure;
+    for (const segment of path.split('/')) {
+      if (!current || typeof current !== 'object') {
+        console.warn(`Invalid path segment: ${segment}`);
         return '';
       }
+      current = current[segment];
+      if (current?.type === 'file') {
+        break;
+      }
     }
-    if (!fileName) {
-      console.warn(`Invalid path or missing filename: ${path}`);
+    if (!current || typeof current !== 'object' || !('content' in current)) {
+      console.warn(`Invalid path or missing file: ${path}`);
       return '';
     }
-    const testFileName = getTestFileName(fileName);
-    const testPath = [...segments.slice(0, -1), testFileName].join('/');
-    currentPath = projectStructure;
-    for (const segment of testPath.split('/')) {
-      if (typeof currentPath === 'object') {
-        if (currentPath[segment] && currentPath[segment].type === 'directory') {
-          currentPath = currentPath[segment];
-        } else if (currentPath[segment] && currentPath[segment].type === 'file') {
-          currentPath = currentPath[segment];
-          break;
-        } else {
-          console.warn(`Test file not found: ${testPath}`);
-          return '';
+    return current.content || '';
+  }, []);
+
+  const getComponentTest = (path: string, projectStructure: ProjectStructure): { content: string; path: string } => {
+    let current: any = projectStructure;
+    for (const segment of path.split('/')) {
+      if (!current || typeof current !== 'object') {
+        console.warn(`Invalid path segment: ${segment}`);
+        return { content: '', path: '' };
+      }
+      current = current[segment];
+      if (current?.type === 'file') {
+        break;
+      }
+    }
+    if (!current || typeof current !== 'object' || !('content' in current)) {
+      console.warn(`Invalid path or missing file: ${path}`);
+      return { content: '', path: '' };
+    }
+    const testFileName = getTestFileName(path.split('/').pop() || '');
+    const searchTestFile = (structure: any, currentPath: string = ''): { content: string; path: string } => {
+      if (structure.type === 'file' && structure.name === testFileName) {
+        return { content: structure.content || '', path: currentPath + '/' + structure.name };
+      }
+      if (structure.type === 'directory') {
+        for (const [name, item] of Object.entries(structure)) {
+          const result = searchTestFile(item, currentPath + '/' + name);
+          if (result.content) return result;
         }
+      }
+      return { content: '', path: '' };
+    };
+    const { content: testContent, path: testPath } = searchTestFile(projectStructure);
+    if (testContent) {
+      return { content: testContent, path: testPath.slice(1) };
+    }
+    return { content: '', path: '' };
+  };
+
+  const updateCode = async (path?: string, newCode: string) => {
+    try {
+      if (path) {
+        const updatedStructure = JSON.parse(JSON.stringify(projectStructure));
+        const pathParts = path.split('/').filter(Boolean);
+        let currentLevel = updatedStructure;
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          if (!currentLevel[pathParts[i]]) {
+            currentLevel[pathParts[i]] = { type: "directory" };
+          }
+          currentLevel = currentLevel[pathParts[i]];
+        }
+        const fileName = pathParts[pathParts.length - 1];
+        if (!currentLevel[fileName]) {
+          currentLevel[fileName] = { content: "", type: "file" };
+        }
+        currentLevel[fileName].content = newCode;
+        await updateProjectStructure(project._id, updatedStructure);
+      } else if (currentCodeFile) {
+        const updatedCodeFile = { ...currentCodeFile, content: newCode };
+        setCurrentCodeFile(updatedCodeFile);
       } else {
-        console.warn(`Path segment not found: ${segment}`);
-        return '';
+        console.warn("No current component or code file to update.");
+      }
+    } catch (error) {
+      console.error("Error in updateCode:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message, error.stack);
       }
     }
-    if (typeof currentPath === 'object' && 'content' in currentPath) {
-      return currentPath.content;
-    }
-    console.warn(`No test found for path: ${path}`);
-    return '';
   };
 
-  const updateComponentCode = (path: string, newCode: string) => {
-    const segments = path.split('/');
-    setProjectStructure(prevStructure => {
-      const updatedStructure = JSON.parse(JSON.stringify(prevStructure));
-      let currentLevel: any = updatedStructure;
-      for (let i = 0; i < segments.length - 1; i++) {
-        if (!currentLevel[segments[i]]) {
-          currentLevel[segments[i]] = { type: 'directory' };
+  // Helper function to update project structure
+  const updateProjectStructure = async (projectId: Id<"codes">, updatedStructure: ProjectStructure) => {
+    try {
+      const result = await updateProject({
+        id: projectId,
+        project: {
+          structure: updatedStructure
         }
-        currentLevel = currentLevel[segments[i]];
+      });
+      return result;
+    } catch (updateError) {
+      console.error('Error in updateProject mutation:', updateError);
+      if (updateError instanceof Error) {
+        console.error('Update error details:', updateError.message, updateError.stack);
       }
-      const fileName = segments[segments.length - 1];
-      currentLevel[fileName] = { content: newCode, type: 'file' };
-      localStorage.setItem('projectStructure', JSON.stringify(updatedStructure));
-      return updatedStructure;
-    });
-  };
-
-  const updateComponentTest = (path: string, newTest: string) => {
-    const segments = path.split('/');
-    const fileName = segments.pop();
-    if (!fileName) {
-      console.warn(`Invalid path or missing filename: ${path}`);
-      return;
+      throw updateError;
     }
-    const testFileName = getTestFileName(fileName);
-    const testPath = [...segments, testFileName].join('/');
-    setProjectStructure((prev) => {
-      const newStructure = JSON.parse(JSON.stringify(prev));
-      let currentLevel: any = newStructure;
-      for (const segment of testPath.split('/').slice(0, -1)) {
-        if (!currentLevel[segment]) {
-          currentLevel[segment] = { type: 'directory' };
-        }
-        currentLevel = currentLevel[segment];
-      }
-      currentLevel[testFileName] = { content: newTest, type: 'file' };
-      localStorage.setItem('projectStructure', JSON.stringify(newStructure));
-      return newStructure;
-    });
   };
 
   const getAllFilePaths = (obj: any, currentPath: string = ''): string[] => {
@@ -770,418 +958,61 @@ const ProjectPage = ({
     }
   };
 
-  const getTestFileName = (fileName: string): string => {
-    const extension = fileName.slice(fileName.lastIndexOf('.'));
-    switch (extension) {
-      case '.tsx':
-      case '.ts':
-        return fileName.replace(/\.tsx?$/, '.test$&');
-      case '.jsx':
-      case '.js':
-        return fileName.replace(/\.jsx?$/, '.test$&');
-      case '.vue':
-        return fileName.replace(/\.vue$/, '.spec.js');
-      case '.py':
-        return fileName.replace(/\.py$/, '_test.py');
-      case '.go':
-        return fileName.replace(/\.go$/, '_test.go');
-      default:
-        return `test_${fileName}`;
+  const handleOnInsert = (content: string) => {
+    setIsInsertedContent(true);
+    setInsertedContent(content);
+  };
+
+  const handleReplaceCode = (content: string) => {
+    updateCode(currentComponent, content);
+  };
+
+  const handleInsertAboveCode = (content: string) => {
+    const updatedContent = content + '\n' + componentContent; 
+    updateCode(currentComponent, updatedContent);
+  };
+
+  const handleInsertBelowCode = (content: string) => {
+    const updatedContent = componentContent + '\n' + content; 
+    updateCode(currentComponent, updatedContent);
+  };
+
+  const handleInsertLeftCode = (content: string) => {
+    const lines = componentContent.split('\n');
+    const updatedContent = content + '\n' + lines.join('\n'); 
+    updateCode(currentComponent, updatedContent);
+  };
+
+  const handleInsertRightCode = (content: string) => {
+    const updatedContent = componentContent + '\n' + content; 
+    updateCode(currentComponent, updatedContent);
+  };
+
+  const allTestsPassed = Object.values(testResults).every(result => result.passed);
+
+  const componentContent = useMemo(() => {
+    if (currentComponent) {
+      const content = getComponentCode(currentComponent, projectStructure) || '';
+      setCurrentFileContent(content);
+      return content; 
+    } else if (currentCodeFile) {
+      const content = Object.values(currentCodeFile)[0] || '';
+      setCurrentFileContent(content);
+      return content;
     }
-  };
+    return '';
+  }, [currentComponent, projectStructure, currentCodeFile, setCurrentFileContent]);
 
-  const processReactCode = (code: string): string => {
-    // React-specific processing logic
-    return code;
-  };
+  const componentTest = useMemo(() => {
+    if (currentComponent) {
+      return getComponentTest(currentComponent, projectStructure).content || '';
+    } 
+    return '';
+  }, [currentComponent, projectStructure]);
 
-  const processVueCode = (code: string): string => {
-    // Vue-specific processing logic
-    return code;
-  };
-
-  const processPythonCode = (code: string): string => {
-    // Python-specific processing logic
-    return code;
-  };
-
-  const processGoCode = (code: string): string => {
-    // Go-specific processing logic
-    return code;
-  };
-
-  const allTestsPassed = Object.values(testResults).every(result => result.passed)
-
-  const handleMouseDown = (
-    event: React.MouseEvent<HTMLDivElement, MouseEvent>
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    isResizingRef.current = true;
-    document.addEventListener("mousemove", handleMouseMoveResize);
-    document.addEventListener("mouseup", handleMouseUp);
-  };
-
-  const toggleViewportExpansion = () => {
-    setIsViewportExpanded(!isViewportExpanded);
-  };
-  
-  const handleAudioUpload = () => {
-    setIsAudioModalOpen(true);
-  };
-
-  const handleImageProcessed = (result: string) => { 
-    setInput(result);
-    setIsImageModalOpen(false);
-  };
-
-  const handleImageUpload = () => {
-    setIsImageModalOpen(true);
-  };
-
-  const handleFileProcessed = (result: string) => { 
-    setInput(result);
-    setIsFileModalOpen(false);
-  };
-
-  const handleFileUpload = () => {
-    setIsFileModalOpen(true);
-  };
-
-  const handleSwitchOpenModal = (option: "image" | "file" | "audio") => {
-    switch (option) {
-      case "image":
-        handleImageUpload();
-        break;
-      case "file":
-        handleFileUpload();
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleTranscriptionUpdate = (newTranscription) => {
-    setTranscription(newTranscription);
-  };
-
-  const handleTranscriptionComplete = (finalTranscription) => {
-    setInput(finalTranscription);
-    setFileFormat(null);
-    setIsAudioModalOpen(false);
-  };
-
-  const options = [
-    { icon: <Paperclip />, label: 'Upload File', value: "file" },
-    { icon: <Mic />, label: 'Audio', value: "audio" },
-    { icon: <Image />, label: 'Image', value: "image" },
-    { icon: <Video />, label: 'Video', value: "video" },
-    { icon: isVertical ?  <AlignVerticalSpaceAround />: <AlignHorizontalSpaceAround />, label: 'Switch Layout' },
-  ];
-
-  const wordCount = (text) => {
-    if(!text) return null;
-    return text.trim().split(/\s+/).length;
-  };
-
-  const isInputValid = (text) => {
-    if(!text) return null;
-    return wordCount(text) <= MAX_WORDS;
-  };
-
-  const toggleLayout = () => {
-    setIsVertical(!isVertical);
-    setIsOpen(false);
-  };
-
-  const handleInputChange = useCallback((value) => {
-    const isValid = isInputValid(value);
-    _setIsInputValid(isValid);
-    if (isValid) {
-      setInput(value);
-    } else {
-      toast.error("Please enter a valid input.");
-    }
-  }, [setInput, _setIsInputValid]);
-
-  const handleKeyDown = async (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      await generateProject();
-    }
-  };
-
-  const stop = () => {}
-
-  const GenerateButton: React.FC<GenerateButtonProps> = ({ isGenerating, stop, generate }) => (
-    <motion.div whileTap={{ scale: 0.95 }}>
-      <Button
-        isIconOnly
-        variant="faded"
-        color="default"
-        color={isGenerating ? "danger" : "primary"}
-        size="sm"
-        onClick={isGenerating ? () => stop : generate}
-        aria-label={isGenerating ? "Stop Generating" : "Generate"}
-        className="relative overflow-hidden"
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {isGenerating ? (
-            <motion.div
-              key="stop"
-              initial={{ opacity: 0, rotate: 180 }}
-              animate={{ opacity: 1, rotate: 0 }}
-              exit={{ opacity: 0, rotate: -180 }}
-              transition={{ duration: 0.3 }}
-            >
-              <StopCircle />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="send"
-              initial={{ opacity: 0, rotate: -180 }}
-              animate={{ opacity: 1, rotate: 0 }}
-              exit={{ opacity: 0, rotate: 180 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Send />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {isGenerating && (
-          <motion.div
-            className="absolute inset-0 bg-danger-300 opacity-30"
-            animate={{
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        )}
-      </Button>
-    </motion.div>
-  );
-
-  const startContent = useMemo(() => (
-    <div>
-      {input && (
-        <button 
-          aria-label="cancel"
-          className="absolute right-32 top-2 flex items-center justify-center rounded-full w-4 h-4 bg-slate-200 hover:bg-slate-400"
-          onClick={() => {
-            setInput('');
-            _setIsInputValid(true);
-
-          }}
-          type="button"
-        >
-          <X className="w-3 h-3 text-gray-800 cursor-pointer" />
-        </button>
-      )}
-      <div className="absolute right-32 bottom-1 flex items-center">
-        <span className={`text-tiny ${isInputValid(input) ? 'text-default-400' : 'text-danger'}`}>
-          {wordCount(input)}/{MAX_WORDS}
-        </span>
-      </div>
-    </div>
-  ), [input, setInput, wordCount, isInputValid, _setIsInputValid]);
-
-  const AudioOptionPopover = ({ children, onOptionSelect, setIsAudioModalOpen }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const options = [
-      { key: 'upload', label: 'Upload Audio', icon: <FaUpload /> },
-      { key: 'record', label: 'Record Audio', icon: <FaMicrophone /> },
-    ];
-    return (
-      <Popover
-        isOpen={isOpen}
-        onOpenChange={(open) => setIsOpen(open)}
-        placement="bottom"
-        offset={10}
-      >
-        <PopoverTrigger>{children}</PopoverTrigger>
-        <PopoverContent>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-[300px] p-4 rounded-lg bg-white dark:bg-gray-800 shadow-lg"
-          >
-            <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">
-              Choose Audio Option
-            </h3>
-            <div className="space-y-2">
-              {options.map((option) => (
-                <motion.button
-                  key={option.key}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-full flex items-center justify-between p-3 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                  onClick={() => {
-                    onOptionSelect(option.key);
-                    if (option.key === "upload") setIsAudioModalOpen(true);
-                    setIsOpen(false);
-                  }}
-                >
-                  <span className="flex items-center text-gray-700 dark:text-gray-200">
-                    {option.icon}
-                    <span className="ml-2">{option.label}</span>
-                  </span>
-                  <motion.div
-                    initial={{ x: -10, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                  >
-                    →
-                  </motion.div>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        </PopoverContent>
-      </Popover>
-    );
-  };
-
-  const endContent = useMemo(() => (
-    <div className="flex gap-4 justify-center items-center px-2 py-2 h-full">
-      <GenerateButton isGenerating={isGenerating} stop={stop} generate={generateProject} />
-      {isVertical ? (
-        <Popover>
-          <PopoverTrigger>
-            <Button
-              isIconOnly
-              variant="faded"
-              color="default"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Attach"
-            >
-              <Paperclip />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <ScrollShadow orientation="vertical" className="h-48 w-14">
-              <div className="p-2 bg-white rounded-lg shadow-lg">
-                {options.map((option, index) => (
-                  option.value === "audio" ? (
-                    <AudioOptionPopover key={index} onOptionSelect={setAudioOption} setIsAudioModalOpen={setIsAudioModalOpen}>
-                      <Button
-                        className="mb-1"
-                        isIconOnly
-                        variant="faded"
-                        color="default"
-                        size="sm"
-                        onClick={() => {
-                          setFileFormat(option.value);
-                          handleSwitchOpenModal(option.value);
-                        }}
-                        aria-label={option.label}
-                      >
-                        {option.icon}
-                      </Button>
-                    </AudioOptionPopover>
-                  ) : option.value === "video" ? (
-                    <UnreleasePopover key={index}>
-                      <Button
-                        className="mb-1"
-                        isIconOnly
-                        variant="faded"
-                        color="default"
-                        size="sm"
-                        onClick={() => setFileFormat(option.value)}
-                        aria-label={option.label}
-                      >
-                        {option.icon}
-                      </Button>
-                    </UnreleasePopover>
-                  ) : (
-                    <Button
-                      key={index}
-                      className="mb-1"
-                      isIconOnly
-                      variant="faded"
-                      color="default"
-                      size="sm"
-                      onClick={() => {
-                        setFileFormat(option.value);
-                        if (option.label === 'Switch Layout') {
-                          toggleLayout();
-                        }
-                        handleSwitchOpenModal(option.value);
-                      }}
-                      aria-label={option.label}
-                    >
-                      {option.icon}
-                    </Button>
-                  )
-                ))}
-              </div>
-            </ScrollShadow>
-          </PopoverContent>
-        </Popover>
-      ) : (
-        <ScrollShadow orientation="horizontal" className="w-20 z-[99]">
-          <div className="flex space-x-2 p-2">
-            {options.map((option, index) => (
-              option.value === "audio" ? (
-                <AudioOptionPopover key={index}>
-                  <Button
-                    className="mb-1"
-                    isIconOnly
-                    variant="faded"
-                    color="default"
-                    size="sm"
-                    onClick={() => setFileFormat(option.value)}
-                    aria-label={option.label}
-                  >
-                    {option.icon}
-                  </Button>
-                </AudioOptionPopover>
-              ) : option.value === "video" ? (
-                <UnreleasePopover key={index}>
-                  <Button
-                    className="mb-1"
-                    isIconOnly
-                    variant="faded"
-                    color="default"
-                    size="sm"
-                    onClick={() => setFileFormat(option.value)}
-                    aria-label={option.label}
-                  >
-                    {option.icon}
-                  </Button>
-                </UnreleasePopover>
-              ) : (
-                <Button
-                  key={index}
-                  className="mb-1"
-                  isIconOnly
-                  variant="faded"
-                  color="default"
-                  size="sm"
-                  onClick={() => {
-                    setFileFormat(option.value);
-                    if (option.label === 'Switch Layout') {
-                      toggleLayout();
-                    }
-                    handleSwitchOpenModal(option.value);
-                  }}                  
-                  aria-label={option.label}
-                >
-                  {option.icon}
-                </Button>
-              )
-            ))}
-          </div>
-        </ScrollShadow>
-      )}
-    </div>
-  ), [isGenerating, stop, isOpen, isVertical, options, setFileFormat]);
+  const componentName = useMemo(() => {
+    return currentComponent || (currentCodeFile && Object.keys(currentCodeFile)[0]) || '';
+  }, [currentComponent, currentCodeFile]);
 
   if (project === undefined) {
     return <ProjectSkeleton />;
@@ -1190,181 +1021,48 @@ const ProjectPage = ({
   if (project === null) {
     return <ProjectNotFound />;
   }
-  
+
   return (
-    <div className={`flex flex-col py-14 min-h-[120vh] h-full w-full overflow-auto ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
-      <div className="flex justify-between items-center p-4">
-        <h1 className="text-2xl font-bold">Code Generator</h1>
-        <SettingsButton onClick={() => setIsSettingsOpen(true)} />
-      </div>
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+    <>
+      <RenderContent 
         settings={settings}
-        onSettingChange={handleSettingChange}
+        isSettingsOpen={isSettingsOpen}
+        setIsSettingsOpen={setIsSettingsOpen}
+        handleSettingChange={handleSettingChange}
+        theme={theme}
+        insertedContent={insertedContent}
+        isInsertedContent={isInsertedContent}
+        setIsInsertedContent={setIsInsertedContent}
+        setInsertedContent={setInsertedContent}
+        handleOnInsert={handleOnInsert}
+        handleReplaceCode={handleReplaceCode}
+        handleInsertAboveCode={handleInsertAboveCode}
+        handleInsertBelowCode={handleInsertBelowCode}
+        handleInsertLeftCode={handleInsertLeftCode}
+        handleInsertRightCode={handleInsertRightCode}
+        currentComponent={currentComponent}
+        setCurrentComponent={setCurrentComponent}
+        currentCodeFile={currentCodeFile}
+        setCurrentCodeFile={setCurrentCodeFile}
+        currentEmbeddedFile={currentEmbeddedFile}
+        setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+        componentName={componentName}
+        componentContent={componentContent}
+        componentTest={componentTest}
+        updateCode={updateCode}
+        runUnitTests={runUnitTests}
+        regenerateComponent={regenerateComponent}
+        testResults={testResults}
+        runIntegrationTests={runIntegrationTests}
+        integrationTestResults={integrationTestResults}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        showFilePreview={showFilePreview}
+        showComponentEditor={showComponentEditor}
+        detectFramework={detectFramework}
       />
-      <div className="flex-1 flex flex-col p-4 w-full h-full">
-        <CodeProjectConfig 
-          projectConfigs={projectConfigs} 
-          setProjectConfigs={setProjectConfigs} 
-          generateSuggestions={generateSuggestions}
-          isGenerating={isGenerating}
-        />
-        {settings.showinputInput && (
-          <Card className="mb-4">
-            <CardBody className="h-full overflow-hidden">
-              <div className="flex flex-col justify-center items-center">
-                {fileFormat === "audio" && audioOption === "record" && (
-                  <AudioInput 
-                    onTranscriptionUpdate={handleTranscriptionUpdate}
-                    onTranscriptionComplete={handleTranscriptionComplete}
-                  />
-                )}
-                {fileFormat === "audio" && audioOption === "upload" && isAudioModalOpen && (
-                  <AudioUploadModal
-                    onTranscriptionComplete={handleTranscriptionComplete}
-                    isOpen={isAudioModalOpen}
-                    onClose={() => setIsAudioModalOpen(false)}
-                  />
-                )}
-                 {fileFormat === "file" && (
-                  <FileUploadModal
-                    onFileProcessed={handleFileProcessed}
-                    isOpen={isFileModalOpen}
-                    onClose={() => setIsFileModalOpen(false)}
-                  />
-                )}
-                {fileFormat === "image" && (
-                  <ImageUploadModal
-                    onImageProcessed={handleImageProcessed}
-                    isOpen={isImageModalOpen}
-                    onClose={() => setIsImageModalOpen(false)}
-                  />
-                )}
-                <Textarea
-                  variant="faded"
-                  labelPlacement="outside"
-                  placeholder="Ask AI any question"
-                  description="Enter a concise description of what you want AI to generate (max 255 words)."
-                  value={input}
-                  onChange={(e) => {
-                    handleInputChange(e.target.value);
-                  }}
-                  onKeyDown={handleKeyDown}
-                  required
-                  error={!isInputValid(input) && input !== ''}
-                  helperText={!isInputValid(input) && input !== '' ? `input exceeds ${MAX_WORDS} words limit` : ''}
-                  startContent={startContent}
-                  endContent={endContent}
-                  classNames={{
-                    input: "resize-y",
-                    base: "h-full",
-                    inputWrapper: [
-                      "w-full h-full",
-                      "shadow-xl",
-                      "bg-default-200/50",
-                      "dark:bg-default/60",
-                      "backdrop-blur-xl",
-                      "backdrop-saturate-200",
-                      "hover:bg-default-200/70",
-                      "dark:hover:bg-default/70",
-                      "group-data-[focus=true]:bg-default-200/50",
-                      "dark:group-data-[focus=true]:bg-default/60",
-                      "!cursor-text",
-                    ],
-                    description: [
-                      "pt-2",
-                    ],
-                  }}
-                />
-              </div>
-              <Button 
-                onClick={generateProject}
-                isLoading={isGenerating}
-              >
-                {isGenerating ? 'Generating...' : 'Generate Code'}
-              </Button>
-            </CardBody>
-          </Card>
-        )}
-        <Tabs selectedKey={activeTab} onSelectionChange={setActiveTab}>
-          <Tab key="editor" title="Component Editor">
-            {settings.showComponentEditor && currentComponent && (
-              <ComponentEditor
-                componentName={currentComponent}
-                isGenerating={isGenerating}
-                code={getComponentCode(currentComponent, projectStructure).originalCode}
-                test={getComponentTest(currentComponent)}
-                onCodeChange={(newCode) => updateComponentCode(currentComponent, newCode)}
-                onTestChange={(newTest) => updateComponentTest(currentComponent, newTest)}
-                onRunTests={() => runUnitTests(currentComponent)}
-                onRegenerate={() => regenerateComponent(currentComponent)}
-                testResults={testResults[currentComponent]}
-                onRunIntegrationTests={runIntegrationTests}
-                integrationTestResults={integrationTestResults}
-              />
-            )}
-            <Card className="mt-4">
-              <CardBody>
-                <div className="flex justify-between items-center">
-                  <Button
-                    onClick={moveToPrevComponent}
-                    disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === 0}
-                    startContent={<ChevronLeft size={16} />}
-                  >
-                    Previous Component
-                  </Button>
-                  <Button
-                    onClick={moveToNextComponent}
-                    disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === getAllFilePaths(projectStructure).length - 1}
-                    endContent={<ChevronRight size={16} />}
-                  >
-                    Next Component
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Tab>
-          <Tab key="preview" title="Component Preview">
-            {settings.showComponentPreview && currentComponent && (
-              renderComponent(project.development.framework, getComponentCode(currentComponent, projectStructure).code, theme, scope)
-            )}
-          </Tab>
-        </Tabs>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Viewport 
-            deploymentStatus={deploymentStatus} 
-            deploymentUrl={deploymentUrl} 
-            deploymentError={deploymentError}
-            isCompiling={isCompiling}
-            runAllCode={runAllCode}
-          />
-        </motion.div>
-        {settings.showSuggestions && suggestion && (
-          <Card className="mt-4 mb-4">
-            <CardBody>
-              <h3 className="font-bold mb-2">Suggestion:</h3>
-              <Textarea
-                value={suggestion}
-                onValueChange={setSuggestion}
-                className="mb-4"
-                readOnly
-              />
-              <Button 
-                onClick={generateProject}
-                isLoading={isGenerating}
-              >
-                {isGenerating ? 'Generating...' : 'Next iteration'}
-              </Button>
-            </CardBody>
-          </Card>
-        )}
-      </div>
-    </div>
-  )
-}
+    </>
+  );
+};
+
 export default ProjectPage;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { usePortalContextHook } from '@/context/portal-context-provider';
+import { usePortalContext } from '@/context/portal-context-provider';
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Cover } from "@/components/apps/document/cover";
@@ -13,26 +13,37 @@ import { FolderIcon, FileIcon, ChevronRightIcon, SearchIcon } from 'lucide-react
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppSelector } from '@/hooks/hooks';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { Button } from '@/components/ui/button';
 import { selectPortalContext } from '@/stores/features/apps/portal/portalsSlice';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ButtonWrapper } from "./custom-button";
+import { ActionButtons } from "./action-buttons";
 
 const NoStructureComponent = ({ onRetry }) => {
   return (
-    <div className="pt-20 w-full h-full bg-background flex flex-col items-center">
-      <Alert variant="warning" className="mb-6 max-w-md">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>No Project Structure Found</AlertTitle>
-        <AlertDescription>
-          We couldn't load the project structure. This might be due to an empty project or a temporary issue.
-        </AlertDescription>
-      </Alert>
-      
-      <Button onClick={onRetry} className="mb-6">
-        Retry Loading
-      </Button>
-    </div>
+    <TooltipProvider>
+      <motion.div
+        className="w-full h-full bg-background text-foreground flex flex-col pt-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <ButtonWrapper />
+        <div className="w-full h-full bg-background flex flex-col items-center">
+          <Alert variant="warning" className="mb-6 max-w-md">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No Project Structure Found</AlertTitle>
+            <AlertDescription>
+              We couldn't load the project structure. This might be due to an empty project or a temporary issue.
+            </AlertDescription>
+          </Alert>
+          <Button onClick={onRetry} className="mb-6">
+            Retry Loading
+          </Button>
+        </div>
+      </motion.div>
+    </TooltipProvider>
   );
 };
 
@@ -43,7 +54,13 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const context = useAppSelector(selectPortalContext);
   const getProject = useMutation(api.codes.getProject);
-  const { projectStructure, setProjectStructure, activeProject, currentComponent, setCurrentComponent } = usePortalContextHook();
+  const { projectStructure, setProjectStructure, activeProject, currentComponent, setCurrentComponent } = usePortalContext();
+  const setCodeGenerator = usePortalStore((state) => state.setCodeGenerator);
+  
+  const handleSelectFile = async (file: sring) => {
+    setCodeGenerator(false);
+    setCurrentComponent(file)
+  };
 
   const fetchProjectStructure = async (projectId) => {
     const project = await getProject({ projectId: projectId });
@@ -56,12 +73,13 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     return match ? match[1] : null;
   };
 
+  const projectId = extractProjectId(currentPath);
+
   useEffect(() => {
-    const projectId = extractProjectId(currentPath);
     if (projectId && context === "code-structure") {
       fetchProjectStructure(projectId);
     }
-  }, [activeProject, currentPath, getProject, setProjectStructure]);
+  }, [projectStructure, project, currentPath, getProject, setProjectStructure]);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders(prev => {
@@ -118,19 +136,22 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
-                    onClick={() => setCurrentComponent(fullPath)}
-                    className={`w-full text-left px-3 py-2 rounded-md transition-all duration-200 ${
-                      currentComponent === fullPath
-                        ? 'bg-primary text-primary-foreground shadow-md'
-                        : 'hover:bg-secondary'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <FileIcon size={16} />
-                      <span className="truncate">{key}</span>
-                    </div>
-                  </button>
+                  <div className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+                    <button
+                      onClick={() => handleSelectFile(fullPath)}
+                      className={`flex-grow text-left ${
+                        currentComponent === fullPath
+                          ? 'text-primary font-semibold'
+                          : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <FileIcon size={16} />
+                        <span className="truncate">{key}</span>
+                      </div>
+                    </button>
+                    <ActionButtons project={project} path={fullPath} isFile={true} />
+                  </div>
                 </TooltipTrigger>
                 <TooltipContent>{fullPath}</TooltipContent>
               </Tooltip>
@@ -147,20 +168,23 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            <button
-              onClick={() => toggleFolder(fullPath)}
-              className="flex items-center w-full text-left px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-200"
-            >
-              <motion.div
-                animate={{ rotate: expandedFolders.has(fullPath) ? 90 : 0 }}
-                transition={{ duration: 0.2 }}
-                className="mr-2"
+            <div className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-secondary transition-colors duration-200">
+              <button
+                onClick={() => toggleFolder(fullPath)}
+                className="flex items-center flex-grow text-left"
               >
-                <ChevronRightIcon size={16} />
-              </motion.div>
-              <FolderIcon size={16} className="mr-2" />
-              <span className="truncate">{key}</span>
-            </button>
+                <motion.div
+                  animate={{ rotate: expandedFolders.has(fullPath) ? 90 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="mr-2"
+                >
+                  <ChevronRightIcon size={16} />
+                </motion.div>
+                <FolderIcon size={16} className="mr-2" />
+                <span className="truncate">{key}</span>
+              </button>
+              <ActionButtons project={project} path={fullPath} />
+            </div>
             <AnimatePresence>
               {expandedFolders.has(fullPath) && (
                 <motion.ul
@@ -205,6 +229,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
             />
             <SearchIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
           </div>
+          <ActionButtons project={project} path="" />
         </div>
         <ScrollArea className="flex-grow">
           <ul className="p-2 space-y-1">

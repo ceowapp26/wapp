@@ -8,8 +8,6 @@ import { toast } from "sonner";
 import { MessageInterface, ModelOption } from "@/types/chat";
 import { Grid, Container, Typography } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { portalAPIEndpointOptions } from "@/constants/ai";
-import { setAPIEndpoint } from '@/utils/aiUtils';
 import { useGeneralContext } from '@/context/general-context-provider';
 import { useDynamicSubmit } from "@/hooks/use-dynamic-submit";
 import { useAIPortal } from "@/hooks/use-ai-portal";
@@ -19,7 +17,7 @@ import { ImageUploadModal } from "./image-upload-modal";
 import MagicIcon from "@/icons/MagicIcon";
 import { FaMicrophone, FaUpload } from 'react-icons/fa';
 import CrazySpinnerIcon from "@/icons/CrazySpinnerIcon";
-import UnreleasePopover from "@/components/apps/document/chatbot/unrelease-popover";
+import UnreleasePopover from "@/components/apps/chatbot/unrelease-popover";
 import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCw, Send, StopCircle } from 'lucide-react';
 import { cn, Input, Textarea, Tooltip, ScrollShadow, Button, Popover, PopoverTrigger, PopoverContent, useDisclosure, Listbox, ListboxItem } from '@nextui-org/react';
 import ChatAvatar from './chat-avatar';
@@ -233,8 +231,7 @@ const Chatbot = ({ chatHistory, onSendMessage, portalContext }) => {
     setInputType("text-only");
     setInputContext("general");
     setOutputType("text");
-    setAPIEndpoint(portalAPIEndpointOptions, inputModel);    
-  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel, setAPIEndpoint, portalAPIEndpointOptions, inputModel]);
+  }, [setAiContext, setInputContext, setInputType, setOutputType, setIsSystemModel, inputModel]);
 
   const handlePromptChange = useCallback((value) => {
     const isValid = isPromptValid(value);

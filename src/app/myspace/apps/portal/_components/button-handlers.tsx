@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button';
 import React from 'react';
-import { usePortalContextHook } from '@/context/portal-context-provider';
 import { useRouter } from 'next/navigation';
 
 type Props = {};

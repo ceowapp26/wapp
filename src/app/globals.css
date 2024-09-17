@@ -103,6 +103,10 @@ input:focus:invalid {
   animation: gradient-y 10s ease infinite;
 }
 
+/*.react-codemirror2 .CodeMirror:first-child {
+  display: none;
+}*/
+
 :not(pre) > code.hljs,
 :not(pre) > code[class*='language-'] {
   border-radius: 0.3em;
@@ -257,6 +261,45 @@ input:focus:invalid {
 .dark .hljs-keyword,
 .dark .hljs-selector-tag {
   color: #c586c0;
+}
+
+.cm-diff-gutter {
+  width: 10px;
+  background-color: #2d323b;
+}
+
+.cm-diff-marker {
+  color: #61afef;
+  opacity: 0.7;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.cm-diff-marker:hover {
+  opacity: 1;
+}
+
+.cm-merge-pane {
+  background-color: #1e2127;
+}
+
+.cm-merge-pane-original .cm-content {
+  background-color: #21252b;
+}
+
+.cm-merge-pane-modified .cm-content {
+  background-color: #282c34;
+}
+
+.cm-merge-gap {
+  background-color: #2c313a;
+  border-left: 1px solid #3e4451;
+  border-right: 1px solid #3e4451;
+}
+
+@media (max-width: 768px) {
+  .cm-merge-pane {
+    min-width: 300px;
+  }
 }
 
 @layer base {

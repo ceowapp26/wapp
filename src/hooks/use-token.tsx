@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { useDocumentStore } from "@/stores/features/apps/document/store";
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { useModelStore } from "@/stores/features/models/store";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -26,7 +26,7 @@ export const useToken = () => {
 
   const getModelData = useCallback(() => {
     const currentInputModel = useModelStore.getState().inputModel;
-    const currentChatModel = useDocumentStore.getState().chatModel;    
+    const currentChatModel = usePortalStore.getState().chatModel;    
     const modelToUse = isSystemModel ? currentInputModel : currentChatModel;
     const inputModelData = models?.find(model => model.model === modelToUse);
     return { modelToUse, inputModelData };

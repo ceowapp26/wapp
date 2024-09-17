@@ -1,4 +1,5 @@
-import { ReactProjectStructure, NextJsProjectStructure, VueProjectStructure, AngularProjectStructure, NodeProjectStructure, FlaskProjectStructure, createFile, createDirectory } from '@/types/code';
+import { ProjectSettings, ProjectConfigs, ReactProjectStructure, NextJsProjectStructure, VueProjectStructure, AngularProjectStructure, NodeProjectStructure, FlaskProjectStructure, createFile, createDirectory } from '@/types/code';
+import { Check, Wrench, Zap, HelpCircle, MessageSquarePlus, HandHelping, FolderTree } from 'lucide-react';
 
 export const createNextJsProjectStructure = (): NextJsProjectStructure => ({
   src: createDirectory({
@@ -278,7 +279,7 @@ export const createFlaskProjectStructure = (): FlaskProjectStructure => ({
   '.gitignore': createFile('*.pyc\n__pycache__\n.env\nvenv/'),
 });
 
-export const PROJECT_CONFIG_OPTIONS = {
+export const PROJECT_CONFIG_OPTIONS: ProjectConfigs = {
   general: {
     projectType: ['web', 'mobile', 'desktop'],
   },
@@ -325,7 +326,7 @@ export const PROJECT_CONFIG_OPTIONS = {
   },
 };
 
-export const PROJECT_SETTINGS = {
+export const PROJECT_SETTINGS: ProjectSettings = {
   general: [
     { uid: "projectName", name: "Project Name", editable: "EDITABLE", sortable: true },
     { uid: "version", name: "Version", editable: "EDITABLE" },
@@ -366,3 +367,43 @@ export const PROJECT_SETTINGS = {
     { uid: "license", name: "License", editable: "READONLY" },
   ],
 };
+
+export const KEYBOARD_SHORTCUTS = {
+  'Ctrl-s': 'save',
+  'Ctrl-f': 'find',
+  'Ctrl-h': 'replace',
+  'Ctrl-z': 'undo',
+  'Ctrl-y': 'redo',
+  'Ctrl-l': 'toggleChatbot',
+  'Ctrl-i': 'improveCode',
+  'Ctrl-e': 'explainCode',
+  'Ctrl-s': 'suggestCode',
+  'Ctrl-b': 'toggleSidebar',
+  'Ctrl-p': 'quickOpen',
+  'Alt-f': 'format',
+  'Ctrl-space': 'showSuggestions',
+  'Ctrl-d': 'addSelectionToNextFind',
+  'Ctrl-/': 'expandLineSelection',
+  'Ctrl-]': 'indentLine',
+  'Ctrl-[': 'outdentLine',
+  'Ctrl-g': 'gotoLine',
+  'Ctrl-k z': 'toggleZenMode',
+};
+
+export const gettingStarted = `
+# Getting started
+
+Welcome to Cursor! Here are the basics:
+
+* Prompt an edit
+  - Highlight code and hit Cmd+K
+* Accept an autocomplete
+  - Try typing and hit Tab when you see a suggestion
+* Ask a question
+  - Use Cmd+L to open the chat 
+  - Use @ to import files or documentation
+  - Highlight code and hit Cmd+Shift+L to focus the AI on particular pieces of code
+  - Try the "with codebase" button to ask about the entire repo
+
+If you run into any trouble or have any feedback, feel free to post on forum.cursor.sh. For more on our features, see cursor.sh/features.l
+`

@@ -46,6 +46,7 @@ export const ImageUploadModal: React.FC<ImageUploadModalProps> = ({ isOpen, onCl
             console.log(progress);
           },
         });
+        console.log(res);
         onClose();
       } catch (error) {
         if (error instanceof EdgeStoreApiClientError) {

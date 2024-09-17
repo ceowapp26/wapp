@@ -5,7 +5,7 @@ import { FileCode } from "lucide-react";
 import { api } from "@/convex/_generated/api";
 import { Item } from "./code-item";
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePortalContextHook } from '@/context/portal-context-provider';
+import { usePortalContext } from '@/context/portal-context-provider';
 
 interface ProjectListProps {
   level?: number;
@@ -14,7 +14,7 @@ interface ProjectListProps {
 export const ProjectList: React.FC<ProjectListProps> = ({ level = 0 }) => {
   const params = useParams();
   const router = useRouter();
-  const { setActiveProject } = usePortalContextHook();
+  const { setActiveProject } = usePortalContext();
   const projects = useQuery(api.codes.getProjectList);
 
   const items = useMemo(() => projects || [], [projects]);

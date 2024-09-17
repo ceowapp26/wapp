@@ -252,7 +252,7 @@ const ViewPopover = ({ project }) => (
     </PopoverTrigger>
     <PopoverContent>
       <div className="px-1 py-2">
-        <pre className="whitespace-pre-wrap overflow-auto max-h-96">
+        <pre className="whitespace-pre-wrap overflow-auto max-h-96 max-w-xs">
           {JSON.stringify(project, null, 2)}
         </pre>
       </div>

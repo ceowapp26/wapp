@@ -7,6 +7,7 @@ import { useMutation, useQuery } from "convex/react";
 import { limitMessageTokens, updateTotalTokenUsed, updateTimeLimitTokenUsed, determineModel } from '@/utils/aiUtils';
 import { useGeneralContext } from "@/context/general-context-provider";
 import { ModelOption } from "@/app/types/ai";
+import { getAPIEndpoint } from "@/utils/aiUtils";
 import { emailAPIEndpointOptions } from "@/constants/ai";
 import { useCompletion } from "ai/react";
 import { toast } from "sonner";
@@ -65,7 +66,7 @@ export const useEmailGenerator = ({
   const models = useQuery(api.models.getAllModels);
 
   const { complete } = useCompletion({
-    api: useModelStore.getState().apiEndpoint,
+    api: getAPIEndpoint(emailAPIEndpointOptions, inputModel),
     onResponse: async (response) => {
       if (!response.ok) {
         let errorData;
@@ -124,7 +125,6 @@ export const useEmailGenerator = ({
       const messages = await limitMessageTokens([_promptMessage], AIConfig[inputModel].max_tokens, inputModel, determineModel(inputModel), inputType, outputType);
       if (messages.length === 0) {
         toast.error("Message exceeds max token!");
-        throw new Error('Message exceeds max token!');
         return;
       }
       let requestOption = {

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useDocumentStore } from '@/stores/features/apps/document/store';
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 import { ChatInterface } from '@/types/chat';
 import { generateDefaultChat } from '@/constants/chat';
 import { useMutation, useQuery } from "convex/react";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useMyspaceContext } from "@/context/myspace-context-provider";
 
 export const useInitializeNewChat = () => {
-  const { setChats, setCurrentChatIndex } = useDocumentStore();
+  const { setChats, setCurrentChatIndex } = usePortalStore();
   const { activeDocument, activeOrg } = useMyspaceContext();
   const createChat = useMutation(api.chats.createChat);
   const currentUser = useQuery(api.users.getCurrentUser);

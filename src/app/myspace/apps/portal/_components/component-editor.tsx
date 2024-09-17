@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { FileInterface } from '@/types/chat';
 
 const CodeEditor = dynamic(() => import('./code-editor'), { ssr: false });
 
@@ -18,27 +19,49 @@ interface ComponentEditorProps {
   code: string;
   test: string;
   isGenerating: boolean;
-  onCodeChange: (newCode: string) => void;
-  onTestChange: (newTest: string) => void;
+  isShowEditor?: boolean;
+  isShowChatbot?: boolean;
+  updateCode?: (path?: string, newCode: string) => void;
   onRunTests: () => void;
   onRegenerate: () => void;
   testResults: TestResult | null;
   onRunIntegrationTests: () => void;
   integrationTestResults: TestResult | null;
+  setCurrentCodeFile?: React.Dispatch<React.SetStateAction<CodeFile | null>>;
+  setCurrentEmbeddedFile?: React.Dispatch<React.SetStateAction<FileInterface | null>>;
+  currentComponent?: string;
+  setCurrentComponent?: Dispatch<SetStateAction<string>>;
+  handleReplaceCode?: (content: string) => void;
+  handleInsertAboveCode?: (content: string) => void;
+  handleInsertBelowCode?: (content: string) => void;
+  handleInsertLeftCode?: (content: string) => void;
+  handleInsertRightCode?: (content: string) => void;
+  handleOnInsert?: (content: string) => void;
 }
 
 const ComponentEditor: React.FC<ComponentEditorProps> = ({
   componentName,
   code,
   test,
+  isShowEditor,
+  isShowChatbot,
   isGenerating,
-  onCodeChange,
-  onTestChange,
   onRunTests,
   onRegenerate,
   testResults,
+  currentComponent,
+  updateCode,
   onRunIntegrationTests,
   integrationTestResults,
+  setCurrentCodeFile,
+  setCurrentEmbeddedFile,
+  setCurrentComponent,
+  handleReplaceCode,
+  handleInsertLeftCode,
+  handleInsertAboveCode,
+  handleInsertBelowCode,
+  handleInsertRightCode,
+  handleOnInsert,
 }) => {
   const [activeTab, setActiveTab] = useState('component');
 
@@ -60,14 +83,38 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
           <TabsContent value="component">
             <CodeEditor
               content={code}
-              setContent={onCodeChange}
+              setContent={updateCode}
+              currentComponent={currentComponent}
+              setCurrentComponent={setCurrentComponent}
+              setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+              setCurrentCodeFile={setCurrentCodeFile}
+              handleReplaceCode={handleReplaceCode}
+              handleInsertAboveCode={handleInsertAboveCode}
+              handleInsertBelowCode={handleInsertBelowCode}
+              handleInsertLeftCode={handleInsertLeftCode}
+              handleInsertRightCode={handleInsertRightCode}
+              handleOnInsert={handleOnInsert}
+              isShowEditor={isShowEditor}
+              isShowChatbot={isShowChatbot}
               className="min-h-[300px] border rounded-md"
             />
           </TabsContent>
           <TabsContent value="test">
             <CodeEditor
               content={test}
-              setContent={onTestChange}
+              currentComponent={currentComponent}
+              setContent={updateCode}
+              setCurrentComponent={setCurrentComponent}
+              setCurrentEmbeddedFile={setCurrentEmbeddedFile}
+              setCurrentCodeFile={setCurrentCodeFile}
+              handleReplaceCode={handleReplaceCode}
+              handleInsertAboveCode={handleInsertAboveCode}
+              handleInsertBelowCode={handleInsertBelowCode}
+              handleInsertLeftCode={handleInsertLeftCode}
+              handleInsertRightCode={handleInsertRightCode}
+              handleOnInsert={handleOnInsert}
+              isShowEditor={isShowEditor}
+              isShowChatbot={isShowChatbot}
               className="min-h-[300px] border rounded-md"
             />
           </TabsContent>
@@ -151,3 +198,5 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
 };
 
 export default ComponentEditor;
+
+
