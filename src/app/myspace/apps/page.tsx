@@ -55,8 +55,10 @@ const AppsPage: React.FC = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    fetchApps();
-  }, [fetchApps]);
+    if (currentUser && Object.entries(apps).length === 0) {
+      fetchApps();
+    }
+  }, [currentUser, apps]);
 
   const isValidAppsData = (data: unknown): data is Record<string, App> => {
     if (typeof data !== 'object' || data === null) return false;
