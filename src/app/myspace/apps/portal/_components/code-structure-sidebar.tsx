@@ -7,8 +7,8 @@ import { Cover } from "@/components/apps/document/cover";
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePathname } from 'next/navigation';
-import { ProjectStructure } from '@/types/code';
+import { ProjectStructure } from '@/types/code'
+import { useParams, useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
 import { FolderIcon, FileIcon, ChevronRightIcon, SearchIcon } from 'lucide-react';
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,7 @@ const NoStructureComponent = ({ onRetry }) => {
 
 export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   const currentPath = usePathname();
+  const params = useParams();
   const [project, setProject] = useState<any>({});
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['src']));
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +63,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     setCodeGenerator(false);
     setCurrentComponent(file)
   };
-
+  
   const fetchProjectStructure = useCallback(async (id: Id<"codes">) => {
     if (!id) return;
     try {
@@ -74,13 +75,12 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     }
   }, [getProject, setProject, setProjectStructure]);
 
-  const extractProjectId = useCallback((path: string): string | null => {
+  const getProjectId = useCallback(() => {
     if (activeProject) return activeProject;
-    const match = path.match(/\/myspace\/apps\/portal\/code\/([^\/]+)$/);
-    return match ? match[1] : null;
-  }, [activeProject]);
+    return params.projectId || null;
+  }, [activeProject, params]);
 
-  const projectId = useMemo(() => extractProjectId(currentPath), [extractProjectId, currentPath]);
+  const projectId = useMemo(() => getProjectId(), [getProjectId]);
 
   useEffect(() => {
     if (projectId && context === "code-structure") {
