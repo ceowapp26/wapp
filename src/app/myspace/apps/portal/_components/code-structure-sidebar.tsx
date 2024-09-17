@@ -58,35 +58,34 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   const getProject = useMutation(api.codes.getProject);
   const { projectStructure, setProjectStructure, activeProject, currentComponent, setCurrentComponent } = usePortalContext();
   const setCodeGenerator = usePortalStore((state) => state.setCodeGenerator);
-  
+
   const handleSelectFile = async (file: sring) => {
     setCodeGenerator(false);
     setCurrentComponent(file)
   };
   
-  const fetchProjectStructure = useCallback(async (id: Id<"codes">) => {
-    if (!id) return;
-    try {
-      const project = await getProject({ projectId: id });
-      setProject(project);
-      setProjectStructure(project.structure);
-    } catch (error) {
-      console.error("Error fetching project structure:", error);
-    }
-  }, [getProject, setProject, setProjectStructure]);
-
   const getProjectId = useCallback(() => {
     if (activeProject) return activeProject;
     return params.projectId || null;
   }, [activeProject, params]);
 
-  const projectId = useMemo(() => getProjectId(), [getProjectId]);
+  const fetchProjectStructure = useCallback(async () => {
+    const projectId = getProjectId();
+    if (!projectId) return;
+    try {
+      const project = await getProject({ projectId: projectId });
+      setProject(project);
+      setProjectStructure(project.structure);
+    } catch (error) {
+      console.error("Error fetching project structure:", error);
+    }
+  }, [getProjectId, getProject, setProject, setProjectStructure]);
 
   useEffect(() => {
-    if (projectId && context === "code-structure") {
+    if (context === "code-structure") {
       fetchProjectStructure(projectId);
     }
-  }, [projectId, context, fetchProjectStructure]);
+  }, [context, fetchProjectStructure]);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders(prev => {
