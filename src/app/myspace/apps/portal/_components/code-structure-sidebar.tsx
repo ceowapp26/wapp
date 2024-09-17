@@ -62,28 +62,32 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     setCurrentComponent(file)
   };
 
-  const fetchProjectStructure = async (projectId) => {
-    const project = await getProject({ projectId: projectId });
-    setProject(project);
-    setProjectStructure(project.structure);
-  };
+  const fetchProjectStructure = useCallback(async (id: string) => {
+    if (!id) return;
+    try {
+      const project = await getProject({ projectId: id });
+      setProject(project);
+      setProjectStructure(project.structure);
+    } catch (error) {
+      console.error("Error fetching project structure:", error);
+    }
+  }, [getProject, setProject, setProjectStructure]);
 
   const extractProjectId = useCallback((path: string): string | null => {
     const match = path.match(/\/myspace\/apps\/portal\/code\/([^\/]+)$/);
     if (match) {
       return match[1] || null;
-    } else {
-      return activeProject || null;
     }
+    return activeProject || null;
   }, [activeProject]);
 
-  const projectId = useMemo(() => extractProjectId(currentPath), [currentPath, activeProject]);
+  const projectId = useMemo(() => extractProjectId(currentPath), [extractProjectId, currentPath]);
 
   useEffect(() => {
     if (projectId && context === "code-structure") {
       fetchProjectStructure(projectId);
     }
-  }, [projectStructure, project, currentPath, getProject, setProjectStructure]);
+  }, [projectId, context, fetchProjectStructure]);
 
   const toggleFolder = (folder: string) => {
     setExpandedFolders(prev => {
@@ -209,7 +213,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   };
 
   if (projectStructure === undefined || projectStructure === null || Object.keys(projectStructure).length === 0) {
-    return <NoStructureComponent onRetry={() => fetchProjectStructure(activeProject)} />;
+    return <NoStructureComponent onRetry={() => fetchProjectStructure(projectId)} />;
   }
 
   return (
@@ -263,6 +267,4 @@ const getAllFilePaths = (obj: ProjectStructure, currentPath: string = ''): strin
   }
   return paths;
 };
-
-
 
