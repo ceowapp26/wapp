@@ -83,7 +83,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
 
   useEffect(() => {
     if (context === "code-structure") {
-      fetchProjectStructure(projectId);
+      fetchProjectStructure();
     }
   }, [context, fetchProjectStructure]);
 
@@ -211,7 +211,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   };
 
   if (projectStructure === undefined || projectStructure === null || Object.entries(projectStructure).length === 0) {
-    return <NoStructureComponent onRetry={() => fetchProjectStructure(projectId)} />;
+    return <NoStructureComponent onRetry={fetchProjectStructure} />;
   }
 
   return (
