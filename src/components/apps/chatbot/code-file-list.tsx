@@ -105,7 +105,7 @@ const CodeFileList: React.FC<CodeFileListProps> = ({ projects, onFileSelect }) =
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
 
   return (
-    <div className="max-h-[600px] text-gray-800 overflow-y-auto bg-white rounded-lg shadow-md p-4">
+    <div className="max-h-[600px] max-w-xl text-gray-800 overflow-y-auto bg-white rounded-lg shadow-md p-4">
       <Accordion>
         {projects.map((project) => (
           <AccordionItem

@@ -137,7 +137,7 @@ const SystemFile: React.FC<SystemFileProps> = ({ handleFilesProcessed, setIsModa
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="w-full h-full p-4 overflow-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                    className="max-w-md w-full h-full p-4 overflow-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                   >
                     {files.map((file, index) => (
                       <motion.div
