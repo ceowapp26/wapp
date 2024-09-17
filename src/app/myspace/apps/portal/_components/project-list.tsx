@@ -3,6 +3,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
 import { FileCode } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Item } from "./code-item";
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePortalContext } from '@/context/portal-context-provider';
@@ -19,7 +20,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ level = 0 }) => {
 
   const items = useMemo(() => projects || [], [projects]);
 
-  const onRedirect = (projectId: string) => {
+  const onRedirect = (projectId: Id<"codes">) => {
     setActiveProject(projectId);
     router.push(`/myspace/apps/portal/code/${projectId}`);
   };

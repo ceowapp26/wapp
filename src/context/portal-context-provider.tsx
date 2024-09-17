@@ -32,7 +32,7 @@ const InitialValues: InitialValuesProps = {
   currentComponent: null,
   currentFileContent: null,
   activeProject: null,
-  structure: {},
+  projectStructure: {},
   chatHistory: [],
   chatConversation: [],
   chatSession: null,

@@ -47,7 +47,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     }));
   }, []);
 
-  const onRedirect = useCallback((documentId: string) => {
+  const onRedirect = useCallback((documentId: Id<"documents">) => {
     if (!isDragging) {
       setActiveDocument(documentId);
       router.push(`/myspace/apps/portal/document/${documentId}`);

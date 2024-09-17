@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { usePortalContext } from '@/context/portal-context-provider';
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 import { Cover } from "@/components/apps/document/cover";
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -62,7 +63,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     setCurrentComponent(file)
   };
 
-  const fetchProjectStructure = useCallback(async (id: string) => {
+  const fetchProjectStructure = useCallback(async (id: Id<"codes">) => {
     if (!id) return;
     try {
       const project = await getProject({ projectId: id });
@@ -74,11 +75,9 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   }, [getProject, setProject, setProjectStructure]);
 
   const extractProjectId = useCallback((path: string): string | null => {
+    if (activeProject) return activeProject;
     const match = path.match(/\/myspace\/apps\/portal\/code\/([^\/]+)$/);
-    if (match) {
-      return match[1] || null;
-    }
-    return activeProject || null;
+    return match ? match[1] : null;
   }, [activeProject]);
 
   const projectId = useMemo(() => extractProjectId(currentPath), [extractProjectId, currentPath]);
@@ -212,7 +211,7 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     });
   };
 
-  if (projectStructure === undefined || projectStructure === null || Object.keys(projectStructure).length === 0) {
+  if (projectStructure === undefined || projectStructure === null || Object.entries(projectStructure).length === 0) {
     return <NoStructureComponent onRetry={() => fetchProjectStructure(projectId)} />;
   }
 
