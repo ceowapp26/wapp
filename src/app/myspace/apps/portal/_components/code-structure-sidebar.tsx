@@ -20,18 +20,19 @@ import { selectPortalContext } from '@/stores/features/apps/portal/portalsSlice'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ButtonWrapper } from "./custom-button";
 import { ActionButtons } from "./action-buttons";
+import { generateProjectSchema } from '@/utils/codeUtils';
 
-const NoStructureComponent = ({ onRetry, isEmpty }) => {
+const NoStructureComponent = ({ onRetry, isEmpty, onGenerateStructure, isLoading }) => {
   return (
     <TooltipProvider>
       <motion.div
-        className="w-full h-full bg-background text-foreground flex flex-col pt-24"
+        className="w-full h-full bg-background text-foreground flex flex-col pt-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <ButtonWrapper />
-        <div className="w-full h-full bg-background flex flex-col items-center">
+        <div className="w-full h-full bg-background flex flex-col items-center pt-6">
           <Alert variant="warning" className="mb-6 max-w-md">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>
@@ -39,13 +40,29 @@ const NoStructureComponent = ({ onRetry, isEmpty }) => {
             </AlertTitle>
             <AlertDescription>
               {isEmpty 
-                ? "This project structure is empty. This might be due to an empty project or a temporary issue."
-                : "We couldn't load the project structure. This might be due to a temporary issue."}
+                ? "This project structure is empty. You can generate a default structure or retry loading."
+                : "We couldn't load the project structure. You can generate a default structure or retry loading."}
             </AlertDescription>
           </Alert>
-          <Button onClick={onRetry} className="mb-6">
-            Retry Loading
-          </Button>
+          <div className="flex space-x-4">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={onRetry} className="mb-6" disabled={isLoading}>
+                  {isLoading ? "Loading..." : "Retry Loading"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Reload the project structure</TooltipContent>
+            </Tooltip>
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button onClick={onGenerateStructure} className="mb-6" disabled={isLoading}>
+                  {isLoading ? "Generating..." : "Generate Structure"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Generate default structure based on project development framework</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </motion.div>
     </TooltipProvider>
@@ -55,11 +72,13 @@ const NoStructureComponent = ({ onRetry, isEmpty }) => {
 export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
   const currentPath = usePathname();
   const params = useParams();
-  const [project, setProject] = useState<any>({});
+  const [project, setProject] = useState<Doc<"codes">>(undefined);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set(['src']));
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const context = useAppSelector(selectPortalContext);
   const getProject = useMutation(api.codes.getProject);
+  const updateProject = useMutation(api.codes.updateProject);
   const { projectStructure, setProjectStructure, activeProject, currentComponent, setCurrentComponent } = usePortalContext();
   const setCodeGenerator = usePortalStore((state) => state.setCodeGenerator);
 
@@ -73,16 +92,42 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     return params.projectId || null;
   }, [activeProject, params]);
 
-  const fetchProjectStructure = useCallback(async () => {
-    const projectId = getProjectId();
-    if (!projectId) return;
+  const generateAndUpdateStructure = async () => {
+    setIsLoading(true);
     try {
+      const projectId = getProjectId();
+      if (!projectId) return;
+      const project = await getProject({ projectId: projectId });
+      if (!project) return;
+      const updateProjectStructure = generateProjectSchema(project.development.framework);
+      const result = await updateProject({
+        id: projectId,
+        project: {
+          structure: updateProjectStructure
+        }
+      });
+      setProject(project);
+      setProjectStructure(updateProjectStructure);
+    } catch (error) {
+      console.error("Error generating and updating project structure:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchProjectStructure = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const projectId = getProjectId();
+      if (!projectId) return;
       const project = await getProject({ projectId: projectId });
       setProject(project);
       setProjectStructure(project.structure);
     } catch (error) {
       setProjectStructure(null);
       console.error("Error fetching project structure:", error);
+    } finally {
+      setIsLoading(false);
     }
   }, [getProjectId, getProject, setProject, setProjectStructure]);
 
@@ -215,12 +260,15 @@ export const CodeStructureSidebar: React.FC<SidebarProps> = () => {
     });
   };
 
-  if (projectStructure === null) {
-    return <NoStructureComponent onRetry={fetchProjectStructure} isEmpty={false} />;
-  }
-
-  if (projectStructure && Object.keys(projectStructure).length === 0) {
-    return <NoStructureComponent onRetry={fetchProjectStructure} isEmpty={true} />;
+  if (projectStructure === null || (projectStructure && Object.keys(projectStructure).length === 0)) {
+    return (
+      <NoStructureComponent 
+        onRetry={fetchProjectStructure} 
+        isEmpty={projectStructure && Object.keys(projectStructure).length === 0}
+        onGenerateStructure={generateAndUpdateStructure}
+        isLoading={isLoading}
+      />
+    );
   }
 
   return (

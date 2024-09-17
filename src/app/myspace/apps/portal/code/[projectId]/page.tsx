@@ -41,7 +41,6 @@ import { Doc, Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { FileInterface } from "@/types/chat";
-import { createFlaskProjectStructure, createNodeProjectStructure, createAngularProjectStructure, createReactProjectStructure, createNextJsProjectStructure } from "@/constants/code";
 import { ProjectStructure, CodeFile } from '@/types/code';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { GradientLoadingCircle } from "@/components/gradient-loading-circle";
@@ -54,6 +53,7 @@ import {
   processPythonCode,
   getFileName,
   getTestFileName,  
+  generateProjectSchema
 } from "@/utils/codeUtils";
 
 const ChatContent = dynamic(() => import("@/components/apps/chatbot/chat-content"), {
@@ -702,23 +702,6 @@ const ProjectPage = ({
 
   const handleSettingChange = (setting: string, value: boolean) => {
     setSettings(prev => ({ ...prev, [setting]: value }));
-  };
-
-  const generateProjectSchema = (framework: string) => {
-    switch (framework.toLowerCase()) {
-      case "react":
-        return createReactProjectStructure();
-      case "nextjs":
-        return createNextJsProjectStructure();
-      case "angular":
-        return createAngularProjectStructure();
-      case "node":
-        return createNodeProjectStructure();
-      case "flask":
-        return createFlaskProjectStructure();
-      default:
-        throw new Error("Unsupported framework selected");
-    }
   };
 
   const generateProject = async () => {

@@ -24,8 +24,7 @@ import { usePortalContext } from "@/context/portal-context-provider";
 import WarningModal from "@/components/apps/chatbot/warning-modal";
 import { ProjectSettings } from '@/types/code';
 import { MessageInterface } from '@/types/chat';
-import { createFlaskProjectStructure, createNodeProjectStructure, createAngularProjectStructure, createReactProjectStructure, createNextJsProjectStructure } from "@/constants/code";
-import { generateStructurePrompt } from '@/utils/codeUtils';
+import { generateStructurePrompt, generateProjectSchema } from '@/utils/codeUtils';
 import { useProjectGenerator } from "@/hooks/use-project-generator";
 
 const AudioInput = ({ onTranscriptionUpdate, onTranscriptionComplete }) => {
@@ -166,23 +165,6 @@ const ProjectPrompt: React.FC<ProjectPromptProps> = ({
     setSettings(prev => ({ ...prev, [setting]: value }));
   };
 
-  const generateProjectSchema = (framework: string) => {
-    switch (framework.toLowerCase()) {
-      case "react":
-        return createReactProjectStructure();
-      case "nextjs":
-        return createNextJsProjectStructure();
-      case "angular":
-        return createAngularProjectStructure();
-      case "node":
-        return createNodeProjectStructure();
-      case "flask":
-        return createFlaskProjectStructure();
-      default:
-        throw new Error("Unsupported framework selected");
-    }
-  };
-  
   const handleSetup = useCallback(() => {
     setIsSystemModel(false);
     setChatRole("user");

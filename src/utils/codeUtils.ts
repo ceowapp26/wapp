@@ -1,4 +1,5 @@
 import { ProjectStructure } from '@/types/code';
+import { createFlaskProjectStructure, createNodeProjectStructure, createAngularProjectStructure, createReactProjectStructure, createNextJsProjectStructure } from "@/constants/code";
 
 export const generateStructurePrompt = (
   input: string,
@@ -296,6 +297,23 @@ const validateProjectStructure = (response: ProjectStructure, expectedStructure:
   return validate(response, expectedStructure);
 };
 
+const generateProjectSchema = (framework: string) => {
+  switch (framework.toLowerCase()) {
+    case "react":
+      return createReactProjectStructure();
+    case "nextjs":
+      return createNextJsProjectStructure();
+    case "angular":
+      return createAngularProjectStructure();
+    case "node":
+      return createNodeProjectStructure();
+    case "flask":
+      return createFlaskProjectStructure();
+    default:
+      throw new Error("Unsupported framework selected");
+  }
+};
+
 export { 
   getStructure, 
   getFileName,
@@ -306,4 +324,6 @@ export {
   processGoCode, 
   processPythonCode,
   validateProjectStructure, 
+  generateProjectSchema,
 };
+
