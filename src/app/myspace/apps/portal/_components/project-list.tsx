@@ -21,6 +21,7 @@ export const ProjectList: React.FC<ProjectListProps> = ({ level = 0 }) => {
   const items = useMemo(() => projects || [], [projects]);
 
   const onRedirect = (projectId: Id<"codes">) => {
+    localStorage.setItem("projectStructure", null);
     setActiveProject(projectId);
     router.push(`/myspace/apps/portal/code/${projectId}`);
   };

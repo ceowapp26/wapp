@@ -3,7 +3,7 @@ import { usePortalContext } from '@/context/portal-context-provider';
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Doc } from "@/convex/_generated/dataModel";
-import { LucideIcon, AlertCircle, FolderIcon, FileIcon, ChevronRightIcon, SearchIcon, FileCode, RefreshCw } from 'lucide-react';
+import { LucideIcon, AlertCircle, FolderIcon, FileIcon, ChevronRightIcon, SearchIcon, FileCode, RefreshCw, Code2, Loader2, FolderGit2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -18,6 +18,19 @@ import { generateProjectSchema } from '@/utils/codeUtils';
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProjectStructure } from '@/types/code';
+
+const LoadingIndicator: React.FC = () => {
+  return (
+    <div className="flex-grow flex items-center justify-center w-full h-full">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 className="w-8 h-8 text-primary" />
+      </motion.div>
+    </div>
+  );
+};
 
 interface CustomButtonProps {
   handleClick: () => void;
@@ -65,13 +78,13 @@ interface NoStructureComponentProps {
 const NoStructureComponent: React.FC<NoStructureComponentProps> = ({ onRetry, isEmpty, onGenerateStructure, isLoading }) => {
   return (
     <motion.div 
-      className="w-full h-full bg-background text-foreground flex flex-col p-4"
+      className="w-full h-full bg-background text-foreground flex flex-col pt-20"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
       <ButtonWrapper />
-      <div className="flex-grow flex flex-col items-center justify-center space-y-6">
+      <div className="flex flex-col items-center justify-center space-y-6 pt-6">
         <motion.div
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
@@ -94,14 +107,14 @@ const NoStructureComponent: React.FC<NoStructureComponentProps> = ({ onRetry, is
           <CustomButton
             handleClick={onRetry}
             icon={RefreshCw}
-            text="Retry Loading"
+            text="Reload"
             tooltipText="Attempt to reload the project structure"
             isLoading={isLoading}
           />
           <CustomButton
             handleClick={onGenerateStructure}
             icon={FileCode}
-            text="Generate Structure"
+            text="Generate"
             tooltipText="Create a default project structure"
             isLoading={isLoading}
           />
@@ -165,23 +178,53 @@ export const CodeStructureSidebar: React.FC = () => {
       if (!projectId) return;
       const project = await getProject({ projectId });
       setProject(project);
-      handleGetProjectStructure(project.structure);
+      
+      let structure: ProjectStructure;
+      if (typeof project.structure === 'string') {
+        try {
+          structure = JSON.parse(project.structure);
+        } catch (error) {
+          console.error("Error parsing project structure:", error);
+          throw new Error("Invalid project structure format");
+        }
+      } else if (typeof project.structure === 'object' && project.structure !== null) {
+        structure = project.structure as ProjectStructure;
+      } else {
+        throw new Error("Invalid project structure format");
+      }
+      
+      handleGetProjectStructure(structure);
+      return { success: true };
     } catch (error) {
-      setProjectStructure(null);
       console.error("Error fetching project structure:", error);
+      return { success: false, error };
     } finally {
       setIsLoading(false);
     }
-  }, [getProjectId, getProject, handleGetProjectStructure, setProjectStructure]);
+  }, [getProjectId, getProject, handleGetProjectStructure]);
 
   useEffect(() => {
     if (context === "code-structure") {
-      const storedStructure = localStorage.getItem("projectStructure");
-      if (storedStructure) {
-        setProjectStructure(JSON.parse(storedStructure));
-      } else {
-        fetchProjectStructure();
-      }
+      fetchProjectStructure().then((result) => {
+        if (!result.success) {
+          const storedStructure = localStorage.getItem("projectStructure");
+          if (storedStructure) {
+            try {
+              const parsedStructure = JSON.parse(storedStructure);
+              if (typeof parsedStructure === 'object' && parsedStructure !== null) {
+                setProjectStructure(parsedStructure);
+              } else {
+                throw new Error("Invalid stored project structure");
+              }
+            } catch (error) {
+              console.error("Error parsing stored project structure:", error);
+              setProjectStructure(null);
+            }
+          } else {
+            setProjectStructure(null);
+          }
+        }
+      });
     }
   }, [context, fetchProjectStructure, setProjectStructure]);
 
@@ -304,6 +347,10 @@ export const CodeStructureSidebar: React.FC = () => {
     });
   }, [currentComponent, expandedFolders, handleSelectFile, project, toggleFolder]);
 
+  if (isLoading) {
+    return <LoadingIndicator />;
+  }
+
   if (projectStructure === null || (projectStructure && Object.keys(projectStructure).length === 0)) {
     return (
       <TooltipProvider>
@@ -327,32 +374,50 @@ export const CodeStructureSidebar: React.FC = () => {
       >
         <ButtonWrapper />
         <div className="p-2 border-b">
-          <h2 className="text-sm font-semibold my-2">{project?.projectName || 'Project'}</h2>
+          <h2 className="text-2xl font-bold flex items-center space-x-2 py-3 ml-2">
+            <FolderGit2 className="text-amber-500/90" size={24} />
+            <span className="truncate text-blue-700">{project?.projectName || 'Untitled Project'}</span>
+          </h2>
           <div className="relative mb-2">
             <Input
               type="text"
               placeholder="Search files..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-6 text-xs h-7"
+              className="pl-10 pr-4 py-2 text-sm rounded-full border-secondary focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300"
             />
-            <SearchIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={12} />
+            <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={18} />
           </div>
           <ActionButtons project={project} path="" />
         </div>
         <ScrollArea className="flex-grow">
-          <ul className="p-2 space-y-1">
+          <motion.ul 
+            className="p-4 space-y-2"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              visible: { transition: { staggerChildren: 0.05 } },
+            }}
+          >
             {filteredStructure && Object.keys(filteredStructure).length > 0 ? (
               renderTree(filteredStructure)
             ) : (
-              <li className="text-center text-muted-foreground py-2 text-xs">No matching files found</li>
+              <motion.li 
+                className="text-center text-muted-foreground py-8 text-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                No matching files found
+              </motion.li>
             )}
-          </ul>
+          </motion.ul>
         </ScrollArea>
       </motion.div>
     </TooltipProvider>
   );
 };
+
 
 // Helper function to get all file paths
 const getAllFilePaths = (obj: ProjectStructure, currentPath: string = ''): string[] => {
@@ -368,5 +433,4 @@ const getAllFilePaths = (obj: ProjectStructure, currentPath: string = ''): strin
   }
   return paths;
 };
-
 
