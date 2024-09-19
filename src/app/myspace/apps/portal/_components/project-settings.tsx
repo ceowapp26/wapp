@@ -182,7 +182,7 @@ const EditPopover = ({ trigger, project, projectColumns, methods, errors, contro
   }, [onHandleSubmit, project.projectId, methods]);
 
   return (
-    <Popover>
+    <Popover placement="right-start">
       <PopoverTrigger asChild>
         {trigger}
       </PopoverTrigger>
@@ -244,7 +244,7 @@ const EditPopover = ({ trigger, project, projectColumns, methods, errors, contro
 };
 
 const ViewPopover = ({ project }) => (
-  <Popover placement="bottom">
+  <Popover placement="right-start">
     <PopoverTrigger>
       <Button isIconOnly size="sm" variant="light" className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors duration-150">
         <Eye size={18} className="text-blue-600 dark:text-blue-400" />

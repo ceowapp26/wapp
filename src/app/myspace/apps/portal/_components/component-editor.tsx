@@ -66,7 +66,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
   const [activeTab, setActiveTab] = useState('component');
 
   return (
-    <Card className="mt-6 w-full max-w-4xl mx-auto">
+    <Card className="mt-6 w-full px-8 mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-bold truncate flex items-center">
           <Code className="mr-2" />
@@ -98,6 +98,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
               isShowChatbot={isShowChatbot}
               className="min-h-[300px] border rounded-md"
             />
+
           </TabsContent>
           <TabsContent value="test">
             <CodeEditor
@@ -117,15 +118,26 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
               isShowChatbot={isShowChatbot}
               className="min-h-[300px] border rounded-md"
             />
+            <Button
+              onClick={onRunTests}
+              disabled={isGenerating}
+              className="bg-green-500 hover:bg-green-600 mt-4"
+            >
+              {isGenerating ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="mr-2 h-4 w-4" />
+              )}
+              Run Tests
+            </Button>
           </TabsContent>
           <TabsContent value="integration">
             <Card className="mt-4">
               <CardContent>
-                <h3 className="font-bold mb-2">Integration Tests</h3>
                 <Button 
                   onClick={onRunIntegrationTests}
                   disabled={isGenerating}
-                  className="mb-4"
+                  className="mb-4 mt-4"
                 >
                   {isGenerating ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -151,33 +163,6 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({
             </Card>
           </TabsContent>
         </Tabs>
-
-        <div className="flex justify-between mt-4">
-          <Button
-            onClick={onRunTests}
-            disabled={isGenerating}
-            className="bg-green-500 hover:bg-green-600"
-          >
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Play className="mr-2 h-4 w-4" />
-            )}
-            Run Tests
-          </Button>
-          <Button
-            onClick={onRegenerate}
-            disabled={isGenerating}
-            className="bg-yellow-500 hover:bg-yellow-600"
-          >
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-2 h-4 w-4" />
-            )}
-            Regenerate Component
-          </Button>
-        </div>
 
         {testResults && (
           <Alert className={`mt-4 ${testResults.passed ? 'bg-green-50' : 'bg-red-50'}`}>

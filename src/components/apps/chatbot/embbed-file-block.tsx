@@ -1,50 +1,70 @@
-import React, { memo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-// ... other imports
+import { File, Copy, Check } from 'lucide-react';
+import { FileInterface } from "@/types/chat";
+import { usePortalStore } from '@/stores/features/apps/portal/store';
 
-interface PromptEnhancedMarkdownProps {
-  content: string;
-  embeddedContent: FileInterface[];
+interface EmbbedFileBlockProps {
+  lang: string;
+  codeChildren: React.ReactNode;
+  setCurrentEmbbedFile?: React.Dispatch<React.SetStateAction<FileInterface | null>>;
+  setCurrentComponent?: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const PromptEnhancedMarkdown = memo(({ content, embeddedContent, ...otherProps }: PromptEnhancedMarkdownProps) => {
-  const [currentFile, setCurrentFile] = useState<FileInterface | null>(null);
+const EmbbedFileBlock = ({ lang, codeChildren, setCurrentEmbbedFile, setCurrentComponent }: EmbbedFileBlockProps) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const codeString = React.Children.toArray(codeChildren).join('\n');
+  const filename = codeString.slice(0, codeString.indexOf('\n')).trim();
+  const codeContent = codeString.slice(codeString.indexOf('\n')).trim();
+  const newFile: FileInterface = { [filename]: codeContent };
 
-  const renderEmbeddedContent = () => {
-    if (embeddedContent.length === 0) {
-      return null;
-    }
-
-    if (embeddedContent.length === 1) {
-      const file = embeddedContent[0];
-      if (file.content.length < 500) {
-        return (
-          <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-md">
-            <h3 className="font-bold mb-2">{file.name}</h3>
-            <pre className="whitespace-pre-wrap">{file.content}</pre>
-          </div>
-        );
-      }
-    }
-
-    return (
-      <div className="mb-4 flex flex-wrap gap-2">
-        {embeddedContent.map((file, index) => (
-          <motion.div
-            key={index}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="cursor-pointer p-2 bg-gray-100 dark:bg-gray-800 rounded-md flex items-center"
-            onClick={() => setCurrentFile(file)}
-          >
-            <svg className="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-            </svg>
-            <span>{file.name}</span>
-          </motion.div>
-        ))}
-      </div>
-    );
+  const handleCopy = () => {
+    navigator.clipboard.writeText(codeContent);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const handleClickFile = () => {
+    if (setCurrentEmbbedFile) {
+      setCurrentComponent("")
+      setCurrentEmbbedFile(newFile);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="my-4 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
+    >
+      <div 
+        className="bg-gray-100 dark:bg-gray-800 p-4 flex items-center justify-between cursor-pointer"
+        onClick={handleClickFile}
+      >
+        <div className="flex items-center space-x-3">
+          <File className="w-5 h-5 text-blue-500" />
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            {lang.charAt(0).toUpperCase() + lang.slice(1)} File
+          </span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">
+            {filename}
+          </span>
+        </div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCopy();
+          }}
+          className="p-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+        >
+          {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+};
+
+export default EmbbedFileBlock;

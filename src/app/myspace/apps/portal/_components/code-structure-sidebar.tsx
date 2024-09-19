@@ -203,6 +203,8 @@ export const CodeStructureSidebar: React.FC = () => {
     }
   }, [getProjectId, getProject, handleGetProjectStructure]);
 
+  console.log("this is contextn", context)
+
   useEffect(() => {
     if (context === "code-structure") {
       fetchProjectStructure().then((result) => {
@@ -282,10 +284,14 @@ export const CodeStructureSidebar: React.FC = () => {
           >
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center justify-between w-full px-2 py-1 rounded-md hover:bg-secondary transition-colors duration-200">
+                <div 
+                  className={`flex items-center justify-between w-full px-2 py-1 rounded-md hover:bg-secondary transition-colors duration-200 ${
+                    currentComponent === fullPath ? 'bg-blue-500/50 ' : ''
+                  }`}
+                >
                   <button
                     onClick={() => handleSelectFile(fullPath)}
-                    className={`flex-grow text-left text-xs ${
+                    className={`flex-grow text-left text-xs${
                       currentComponent === fullPath ? 'text-primary font-semibold' : ''
                     }`}
                   >

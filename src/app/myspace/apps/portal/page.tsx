@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Chip } from "@nextui-org/react";
 import { portalOptions } from "@/constants/portals";
 import { cn } from "@/lib/utils";
+import { useAppSelector, useAppDispatch } from '@/hooks/hooks';
+import { resetPortalContext } from '@/stores/features/apps/portal/portalsSlice';
 import { ContextCard } from "./_components/context-card";
 
 function capitalizeFirstLetter(str: string) {
@@ -20,13 +22,22 @@ function capitalizeFirstLetter(str: string) {
 type ContextType = "TEXT" | "CODE" | "IMAGE" | "AUDIO" | "VIDEO";
 
 const PortalPage = () => {
+  const dispatch = useAppDispatch();
   const { portalContext, setPortalContext } = usePortalContext();
   const { isAppbarCollapsed, isLeftSidebarOpened, setIsLeftSidebarOpened, leftSidebarWidth, setLeftSidebarWidth, isRightSidebarOpened, setIsRightSidebarOpened, RightSidebarWidth, setRightSidebarWidth } = useMyspaceContext();
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
   const [showHelp, setShowHelp] = useState(false);
-  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'Wapp-Portal';
-  
+  const userName = user?.firstName ? capitalizeFirstLetter(user.firstName) : 'Wapp';
+
+  const resetContext = () => {
+    dispatch(resetPortalContext());
+  }
+
+  useEffect(() => {
+    resetContext();
+  }, []);
+
   useEffect(() => {
     if (isLeftSidebarOpened) {
       setIsLeftSidebarOpened(false);
@@ -89,7 +100,7 @@ const PortalPage = () => {
         className="w-full max-w-7xl flex justify-between items-center mb-8"
       >
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {userName}'s Wapp-Portal
+          {userName}'s Portal
         </h1>
 
         <Button

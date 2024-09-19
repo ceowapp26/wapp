@@ -133,38 +133,26 @@ function detectFramework(code: string): string | null {
   return detectedFramework.score > 0 ? detectedFramework.name : null;
 }
 
-const processReactCode = (code: string): { code: string; scope: Record<string, any> } => {
-  let scope: Record<string, any> = {};
-
-  // Extract imports and add to scope
-  const importRegex = /import\s+(\w+|\{[^}]+\})\s+from\s+['"]([^'"]+)['"]/g;
+const processReactCode = (
+  code: string,
+  mappedRenderScopes: Record<string, string>
+): { code: string; unsupportedLibraries: string[] } => {
+  const importRegex = /import\s+(\w+|\{[^}]+\}|\*\s+as\s+\w+)\s+from\s+['"]([^'"]+)['"]/g;
   let importMatch;
+  const extractedLibraries: string[] = [];
+  
   while ((importMatch = importRegex.exec(code)) !== null) {
-    const [, importPart] = importMatch;
-    if (importPart !== 'React' && importPart !== 'react') {
-      if (importPart.startsWith('{')) {
-        // Handle destructured imports
-        const destructuredImports = importPart.slice(1, -1).split(',').map(s => s.trim());
-        destructuredImports.forEach(imp => {
-          scope[imp] = imp;
-        });
-      } else {
-        scope[importPart] = importPart;
-      }
+    const [, importPart, library] = importMatch;
+    if (!['React', 'react'].includes(importPart)) {
+      extractedLibraries.push(library);
     }
   }
 
+  // Check for unsupported libraries using mappedRenderScopes
+  const unsupportedLibraries = extractedLibraries.filter(lib => !Object.keys(mappedRenderScopes).includes(lib));
+
   // Remove import statements
   code = code.replace(/^import.*$/gm, '');
-
-  // Extract const declarations and add to scope
-  const constRegex = /const\s+(\w+)\s*=\s*({[^}]+}|\[[^\]]+\]|styled\.\w+`[^`]+`)/g;
-  let constMatch;
-  while ((constMatch = constRegex.exec(code)) !== null) {
-    const [fullMatch, constName] = constMatch;
-    scope[constName] = constName;
-    code = code.replace(fullMatch, ''); // Remove the const declaration from the code
-  }
 
   // Convert hooks to React.useHook
   const reactHooks = [
@@ -214,9 +202,7 @@ const processReactCode = (code: string): { code: string; scope: Record<string, a
     .join(' ');
   code += `\n\nrender(<${componentName} ${propsString} />)`;
 
-  console.log("this is scope", scope)
-
-  return { code, scope };
+  return { code, unsupportedLibraries };
 };
 
 const processVueCode = (code: string): string => {

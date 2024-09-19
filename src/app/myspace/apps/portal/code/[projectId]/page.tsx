@@ -35,7 +35,7 @@ import CrazySpinnerIcon from "@/icons/CrazySpinnerIcon";
 import UnreleasePopover from "@/components/apps/chatbot/unrelease-popover";
 import { Cover } from "@/components/apps/document/cover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCw, Send, StopCircle, ChevronLeft, ChevronRight, Loader2, Code, Eye, Settings } from 'lucide-react';
+import { X, ArrowUp, Mic, Paperclip, Image, Video, Music, AlignHorizontalSpaceAround, AlignVerticalSpaceAround, RotateCcw, Play, Send, StopCircle, ChevronLeft, ChevronRight, Loader2, Code, Eye, Settings, Check, Sun, Copy } from 'lucide-react';
 import { useQuery, useMutation } from "convex/react";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
@@ -55,6 +55,10 @@ import {
   getTestFileName,  
   generateProjectSchema
 } from "@/utils/codeUtils";
+import CustomLiveError from '../../_components/custom-live-error';
+import CustomActionsButton from '../../_components/custom-actions-button';
+import { renderScopes, mappedRenderScopes } from '@/constants/code';
+import debounce from 'lodash/debounce';
 
 const ChatContent = dynamic(() => import("@/components/apps/chatbot/chat-content"), {
   suspense: true,
@@ -166,6 +170,7 @@ const ResizableSplitView = ({ theme, children }) => {
     >
       <div className="flex h-full relative">
         <div 
+          className="max-h-[120vh] overflow-y-auto"
           ref={leftPanelRef}
           style={{ width: leftWidth, minWidth: MIN_WIDTH }} 
           layout
@@ -179,6 +184,7 @@ const ResizableSplitView = ({ theme, children }) => {
         />
         <div 
           style={{ width: `calc(100% - ${leftWidth})`, minWidth: MIN_WIDTH }} 
+          className="max-h-[120vh] overflow-y-auto"
           layout
         >
           {children[1]}
@@ -188,49 +194,133 @@ const ResizableSplitView = ({ theme, children }) => {
   );
 };
 
-const renderComponent = (framework: string | null | undefined, code: string, theme: string) => {
+const RenderComponent = ({ initialCode, theme, scope }) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [code, setCode] = useState(initialCode);
+  const [processedCode, setProcessedCode] = useState(initialCode);
+  const [framework, setFramework] = useState(null);
+  const [error, setError] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const unsupportedFrameworks = ["string", 'vue', 'django', 'asp.net', 'angular'];
+
+  const processCode = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    const _detectedFramework = detectFramework(code);
+    const detectedFramework = detectedFramework ? detectedFramework.toLowerCase() : null;
+
+    setFramework(detectedFramework);
+    if (unsupportedFrameworks.includes(detectedFramework)) {
+      setError(`${detectedFramework} is not currently supported.`);
+      setProcessedCode(code);
+      setIsLoading(false);
+      return;
+    }
+
+    if (detectedFramework === "react" || detectedFramework === "nextjs") {
+      const { unsupportedLibraries, code: newProcessedCode } = processReactCode(code, mappedRenderScopes);
+      if (unsupportedLibraries.length > 0) {
+        setError(`Unsupported libraries: ${unsupportedLibraries.join(', ')}`);
+        setProcessedCode(code);
+      } else {
+        setProcessedCode(newProcessedCode);
+      }
+    } else {
+      setProcessedCode(code);
+    }
+
+    setIsLoading(false);
+  }, [code, framework, scope]);
+
+  useEffect(() => {
+    processCode();
+  }, []);
+
+  useEffect(() => {
+    if (copied) {
+      const timer = setTimeout(() => setCopied(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [copied]);
+
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code).then(() => setCopied(true));
+  };
+
+  const handleReset = () => {
+    setCode(initialCode);
+    setProcessedCode(initialCode);
+    setFramework("");
+    setError(null);
+  };
+
+  const actions = [
+    { label: 'Process Code', onClick: processCode, icon: Play },
+    { label: 'Copy Code', onClick: handleCopy, icon: Copy },
+    { label: 'Reset Code', onClick: handleReset, icon: RotateCcw },
+  ];
+
   if (!framework) {
-    return <div>No framework specified.</div>;
+    return <CustomLiveError errorType="unsupportedFramework" errorContent="No framework specified." />;
   }
-  switch (framework.toLowerCase()) {
-    case 'react':
-      return (
-        <LiveProvider code={processReactCode(code).code} scope={{}} noInline>
-          <div className="grid grid-cols-2 gap-4">
-            <LiveEditor className={`font-mono ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`} />
-            <LivePreview className={`p-4 border rounded ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`} />
-            <LiveError className="text-red-500 bg-red-100 p-2 rounded mt-2" />
+
+  return (
+    <LiveProvider
+      code={processedCode}
+      scope={scope}
+      noInline
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="border rounded-md overflow-hidden shadow-lg"
+      >
+        <div className="bg-gray-100 dark:bg-gray-800 p-4 flex justify-between items-center">
+          <span className="font-semibold text-lg">{framework} Preview</span>
+          <div className="flex space-x-2  pr-10">
+            <CustomActionsButton actions={actions} label="Actions" />
+            {copied && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center text-green-500"
+              >
+                <Check size={18} className="mr-1" />
+                <span>Copied!</span>
+              </motion.div>
+            )}
           </div>
-        </LiveProvider>
-      );
-    case 'angular':
-      // Angular-specific rendering logic
-      return <div>Angular component preview is not supported yet.</div>;
-    case 'vue':
-      // Vue-specific rendering logic
-      return <div>Vue component preview is not supported yet.</div>;
-    case 'django':
-      // Django-specific rendering logic
-      return <div>Django component preview is not supported yet.</div>;
-    case 'spring':
-      // Spring-specific rendering logic
-      return <div>Spring component preview is not supported yet.</div>;
-    case 'asp.net':
-      // ASP.NET-specific rendering logic
-      return <div>ASP.NET component preview is not supported yet.</div>;
-    case 'nextjs':
-      return (
-        <LiveProvider code={processReactCode(code).code} scope={{}} noInline>
-          <div className="grid grid-cols-2 gap-4">
-            <LiveEditor className={`font-mono ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`} />
-            <LivePreview className={`p-4 border rounded ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`} />
-            <LiveError className="text-red-500 bg-red-100 p-2 rounded mt-2" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 max-h-[500px] overflow-y-auto">
+          <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-md">
+            <LiveEditor 
+              onChange={handleCodeChange}
+              className={`max-h-[500px] overflow-y-auto font-mono ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
+            />
           </div>
-        </LiveProvider>
-      );
-    default:
-      return <div>Framework not supported or not recognized.</div>;
-  }
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-md">
+            {isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+              </div>
+            ) : error ? (
+              <CustomLiveError errorType="renderError" errorContent={error} />
+            ) : (
+              <LivePreview className={`max-h-[500px] overflow-y-auto p-4 border ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`} />      
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </LiveProvider>
+  );
 };
 
 const ProjectSkeleton = () => (
@@ -302,6 +392,10 @@ const RenderContent = ({
   showFilePreview,
   showComponentEditor,
   detectFramework,
+  getAllFilePaths,
+  projectStructure,
+  moveToNextComponent,
+  moveToPrevComponent,
 }) => {
   const toolbar = (
     <TopToolbar 
@@ -318,7 +412,7 @@ const RenderContent = ({
         {toolbar}
         <ResizableSplitView theme={theme}>
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
-            <Card className="pt-10 h-screen flex flex-col overflow-y-auto">
+            <Card className="pt-10 h-[120vh] flex flex-col overflow-y-auto">
               <CardBody>
                 <ChatContent 
                   insertedContent={insertedContent}
@@ -347,7 +441,7 @@ const RenderContent = ({
               </div>
             )}
             {showComponentEditor && (
-              <div className="absolute top-32 left-0 w-full h-full z-20">
+              <div className="absolute top-28 left-0 w-full h-full z-20">
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
                   <Tabs selectedKey={activeTab} onSelectionChange={setActiveTab} className="p-2">
                     <Tab key="editor" title={<div className="flex items-center space-x-2"><Code size={18} /><span>Editor</span></div>}>
@@ -378,6 +472,32 @@ const RenderContent = ({
                             isShowChatbot={settings.showChatbot}
                             isShowEditor={settings.showEditor}
                           />
+                          {currentComponent && currentComponent !== "" && (
+                            <Card className="mt-4">
+                              <CardBody>
+                                <div className="flex justify-between items-center">
+                                  <Tooltip content="Previous Component">
+                                    <Button
+                                      onClick={moveToPrevComponent}
+                                      disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === 0}
+                                      startContent={<ChevronLeft size={16} />}
+                                    >
+                                      Previous Component
+                                    </Button>
+                                  </Tooltip>
+                                  <Tooltip content="Next Component">
+                                    <Button
+                                      onClick={moveToNextComponent}
+                                      disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === getAllFilePaths(projectStructure).length - 1}
+                                      endContent={<ChevronRight size={16} />}
+                                    >
+                                      Next Component
+                                    </Button>
+                                  </Tooltip>
+                                </div>
+                              </CardBody>
+                            </Card>
+                          )}
                         </motion.div>
                       </AnimatePresence>
                     </Tab>
@@ -385,7 +505,7 @@ const RenderContent = ({
                       <AnimatePresence mode="wait">
                         {settings.showComponentPreview && (
                           <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                            {renderComponent(detectFramework(componentContent), componentContent, theme)}
+                            <RenderComponent initialCode={componentContent} theme={theme} scope={renderScopes} />
                           </motion.div>
                         )}
                       </AnimatePresence>
@@ -438,7 +558,7 @@ const RenderContent = ({
             </div>
           )}
           {showComponentEditor && (
-            <div className="absolute top-32 left-0 w-full h-full z-20">
+            <div className="absolute top-28 left-0 w-full h-full z-20">
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="h-full">
                 <Tabs selectedKey={activeTab} onSelectionChange={setActiveTab} className="p-2">
                   <Tab key="editor" title={<div className="flex items-center space-x-2"><Code size={18} /><span>Editor</span></div>}>
@@ -469,6 +589,32 @@ const RenderContent = ({
                           isShowChatbot={settings.showChatbot}
                           isShowEditor={settings.showEditor}
                         />
+                        {currentComponent && currentComponent !== "" && (
+                          <Card className="mt-4">
+                            <CardBody>
+                              <div className="flex justify-between items-center">
+                                <Tooltip content="Previous Component">
+                                  <Button
+                                    onClick={moveToPrevComponent}
+                                    disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === 0}
+                                    startContent={<ChevronLeft size={16} />}
+                                  >
+                                    Previous Component
+                                  </Button>
+                                </Tooltip>
+                                <Tooltip content="Next Component">
+                                  <Button
+                                    onClick={moveToNextComponent}
+                                    disabled={getAllFilePaths(projectStructure).indexOf(currentComponent) === getAllFilePaths(projectStructure).length - 1}
+                                    endContent={<ChevronRight size={16} />}
+                                  >
+                                    Next Component
+                                  </Button>
+                                </Tooltip>
+                              </div>
+                            </CardBody>
+                          </Card>
+                        )}
                       </motion.div>
                     </AnimatePresence>
                   </Tab>
@@ -476,7 +622,7 @@ const RenderContent = ({
                     <AnimatePresence mode="wait">
                       {settings.showComponentPreview && (
                         <motion.div key="preview" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
-                          {renderComponent(detectFramework(componentContent), componentContent, theme)}
+                          <RenderComponent initialCode={componentContent} theme={theme} scope={renderScopes} />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -1049,9 +1195,14 @@ const ProjectPage = ({
         showFilePreview={showFilePreview}
         showComponentEditor={showComponentEditor}
         detectFramework={detectFramework}
+        getAllFilePaths={getAllFilePaths}
+        projectStructure={projectStructure}
+        moveToNextComponent={moveToNextComponent}
+        moveToPrevComponent={moveToPrevComponent}
       />
     </>
   );
 };
 
 export default ProjectPage;
+

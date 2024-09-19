@@ -495,6 +495,18 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     setKeyboardShortcutManager(manager);
   }, []);
 
+  useEffect(() => {
+    if (!isShowChatbot && isShowEditor) {
+      containerRef.current.style.position = 'fixed';
+      containerRef.current.style.top = '11rem';
+      containerRef.current.style.left = '0';
+      containerRef.current.style.width = '100vw';
+      containerRef.current.style.height = '420px';
+      containerRef.current.style.zIndex = '99999';
+      setEditorHeight("420px");
+    }
+  }, [isShowChatbot, isShowEditor]);
+
   const languageExtensions = useMemo(() => {
     const baseExtensions = [
       language.extension,
@@ -901,7 +913,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   ), [isSystemModalOpen, content, setCurrentCodeFile, setCurrentEmbeddedFile, setCurrentComponent]);
 
   const _height = useMemo(() => {
-    return isShowEditor && !isShowChatbot ? "100vh" : editorHeight;
+    return isShowEditor && !isShowChatbot ? "420px" : editorHeight;
   }, [isShowEditor, isShowChatbot, editorHeight]);
 
   const { handleDebug, handleStopDebug } = useDebugAI({ generating: generating, setGenerating: setGenerating, error: error, setError: setError, setDebuggingErrors: setDebuggingErrors, findLineNumber: findLineNumber, setCurrentLine: setCurrentLine, scrollToLine: scrollToLine });

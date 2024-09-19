@@ -1,5 +1,61 @@
 import { ProjectSettings, ProjectConfigs, ReactProjectStructure, NextJsProjectStructure, VueProjectStructure, AngularProjectStructure, NodeProjectStructure, FlaskProjectStructure, createFile, createDirectory } from '@/types/code';
-import { Check, Wrench, Zap, HelpCircle, MessageSquarePlus, HandHelping, FolderTree } from 'lucide-react';
+import { 
+  Check, 
+  Wrench, 
+  Zap, 
+  HelpCircle, 
+  MessageSquarePlus, 
+  HandHelping, 
+  FolderTree, 
+  Home,
+  User,
+  Settings,
+  Search,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Trash,
+  Edit,
+  Mail,
+  Calendar,
+  Bell
+} from 'lucide-react';
+
+export const renderScopes = {
+  Home,
+  User,
+  Settings,
+  Search,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Trash,
+  Edit,
+  Mail,
+  Calendar,
+  Bell
+};
+
+export const mappedRenderScopes: Record<string, string> = {
+  'Home': 'Home',
+  'User': 'User',
+  'Settings': 'Settings',
+  'Search': 'Search',
+  'Menu': 'Menu',
+  'X': 'X',
+  'ChevronDown': 'ChevronDown',
+  'ChevronRight': 'ChevronRight',
+  'Plus': 'Plus',
+  'Trash': 'Trash',
+  'Edit': 'Edit',
+  'Mail': 'Mail',
+  'Calendar': 'Calendar',
+  'Bell': 'Bell'
+};
 
 export const createNextJsProjectStructure = (): NextJsProjectStructure => ({
   src: createDirectory({
