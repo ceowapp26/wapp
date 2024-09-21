@@ -100,7 +100,7 @@ export default function Sidebar() {
             animate={{ width: leftSidebarWidth }}
             exit={{ width: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed left-0 top-0 pt-24 h-full bg-white dark:bg-gray-800 shadow-lg z-50 flex flex-col"
+            className="fixed left-0 top-12 pt-24 h-full bg-white dark:bg-gray-800 shadow-lg z-50 flex flex-col"
           >
             <div className="flex justify-between items-center p-4 border-b dark:border-gray-700">
               <h2 className="text-xl font-bold text-gray-800 dark:text-white">Wapp-Ecommerce</h2>
