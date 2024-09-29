@@ -137,33 +137,33 @@ const SVG6 = () => {
 const InfoCardItems = [
   {
     icon: SVG1,
-    title: 'AI-Powered Insights',
-    description: 'Discover how AI can transform data into actionable insights for your business.'
+    title: 'AI-Powered Document Editor',
+    description: 'Enhance your writing with intelligent suggestions, auto-formatting, and real-time collaboration powered by advanced AI algorithms.'
   },
   {
     icon: SVG2,
-    title: 'Machine Learning Models',
-    description: 'Learn about the latest advancements in machine learning models and their applications.'
+    title: 'AI-Powered Code Editor',
+    description: 'Boost your coding efficiency with AI-assisted code completion, bug detection, and automated refactoring suggestions.'
   },
   {
     icon: SVG3,
-    title: 'The Future of AI',
-    description: 'Explore predictions and trends shaping the future of artificial intelligence.'
+    title: 'Centralized System',
+    description: 'Access all your tools and data from a single, unified platform, streamlining workflows and improving team collaboration.'
   },
   {
     icon: SVG4,
-    title: 'AI Ethics',
-    description: 'Understand the ethical considerations and challenges in the development of AI technologies.'
+    title: 'Multi AI Models',
+    description: 'Leverage a diverse range of AI models tailored for specific tasks, ensuring optimal performance across various applications.'
   },
   {
     icon: SVG5,
-    title: 'AI in Healthcare',
-    description: 'See how AI is revolutionizing the healthcare industry with innovative solutions.'
+    title: 'Automation',
+    description: 'Streamline repetitive tasks and processes with intelligent automation, freeing up time for more creative and strategic work.'
   },
   {
     icon: SVG6,
-    title: 'Robotics and AI',
-    description: 'Dive into the world of robotics and learn how AI is driving advancements in automation.'
+    title: 'Productivity',
+    description: 'Maximize your efficiency with AI-driven productivity tools, smart scheduling, and personalized workflow optimizations.'
   }
 ];
     

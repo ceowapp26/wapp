@@ -165,7 +165,7 @@ return (
             </div>
           </div>
           <div className={clsx(hovering !== null ? "transition-opacity duration-200" : "opacity-0 pointer-events-none")}>
-            <div style={{ height: popoverHeight || 100, width: popoverWidth || 500 }} className="bg-transparent max-h-[600px] overflow-y-auto transform-gpu rounded shadow-lg relative overflow-x-hidden transition-all duration-200">
+            <div style={{ height: popoverHeight || 600, width: popoverWidth || 1200 }} className="bg-transparent max-h-[600px] overflow-y-auto transform-gpu rounded shadow-lg relative overflow-x-hidden transition-all duration-200">
               <MenuWrapper className="w-[72rem]" index={0} hovering={hovering}>
                 <ProductMenu ref={ref => refs.current[0] = ref} />
               </MenuWrapper>

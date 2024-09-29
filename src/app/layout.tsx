@@ -8,6 +8,7 @@ import { GeneralContextProvider } from '@/context/general-context-provider';
 import { MyspaceContextProvider } from '@/context/myspace-context-provider';
 import { ConvexClientProvider } from '@/providers/convex-provider';
 import { GeneralModalProvider } from '@/components/providers/modal-provider';
+import { PortalContextProvider } from '@/context/portal-context-provider';
 import { DocumentModalProvider } from '@/components/apps/document/providers/modal-provider';
 import { EdgeStoreProvider } from '@/lib/edgestore';
 import { ReduxProvider } from '@/stores/ReduxProvider';
@@ -63,9 +64,11 @@ export default function RootLayout({
                     <Toaster position="bottom-center" />
                     <GeneralContextProvider>
                       <MyspaceContextProvider>
-                        <GeneralModalProvider />
-                        <DocumentModalProvider />
-                        {children}
+                        <PortalContextProvider>
+                          <GeneralModalProvider />
+                          <DocumentModalProvider />
+                          {children}
+                        </PortalContextProvider>
                       </MyspaceContextProvider>
                     </GeneralContextProvider>
                   </ThemeProvider>

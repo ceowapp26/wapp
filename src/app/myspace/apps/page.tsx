@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from "@nextui-org/input";
 import { Button } from "@nextui-org/button";
 import { Select, SelectItem } from "@nextui-org/select";
@@ -14,6 +14,120 @@ import { Search, X, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import ColorfulLoadingCircle from "@/components/colorful-loading-circle";
+
+const AnimatedBackground: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  /*useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const gridSize = 50;
+    const lineWidth = 0.5;
+
+    const drawGrid = () => {
+      ctx.strokeStyle = 'rgba(128, 128, 128, 0.1)';
+      ctx.lineWidth = lineWidth;
+
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+
+      for (let y = 0; y <= canvas.height; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+    };
+
+    const animateStroke = () => {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const direction = Math.random() < 0.5 ? 'vertical' : 'horizontal';
+
+      ctx.strokeStyle = 'rgba(128, 0, 128, 0.3)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      if (direction === 'vertical') {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+      } else {
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+      }
+
+      ctx.stroke();
+
+      setTimeout(() => {
+        drawGrid();
+      }, 200);
+    };
+
+    const animate = () => {
+      drawGrid();
+      setInterval(animateStroke, 1000);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+    };
+  }, []);*/
+
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        className="fixed inset-x-48 inset-y-48 w-full h-full z-0 opacity-80 pointer-events-none"
+      />
+      <motion.div
+        className="fixed top-0 left-0 w-full h-full pointer-events-none"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        {[...Array(10)].map((_, index) => (
+          <motion.div
+            key={index}
+            className="absolute text-purple-500 opacity-20"
+            initial={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            animate={{
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          >
+            {['🚀', '💻', '🔧', '📱', '🎨'][Math.floor(Math.random() * 5)]}
+          </motion.div>
+        ))}
+      </motion.div>
+    </>
+  );
+};
 
 interface App {
   name: string;
@@ -172,7 +286,7 @@ const AppsPage: React.FC = () => {
           ))}
         </motion.div>
       )}
-      
+      <AnimatedBackground />
       {!isLoading && Object.keys(filteredApps).length === 0 && (
         <motion.div 
           className="text-center py-12"
@@ -188,5 +302,4 @@ const AppsPage: React.FC = () => {
 };
 
 export default AppsPage;
-
 

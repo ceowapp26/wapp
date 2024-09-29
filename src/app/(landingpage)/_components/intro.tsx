@@ -14,16 +14,16 @@ const VideoLoadingSpinner = lazy(() => import('@/components/video-loading-spinne
 
 const InfoCardData = {
   "12x4": [
-    { imgSrc: "/global/images/intro/ai.jpg", title: "AI Analytics", description: "Leveraging AI for data insights.", xs: 12, md: 4 },
-    { imgSrc: "/global/images/intro/ai.jpg", title: "Real-time Collaboration", description: "Work together with AI assistance.", xs: 12, md: 4 },
-    { imgSrc: "/global/images/intro/ai.jpg", title: "Cloud Integration", description: "Seamless cloud connectivity.", xs: 12, md: 4 },
+    { imgSrc: "/global/images/intro/ai-4.jpg", title: "AI Analytics", description: "Leveraging AI for data insights.", xs: 12, md: 4 },
+    { imgSrc: "/global/images/intro/ai-3.jpg", title: "Real-time Collaboration", description: "Work together with AI assistance.", xs: 12, md: 4 },
+    { imgSrc: "/global/images/intro/ai-2.jpg", title: "Cloud Integration", description: "Seamless cloud connectivity.", xs: 12, md: 4 },
   ],
   "12x6": [
-    { imgSrc: "/global/images/intro/ai.jpg", title: "AI Security", description: "Enhanced security with AI.", xs: 12, md: 6 },
+    { imgSrc: "/global/images/intro/ai-1.jpg", title: "AI Security", description: "Enhanced security with AI.", xs: 12, md: 6 },
     { imgSrc: "/global/images/intro/ai.jpg", title: "AI Customization", description: "Customize AI models.", xs: 12, md: 6 }
   ],
   "12x12": [
-    { imgSrc: "/global/images/intro/ai.jpg", title: "AI Advanced Reporting", description: "Detailed AI-driven reports.", xs: 12, md: 12 }
+    { imgSrc: "/global/images/intro/ai-5.jpg", title: "AI Advanced Reporting", description: "Detailed AI-driven reports.", xs: 12, md: 12 }
   ]
 };
 

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+"use client"
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { usePortalContext } from '@/context/portal-context-provider';
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -135,6 +136,7 @@ export const CodeStructureSidebar: React.FC = () => {
   const updateProject = useMutation(api.codes.updateProject);
   const { projectStructure, setProjectStructure, activeProject, currentComponent, setCurrentComponent } = usePortalContext();
   const setCodeGenerator = usePortalStore((state) => state.setCodeGenerator);
+  const structureSetRef = useRef(false);
 
   const handleSelectFile = useCallback((file: string) => {
     setCodeGenerator(false);
@@ -192,7 +194,6 @@ export const CodeStructureSidebar: React.FC = () => {
       } else {
         throw new Error("Invalid project structure format");
       }
-      
       handleGetProjectStructure(structure);
       return { success: true };
     } catch (error) {
@@ -202,8 +203,6 @@ export const CodeStructureSidebar: React.FC = () => {
       setIsLoading(false);
     }
   }, [getProjectId, getProject, handleGetProjectStructure]);
-
-  console.log("this is contextn", context)
 
   useEffect(() => {
     if (context === "code-structure") {
@@ -267,7 +266,7 @@ export const CodeStructureSidebar: React.FC = () => {
     };
     return filterTree(projectStructure);
   }, [projectStructure, searchTerm]);
-  
+
   const renderTree = useCallback((tree: ProjectStructure, path: string = '') => {
     return Object.entries(tree).map(([key, value]) => {
       if (key === 'type') return null;
@@ -439,4 +438,6 @@ const getAllFilePaths = (obj: ProjectStructure, currentPath: string = ''): strin
   }
   return paths;
 };
+
+
 

@@ -215,6 +215,14 @@ module.exports = {
           from: { opacity: '0', transform: 'translateY(20px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'scroll-left': {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        'scroll-right': {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'tile': 'tile 8s infinite',
@@ -232,6 +240,8 @@ module.exports = {
         'open-full-sidebar': 'open-full-sidebar 0.2s ease-out',
         'close-sidebar': 'close-sidebar 0.2s ease-out',
         'fade-in': 'fade-in 0.2s ease-out',
+        'scroll-left': 'scroll-left 40s linear infinite',
+        'scroll-right': 'scroll-right 40s linear infinite',
       },
     },
   },

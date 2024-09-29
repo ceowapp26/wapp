@@ -35,64 +35,64 @@ const StyledAccordionDetails = styled(AccordionDetails)(({ theme }) => ({
 
 const faqItems = [
   {
-    sectionTitle: "Artificial Intelligence",
-    question: "What is Artificial Intelligence?",
-    answer: "Artificial Intelligence (AI) refers to the simulation of human intelligence in machines.",
-    details: "These machines are programmed to think and act like humans. AI is used in various applications including speech recognition, decision-making, and visual perception."
+    sectionTitle: "WAPP",
+    question: "What is WAPP?",
+    answer: "WAPP is your all-in-one AI-powered productivity powerhouse.",
+    details: "Imagine a centralized system where cutting-edge AI meets intuitive design, empowering you to work smarter, not harder. WAPP seamlessly integrates multiple apps, allowing you to effortlessly share and utilize files across the entire ecosystem. It's not just a tool; it's your personal productivity revolution."
   },
   {
-    sectionTitle: "Machine Learning",
-    question: "How does machine learning work?",
-    answer: "Machine learning is a subset of AI that involves training algorithms to learn from data.",
-    details: "These algorithms can identify patterns, make decisions, and improve over time without being explicitly programmed."
+    sectionTitle: "WAPP Features",
+    question: "What is within WAPP?",
+    answer: "WAPP is a treasure trove of productivity-boosting mini-apps designed to supercharge your daily workflow.",
+    details: "From AI-assisted writing and data analysis to project management and communication tools, WAPP's interconnected apps work in harmony to streamline your tasks. It's like having a team of AI-powered assistants at your fingertips, ready to tackle any challenge you throw their way."
   },
   {
-    sectionTitle: "ML vs AI Differences",
-    question: "What is the difference between AI and machine learning?",
-    answer: "AI is a broad concept of creating intelligent machines, while machine learning is a specific method used to achieve AI.",
-    details: "Machine learning uses statistical techniques to enable machines to improve at tasks with experience."
+    sectionTitle: "Future Plans",
+    question: "What are WAPP's plans for the future?",
+    answer: "WAPP is on a mission to revolutionize productivity on a global scale.",
+    details: "We're not just dreaming big; we're coding big. Our roadmap includes expanding our app ecosystem, enhancing AI capabilities, and tailoring solutions for diverse industries. With WAPP, you're not just using a product; you're joining a movement that's shaping the future of work."
   },
   {
-    sectionTitle: "Neural Networks",
-    question: "What are neural networks?",
-    answer: "Neural networks are a series of algorithms that mimic the operations of a human brain to recognize relationships between vast amounts of data.",
-    details: "They are a core component of deep learning, a subset of machine learning."
+    sectionTitle: "Unique Selling Point",
+    question: "What makes WAPP stand out?",
+    answer: "WAPP is where state-of-the-art AI meets unparalleled user experience.",
+    details: "We've harnessed the power of the latest AI models and combined it with sleek, intuitive design. The result? A platform that's not just powerful, but a joy to use. WAPP doesn't just meet your expectations; it anticipates your needs before you even realize them."
   },
   {
-    sectionTitle: "Deep Learning",
-    question: "What is deep learning?",
-    answer: "Deep learning is a subset of machine learning that uses neural networks with many layers.",
-    details: "It is particularly effective for tasks such as image and speech recognition."
+    sectionTitle: "Target Audience",
+    question: "Is WAPP the right fit for me?",
+    answer: "Whether you're a solo entrepreneur or a Fortune 500 company, WAPP scales to fit your unique needs.",
+    details: "Our flexible platform adapts to your workflow, not the other way around. From freelancers looking to boost their productivity to enterprises seeking to streamline operations, WAPP is the Swiss Army knife of productivity tools that grows with you."
   },
   {
-    sectionTitle: "Natural Language Processing(NLP)",
-    question: "What is natural language processing (NLP)?",
-    answer: "NLP is a branch of AI that deals with the interaction between computers and humans using natural language.",
-    details: "It involves enabling computers to understand, interpret, and generate human language."
+    sectionTitle: "Founder",
+    question: "Who is the founder of WAPP?",
+    answer: "WAPP is the brainchild of a visionary self-taught developer who turned passion into innovation.",
+    details: "Our founder's journey from coding novice to creating a revolutionary AI-powered platform is a testament to the power of determination and creativity. With WAPP, you're not just getting a product; you're benefiting from a vision that challenges the status quo of productivity tools."
   },
   {
-    sectionTitle: "AI Chatbot",
-    question: "What is a chatbot?",
-    answer: "A chatbot is an AI software that can simulate a conversation with a user in natural language.",
-    details: "They are commonly used in customer service to provide quick responses to user queries."
+    sectionTitle: "Pricing",
+    question: "Is WAPP's pricing reasonable?",
+    answer: "WAPP believes in democratizing productivity with a 'value-for-all' pricing model.",
+    details: "Our tiered pricing structure ensures that everyone, from students to CEOs, can access the power of AI-driven productivity. Start with our feature-rich free plan and scale up to our premium offerings as your needs grow. With WAPP, world-class productivity is always within reach."
   },
   {
-    sectionTitle: "AI Applications",
-    question: "How is AI used in healthcare?",
-    answer: "AI is used in healthcare for diagnostics, personalized treatment, and predictive analytics.",
-    details: "It helps in analyzing complex medical data and providing insights that can improve patient outcomes."
+    sectionTitle: "SaaS Integration",
+    question: "How easy is it to integrate WAPP with other SaaS tools?",
+    answer: "WAPP is the ultimate team player in your software ecosystem.",
+    details: "We've built WAPP to play nice with others. Our robust APIs and pre-built connectors make integration a breeze, not a chore. Whether it's your CRM, project management tool, or custom software, WAPP fits into your existing workflow like the missing puzzle piece you've been searching for."
   },
   {
-    sectionTitle: "Ethical Concerns",
-    question: "What are the ethical concerns with AI?",
-    answer: "Ethical concerns with AI include bias, privacy, job displacement, and the potential for misuse.",
-    details: "It is crucial to address these concerns to ensure the responsible use of AI technology."
+    sectionTitle: "Data Security",
+    question: "How does WAPP ensure the security of my data?",
+    answer: "At WAPP, your data's security is our top priority – it's Fort Knox meets Silicon Valley.",
+    details: "We employ military-grade encryption, conduct regular security audits, and adhere to the strictest global compliance standards. With features like two-factor authentication and SSO, we're not just meeting industry standards; we're setting them. Your data isn't just secure; it's WAPP secure."
   },
   {
-    sectionTitle: "Future of AI",
-    question: "What is the future of AI?",
-    answer: "The future of AI is expected to bring advancements in various fields such as healthcare, finance, and transportation.",
-    details: "Ongoing research aims to make AI more efficient, ethical, and accessible to solve complex global challenges."
+    sectionTitle: "Customization",
+    question: "Can WAPP be customized to fit my specific business needs?",
+    answer: "WAPP is your digital chameleon, adapting to your business with unparalleled flexibility.",
+    details: "From custom workflows that mirror your processes to branded interfaces that reflect your identity, WAPP bends to your will. Our extensive API access means the only limit to customization is your imagination. With WAPP, you're not conforming to software; the software is conforming to you."
   }
 ];
 
@@ -143,7 +143,7 @@ const FaqSection = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className={`relative bg-white dark:bg-black overflow-hidden min-h-screen rounded-b-3xl rounded-t-3xl ${isMobile ? 'p-4' : 'p-8 md:p-16'} mt-20`}
+      className={`relative bg-white dark:bg-black overflow-hidden min-h-screen rounded-t-3xl ${isMobile ? 'p-4' : 'p-8 md:p-16'} mt-20`}
     >
       <motion.div
         initial={{ y: -50, opacity: 0 }}

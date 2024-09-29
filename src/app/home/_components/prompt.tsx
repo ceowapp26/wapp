@@ -1,121 +1,95 @@
-"use client"
 import React, { useState, useEffect } from 'react';
-import { Box, Button, Typography, Container, Fade, useMediaQuery } from '@mui/material';
-import { styled } from '@mui/system';
-import { useTheme } from '@mui/material/styles';
+import { motion } from 'framer-motion';
+import { ArrowRight, Layers, Zap, Shield, Users } from 'lucide-react';
 
-const GradientBox = styled(Box)`
-  background: linear-gradient(45deg, #8B5CF6, #EC4899, #F43F5E);
-  background-size: 200% 200%;
-  animation: gradientShift 10s ease infinite;
-  @keyframes gradientShift {
-    0% { background-position: 0% 50% }
-    50% { background-position: 100% 50% }
-    100% { background-position: 0% 50% }
-  }
-`;
+const FeatureCard = ({ icon: Icon, title, description }) => (
+  <motion.div
+    className="bg-white bg-opacity-10 backdrop-blur-lg rounded-xl p-6 flex flex-col items-center text-center"
+    whileHover={{ scale: 1.05 }}
+    transition={{ type: "spring", stiffness: 300 }}
+  >
+    <Icon className="text-pink-400 w-12 h-12 mb-4" />
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <p className="text-sm text-gray-300">{description}</p>
+  </motion.div>
+);
 
-const AnimatedTypography = styled(Typography)`
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  animation: fadeInDown 0.8s ease-out;
-`;
-
-const PulseButton = styled(Button)`
-  transition: all 0.3s ease-in-out;
-  animation: pulse 2s infinite;
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
-    }
-    70% {
-      box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-    }
-  }
-  &:hover {
-    transform: scale(1.05);
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-`;
+const AnimatedBubble = ({ delay }) => (
+  <motion.div
+    className="absolute rounded-full bg-gradient-to-r from-purple-400 to-pink-500 opacity-30"
+    style={{
+      width: Math.random() * 100 + 50,
+      height: Math.random() * 100 + 50,
+      top: Math.random() * 100 + '%',
+      left: Math.random() * 100 + '%',
+    }}
+    animate={{
+      scale: [1, 1.2, 1],
+      opacity: [0.3, 0.6, 0.3],
+    }}
+    transition={{
+      duration: 8,
+      repeat: Infinity,
+      delay: delay,
+    }}
+  />
+);
 
 const PromptSection = () => {
   const [isVisible, setIsVisible] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
+  const features = [
+    { icon: Layers, title: "Multiple Apps", description: "Access all your tools in one place" },
+    { icon: Zap, title: "Lightning Fast", description: "Optimized for speed and efficiency" },
+    { icon: Shield, title: "Secure", description: "Enterprise-grade security measures" },
+    { icon: Users, title: "Collaborative", description: "Work seamlessly with your team" },
+  ];
+
   return (
-    <Box className="bg-black dark:bg-gray-100" sx={{ minHeight: '100vh', p: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
-      <GradientBox 
-        className="w-full h-full rounded-3xl flex flex-col items-center justify-center" 
-        sx={{ 
-          minHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 48px)', md: 'calc(100vh - 64px)', lg: 'calc(100vh - 96px)' },
-          p: { xs: 3, sm: 4, md: 6 }
-        }}
-      >
-        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-          <Fade in={isVisible} timeout={1000}>
-            <Box>
-              <AnimatedTypography 
-                className="text-white" 
-                variant={isMobile ? "h3" : isTablet ? "h2" : "h1"}
-                sx={{ 
-                  fontWeight: 'bold', 
-                  mb: { xs: 2, sm: 3, md: 4 },
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.3)',
-                  letterSpacing: { xs: 2, sm: 3, md: 4 },
-                  fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3.75rem' }
-                }}
-              >
-                ALL-IN-ONE PLATFORM
-              </AnimatedTypography>
-              <AnimatedTypography 
-                className="text-white" 
-                variant={isMobile ? "body1" : "h5"}
-                sx={{ 
-                  mb: { xs: 3, sm: 4, md: 6 }, 
-                  fontWeight: 'light',
-                  opacity: 0.9,
-                  fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' }
-                }}
-              >
-                Experience the future of seamless integration
-              </AnimatedTypography>
-              <PulseButton 
-                href="/myspace/apps"
-                variant="outlined" 
-                size={isMobile ? "medium" : "large"}
-                sx={{ 
-                  mt: { xs: 2, sm: 3, md: 4 },
-                  color: 'white',
-                  borderColor: 'white',
-                  fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
-                  px: { xs: 3, sm: 3.5, md: 4 },
-                  py: { xs: 1, sm: 1.25, md: 1.5 }
-                }}
-              >
-                Enter Wapp
-              </PulseButton>
-            </Box>
-          </Fade>
-        </Container>
-      </GradientBox>
-    </Box>
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900">
+      {[...Array(5)].map((_, i) => (
+        <AnimatedBubble key={i} delay={i * 2} />
+      ))}
+      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-4">
+            ALL-IN-ONE PLATFORM
+          </h1>
+          <p className="text-xl sm:text-2xl text-gray-300 mb-8">
+            Experience the future of seamless integration
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg flex items-center space-x-2 hover:from-purple-600 hover:to-pink-600 transition duration-300"
+          >
+            <span>Enter Wapp</span>
+            <ArrowRight className="w-5 h-5" />
+          </motion.button>
+        </motion.div>
+        
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl w-full"
+        >
+          {features.map((feature, index) => (
+            <FeatureCard key={index} {...feature} />
+          ))}
+        </motion.div>
+      </div>
+    </div>
   );
 };
 

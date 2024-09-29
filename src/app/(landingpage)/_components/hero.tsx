@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useStoreUser } from "@/hooks/use-store-user";
 import { motion } from 'framer-motion';
 import { FaUsers, FaStar } from 'react-icons/fa';
+import Hero3DAnimation from './hero/hero-3d-animation';
 
 const HeroSection = () => {
     const { isLoading, isAuthenticated, role } = useStoreUser();
@@ -89,23 +90,9 @@ const HeroSection = () => {
                         className="w-full lg:w-1/2 mt-10 lg:mt-0"
                     >
                         <div className="relative">
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                transition={{ duration: 0.3 }}
-                                className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-1 shadow-2xl"
-                            >
-                                <Image 
-                                    src="/global/images/hero/hero-background.jpg" 
-                                    alt="WAPP Platform" 
-                                    width={600} 
-                                    height={400}
-                                    className="rounded-xl w-full h-auto"
-                                    layout="responsive"
-                                />
-                            </motion.div>
-                            <div className="absolute -bottom-4 sm:-bottom-10 -left-4 sm:-left-10 w-16 h-16 sm:w-20 sm:h-20 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce">
-                                <span className="text-indigo-900 font-bold text-lg sm:text-xl">New!</span>
-                            </div>
+
+                                <Hero3DAnimation />
+
                         </div>
                     </motion.div>
                 </div>
