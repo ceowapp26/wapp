@@ -71,10 +71,12 @@ const PromptSection = () => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg flex items-center space-x-2 hover:from-purple-600 hover:to-pink-600 transition duration-300"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 px-8 rounded-full shadow-lg space-x-2 hover:from-purple-600 hover:to-pink-600 transition duration-300"
           >
-            <span>Enter Wapp</span>
-            <ArrowRight className="w-5 h-5" />
+            <div className="flex items-center space-x-2">
+              <span>Enter Wapp</span>
+              <ArrowRight className="w-5 h-5" />
+            </div>
           </motion.button>
         </motion.div>
         
