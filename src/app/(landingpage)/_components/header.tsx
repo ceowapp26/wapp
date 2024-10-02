@@ -36,6 +36,58 @@ const icons = {
 
 const MotionLink = motion(Link);
 
+const MenuLink = ({ linkRef, href, index, focusMenu, isActive, children }) => {
+  return (
+    <Link 
+      ref={linkRef} 
+      href={href} 
+      onFocus={(event) => focusMenu(index, event)}
+      onMouseEnter={(event) => focusMenu(index, event)}
+      className="relative group"
+    >
+      <motion.div
+        className="flex items-center space-x-1 text-white text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <span className="relative z-10">{children}</span>
+        <motion.div
+          className="relative w-[10px] h-[10px] ml-1"
+          initial={false}
+          animate={{ rotate: isActive ? 180 : 0 }}
+          style={{ marginTop: isActive ? 0 : -12 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <motion.span
+            className="absolute top-2 left-0 w-2 h-0.5 bg-white origin-left rounded-full"
+            initial={false}
+            animate={{ rotate: isActive ? -45 : 45, width: isActive ? "8px" : "8px" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+          <motion.span
+            className="absolute top-2 right-0 w-2 h-0.5 bg-white origin-right rounded-full"
+            initial={false}
+            animate={{ rotate: isActive ? 45 : -45, width: isActive ? "8px" : "8px" }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+        </motion.div>
+      </motion.div>
+      <motion.div
+        className="absolute -bottom-1 left-0 w-full h-0.5 bg-white origin-left rounded-full"
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: isActive ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute inset-0 bg-white/10 rounded-lg -z-10"
+        initial={{ opacity: 0 }}
+        whileHover={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+      />
+    </Link>
+  );
+};
+
 const Header: React.FC = () => {
     const { isLoading, isAuthenticated, role } = useStoreUser();
     const [hovering, setHovering] = useState<number | null>(null);
@@ -91,35 +143,38 @@ return (
         </div>
       </div>
       <div className="flex w-full relative pl-24 tablet:hidden justify-between items-center">
-        <Link
-           ref={el => itemRefs.current[0] = el}
-          onFocus={(event) => focusMenu(0, event)}
-          onMouseEnter={(event) => focusMenu(0, event)}
-          href="/products"
-          className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
+        <MenuLink
+          index={0}
+          linkRef={el => itemRefs.current[0] = el}
+          focusMenu={focusMenu}
+          href={"/products"}
+          isActive={hovering === 0}
         >
           Products
-        </Link>
-        <Link 
-          ref={el => itemRefs.current[1] = el}
-          onFocus={(event) => focusMenu(1, event)}
-          onMouseEnter={(event) => focusMenu(1, event)}
-          href="/solutions"
-          className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
+        </MenuLink>
+        <MenuLink
+          index={1}
+          linkRef={el => itemRefs.current[1] = el}
+          focusMenu={focusMenu}
+          href={"/solutions"}
+          isActive={hovering === 1}
         >
           Solutions
-        </Link>
-        <Link 
-          ref={el => itemRefs.current[2] = el}
-          onFocus={(event) => focusMenu(2, event)}
-          onMouseEnter={(event) => focusMenu(2, event)}
-          href="/resources"
-          className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200"
+        </MenuLink>
+         <MenuLink
+          index={2}
+          linkRef={el => itemRefs.current[2] = el}
+          focusMenu={focusMenu}
+          href={"/resources"}
+          isActive={hovering === 2}
         >
           Resources
+        </MenuLink>
+        <Link href="/blogs" className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200">
+          Blogs
         </Link>
-        <Link href="/pricing" className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200">
-          Pricing
+        <Link href="/support" className="text-white text-center text-base font-medium leading-6 tracking-wide whitespace-nowrap transition-all duration-200">
+          Support
         </Link>
         <div className="flex items-center">
           <ModeToggle />
@@ -196,11 +251,11 @@ return (
     </div>
     <div className={`${isOpen ? 'tablet:block' : 'hidden'} hidden relative h-screen w-full`}>
       <div className="px-2 pt-2 pb-3 sm:px-3">
-        <Link href="/pricing" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
-          Pricing
+        <Link href="/support" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
+          Support
         </Link>
-        <Link href="/features" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
-          Features
+        <Link href="/blogs" className="dark:text-white text-black text-gray-800 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-all duration-200">
+          Blogs
         </Link>
         <div className="relative group">
         {Object.keys(NavbarItemsDropdown).map((key, index) => (

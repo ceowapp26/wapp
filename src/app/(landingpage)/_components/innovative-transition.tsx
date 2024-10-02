@@ -111,7 +111,7 @@ const EnhancedInnovativeTransition = () => {
         </motion.div>
       </div>
       <motion.div 
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+        className="absolute bottom-8 w-full flex items-center justify-center"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.5 }}

@@ -65,10 +65,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
   const capabilities = [
     [
       {
-        title: "Products",
+        title: "Technologies",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/connect.png",
             title: "Unified Feedback Repository",
             description: "Eliminate data silos to get a unified source of truth",
@@ -76,7 +76,7 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
             type: "main"
           },
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Integrations",
             description: "Connect to any app containing customer feedback",
@@ -86,10 +86,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
         ]
       },
       {
-        title: "Products",
+        title: "Budget",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/connect.png",
             title: "Unified Feedback Repository",
             description: "Eliminate data silos to get a unified source of truth",
@@ -97,7 +97,7 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
             type: "main"
           },
           {
-            href: "/blogs",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Integrations",
             description: "Connect to any app containing customer feedback",
@@ -107,10 +107,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
         ]
       },
       {
-        title: "Products",
+        title: "Research",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/connect.png",
             title: "Unified Feedback Repository",
             description: "Eliminate data silos to get a unified source of truth",
@@ -118,7 +118,7 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
             type: "main"
           },
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Integrations",
             description: "Connect to any app containing customer feedback",
@@ -130,10 +130,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
     ],
     [
       {
-        title: "Technologies",
+        title: "Models",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Feedback Tracking",
             description: "Track feedback progress and outcomes",
@@ -143,10 +143,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
         ]
       },
       {
-        title: "Technologies",
+        title: "System",
         items: [
           {
-            href: "/blogs",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Feedback Tracking",
             description: "Track feedback progress and outcomes",
@@ -156,10 +156,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
         ]
       },
       {
-        title: "Technologies",
+        title: "Founder",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Feedback Tracking",
             description: "Track feedback progress and outcomes",
@@ -169,10 +169,10 @@ export const ResourceMenu = forwardRef<HTMLDivElement>((props, ref) => {
         ]
       },
       {
-        title: "Technologies",
+        title: "Team",
         items: [
           {
-            href: "/additionals",
+            href: "/resources",
             imageSrc: "/global/images/navbar/square.png",
             title: "Feedback Tracking",
             description: "Track feedback progress and outcomes",

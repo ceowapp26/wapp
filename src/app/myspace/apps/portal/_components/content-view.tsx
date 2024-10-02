@@ -12,12 +12,13 @@ import ErrorContainer from "./error-container";
 interface ContentViewProps {
   generating: boolean;
   isOpen: boolean;
+  onModalClose: () => void;
   onOpenChange: (isOpen: boolean) => void;
   error?: string;
   setError?: React.Dispatch<React.SetStateAction<string | null>>;
-  currentCodeFile?: CodeFile;
+  currentCodeFile?: CodeFile | null;
   setCurrentCodeFile?: React.Dispatch<React.SetStateAction<CodeFile | null>>;
-  currentEmbeddedFile?: FileInterface;
+  currentEmbeddedFile?: FileInterface | null;
   setCurrentEmbeddedFile?: React.Dispatch<React.SetStateAction<FileInterface | null>>;
   setCurrentComponent?: Dispatch<SetStateAction<string>>;
   handleRegenerate?: () => void;
@@ -28,9 +29,10 @@ interface ContentViewProps {
   handleInsertRightCode?: (content: string) => void;
 }
 
-const ContentView = memo<ContentViewProps>(({
+const ContentView: React.FC<ContentViewProps> = memo(({
   generating,
   isOpen,
+  onModalClose,
   onOpenChange,
   error,
   setError,
@@ -137,7 +139,7 @@ const ContentView = memo<ContentViewProps>(({
               />
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
+              <Button color="danger" variant="light" onPress={onModalClose}>
                 Close
               </Button>
             </ModalFooter>
@@ -147,5 +149,7 @@ const ContentView = memo<ContentViewProps>(({
     </Modal>
   );
 });
+
+ContentView.displayName = 'ContentView';
 
 export default ContentView;

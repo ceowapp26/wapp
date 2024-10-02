@@ -8,183 +8,242 @@ import DraftsIcon from '@mui/icons-material/Drafts';
 import SendIcon from '@mui/icons-material/Send';
 import IntroTable from './intro-table';
 import { styled } from '@mui/system';
-import { motion } from 'framer-motion';
+import Timeline from '@mui/lab/Timeline';
+import TimelineItem from '@mui/lab/TimelineItem';
+import TimelineSeparator from '@mui/lab/TimelineSeparator';
+import TimelineConnector from '@mui/lab/TimelineConnector';
+import TimelineContent from '@mui/lab/TimelineContent';
+import TimelineDot from '@mui/lab/TimelineDot';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const VideoLoadingSpinner = lazy(() => import('@/components/video-loading-spinner'));
+const About = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Welcome to Wapp
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      Wapp is a centralized system that consists of multiple apps to help users with daily tasks. From note-taking to code editing, scheduling to file sharing, and collaboration - all in one seamless platform.
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      With Wapp, you don't have to switch between apps. Just one platform is all you need. Wapp helps users work more efficiently, boost productivity, and avoid digital clutter.
+    </Typography>
+    <Button variant="contained" color="primary" className="mt-4">
+      Join Wapp Today
+    </Button>
+  </motion.div>
+);
 
-const InfoCardData = {
-  "12x4": [
-    { imgSrc: "/global/images/intro/ai-4.jpg", title: "AI Analytics", description: "Leveraging AI for data insights.", xs: 12, md: 4 },
-    { imgSrc: "/global/images/intro/ai-3.jpg", title: "Real-time Collaboration", description: "Work together with AI assistance.", xs: 12, md: 4 },
-    { imgSrc: "/global/images/intro/ai-2.jpg", title: "Cloud Integration", description: "Seamless cloud connectivity.", xs: 12, md: 4 },
-  ],
-  "12x6": [
-    { imgSrc: "/global/images/intro/ai-1.jpg", title: "AI Security", description: "Enhanced security with AI.", xs: 12, md: 6 },
-    { imgSrc: "/global/images/intro/ai.jpg", title: "AI Customization", description: "Customize AI models.", xs: 12, md: 6 }
-  ],
-  "12x12": [
-    { imgSrc: "/global/images/intro/ai-5.jpg", title: "AI Advanced Reporting", description: "Detailed AI-driven reports.", xs: 12, md: 12 }
-  ]
-};
+const KeyFeatures = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Key Features
+    </Typography>
+    <Box container>
+      <IntroTable />
+    </Box>
+  </motion.div>
+);
 
-interface InfoCardProps {
-  imgSrc: string;
-  title: string;
-  description: string;
-  xs: number;
-  md: number;
-}
-
-const StyledInfoCard = styled(Card)(({ theme }) => ({
-  transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
-  },
-}));
-
-const InfoCard: React.FC<InfoCardProps> = ({ imgSrc, title, description, xs, md }) => {
-  return (
-    <Grid item xs={xs} md={md}>
-      <StyledInfoCard>
-        <CardMedia
-          component="img"
-          alt={title}
-          height="200"
-          image={imgSrc}
-        />
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div" className="font-bold">
-            {title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {description}
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button size="small" variant="contained" color="primary">Learn More</Button>
-        </CardActions>
-      </StyledInfoCard>
+const Solutions = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Solutions & Use Cases
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      Wapp is created with the vision to tailor to user experience. It's designed for both individuals and enterprises, integrating features that leverage a centralized system.
+    </Typography>
+    <Grid container spacing={3}>
+      {['Personal Use', 'Small Businesses', 'Large Enterprises', 'Educational Institutions'].map((solution, index) => (
+        <Grid item xs={12} sm={6} md={3} key={index}>
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Card className="h-full bg-white dark:bg-gray-800 shadow-lg">
+              <CardContent>
+                <Typography variant="h6" className="text-blue-500 dark:text-blue-300">
+                  {solution}
+                </Typography>
+                <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                  Tailored solutions for {solution.toLowerCase()} to maximize productivity and efficiency.
+                </Typography>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </Grid>
+      ))}
     </Grid>
-  );
-};
+  </motion.div>
+);
 
-const GradientCard = styled(Card)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  borderRadius: 15,
-  boxShadow: '0 8px 32px rgba(31, 38, 135, 0.37)',
-  backdropFilter: 'blur(4px)',
-  border: '1px solid rgba(255, 255, 255, 0.18)',
-  color: 'white',
-  padding: theme.spacing(4),
-}));
+const CaseStudies = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Customer Testimonials & Case Studies
+    </Typography>
+    <Grid container spacing={3}>
+      {[1, 2, 3].map((study) => (
+        <Grid item xs={12} key={study}>
+          <Card className="bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent>
+              <Typography variant="h6" className="text-blue-500 dark:text-blue-300">
+                Company {study}
+              </Typography>
+              <Typography variant="body2" paragraph className="text-gray-600 dark:text-gray-400">
+                "Wapp revolutionized our workflow. We saw a 30% increase in productivity within the first month!"
+              </Typography>
+              <Typography variant="body2" className="text-gray-500 dark:text-gray-400">
+                - John Doe, CEO
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  </motion.div>
+);
 
-const GradientTitle = styled(Typography)(({ theme }) => ({
-  background: 'linear-gradient(45deg, #FFF 30%, #FFD700 90%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  fontWeight: 'bold',
-  marginBottom: theme.spacing(3),
-  textAlign: 'center',
-  textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-  fontSize: '2.5rem',
-}));
-
-const StyledListItemText = styled(ListItemText)(({ theme }) => ({
-  '& .MuiListItemText-primary': {
-    color: 'white',
-    textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-  },
-}));
-
-function ContactCard() {
-  return (
-    <GradientCard>
-      <GradientTitle variant="h3">Contact Information</GradientTitle>
-      <List>
-          <ListItem>
-            <StyledListItemText
-              primary="If you need any further support, please contact us via contact details below."
-            />
-          </ListItem>
-        <ListItem>
+const Security = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Security
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      At Wapp, we take your data security seriously. Our state-of-the-art encryption and compliance with GDPR ensure that your information is always protected.
+    </Typography>
+    <List>
+      {['256-bit Encryption', 'GDPR Compliant', 'Regular Security Audits', 'Two-Factor Authentication'].map((item, index) => (
+        <ListItem key={index}>
           <ListItemIcon>
-            <Phone />
+            <SendIcon className="text-blue-500 dark:text-blue-300" />
           </ListItemIcon>
-          <StyledListItemText primary="+(84) 326 119 184" />
+          <ListItemText primary={item} className="text-gray-700 dark:text-gray-300" />
         </ListItem>
-        <Divider variant="inset" component="li" />
-        <ListItem>
-          <ListItemIcon>
-            <Email />
-          </ListItemIcon>
-          <StyledListItemText primary="ceowapp@email.com" />
-        </ListItem>
-        <Divider variant="inset" component="li" />
-        <ListItem>
-          <ListItemIcon>
-            <LocationOn />
-          </ListItemIcon>
-          <StyledListItemText primary="Ho Chi Minh City, Vietnam" />
-        </ListItem>
-        <Divider variant="inset" component="li" />
-        <ListItem>
-          <ListItemIcon>
-            <Language />
-          </ListItemIcon>
-          <StyledListItemText primary="wapp-pi.vercel.app" />
-        </ListItem>
-      </List>
-    </GradientCard>
-  );
-}
+      ))}
+    </List>
+  </motion.div>
+);
 
-const StyledVideoCard = styled('div')({
-  overflow: 'hidden',
-  boxShadow: '0 0 20px rgba(0,0,0,0.1)',
-  backgroundColor: (theme) => theme.palette.mode === 'dark' ? theme.palette.grey[900] : theme.palette.common.white,
-  borderRadius: '16px',
-  transition: 'transform 0.3s ease-in-out',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-  },
-});
+const Support = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Support
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      Our dedicated support team is available 24/7 to assist you with any questions or issues you may have.
+    </Typography>
+    <Grid container spacing={3}>
+      {['Live Chat', 'Email Support', 'Phone Support', 'Community Forums'].map((channel, index) => (
+        <Grid item xs={12} sm={6} key={index}>
+          <Card className="h-full bg-white dark:bg-gray-800 shadow-lg">
+            <CardContent>
+              <Typography variant="h6" className="text-blue-500 dark:text-blue-300">
+                {channel}
+              </Typography>
+              <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+                Get help through our {channel.toLowerCase()} for quick and efficient support.
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      ))}
+    </Grid>
+  </motion.div>
+);
 
-const StyledIframe = styled('iframe')({
-  width: '100%',
-  height: '400px',
-  borderRadius: '12px',
-  border: 'none',
-  '@media (max-width: 768px)': {
-    height: '250px',
-  },
-});
+const OnboardingProcess = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Onboarding Process
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      Getting started with Wapp is easy. Follow our simple onboarding process to set up your account and start boosting your productivity.
+    </Typography>
+    <List>
+      {['Sign Up', 'Personalize Your Dashboard', 'Connect Your Apps', 'Explore Features', 'Get Support'].map((step, index) => (
+        <ListItem key={index}>
+          <ListItemIcon>
+            <DraftsIcon className="text-blue-500 dark:text-blue-300" />
+          </ListItemIcon>
+          <ListItemText primary={`Step ${index + 1}: ${step}`} className="text-gray-700 dark:text-gray-300" />
+        </ListItem>
+      ))}
+    </List>
+  </motion.div>
+);
 
-const EmbeddedVideo = () => {
-  return (
-    <Suspense
-      fallback={
-        <StyledVideoCard>
-          <CardContent>
-            <VideoLoadingSpinner />
-          </CardContent>
-        </StyledVideoCard>
-      }
-    >
-      <StyledVideoCard>
-        <CardContent>
-          <StyledIframe
-            title="YouTube Video"
-            src="https://www.youtube.com/embed/r0aAkMMhOo0?si=L2YmjJTPYdECq4Y6"
-            frameBorder="0"
-            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        </CardContent>
-      </StyledVideoCard>
-    </Suspense>
-  );
-};
+const Updates = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+  >
+    <Typography variant="h4" gutterBottom className="text-blue-600 dark:text-blue-400">
+      Product Updates & Roadmap
+    </Typography>
+    <Typography variant="body1" paragraph className="text-gray-700 dark:text-gray-300">
+      We're constantly improving Wapp to meet your needs. Check out our latest updates and upcoming features.
+    </Typography>
+    <Timeline>
+      <TimelineItem>
+        <TimelineSeparator>
+          <TimelineDot color="primary" />
+          <TimelineConnector />
+        </TimelineSeparator>
+        <TimelineContent>
+          <Typography variant="h6" className="text-blue-500 dark:text-blue-300">
+            Latest Update: Version 2.5
+          </Typography>
+          <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+            Enhanced collaboration features and improved UI
+          </Typography>
+        </TimelineContent>
+      </TimelineItem>
+      <TimelineItem>
+        <TimelineSeparator>
+          <TimelineDot color="secondary" />
+        </TimelineSeparator>
+        <TimelineContent>
+          <Typography variant="h6" className="text-blue-500 dark:text-blue-300">
+            Coming Soon: Version 3.0
+          </Typography>
+          <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+            AI-powered productivity assistant and advanced analytics
+          </Typography>
+        </TimelineContent>
+      </TimelineItem>
+    </Timeline>
+  </motion.div>
+);
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -234,8 +293,7 @@ const IntroSection: React.FC = () => {
       });
     }
   }, []);
-
-  return (
+return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -254,90 +312,58 @@ const IntroSection: React.FC = () => {
                 sx={{ minWidth: 200 }}
               >
                 <StyledTab label="About" {...a11yProps(0)} />
-                <StyledTab label="Features" {...a11yProps(1)} />
-                <StyledTab label="Products" {...a11yProps(2)} />
-                <StyledTab label="Contact" {...a11yProps(3)} />
+                <StyledTab label="Key Features" {...a11yProps(1)} />
+                <StyledTab label="Solutions" {...a11yProps(2)} />
+                <StyledTab label="Case Studies" {...a11yProps(3)} />
+                <StyledTab label="Security" {...a11yProps(4)} />
+                <StyledTab label="Support" {...a11yProps(5)} />
+                <StyledTab label="Onboarding Process" {...a11yProps(6)} />
+                <StyledTab label="Updates" {...a11yProps(7)} />
               </Tabs>
             </Card>
           </Grid>
           <Grid item xs={12} md={9}>
-            <motion.div
-              key={value}
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <CustomTabPanel value={value} index={0}>
-                <EmbeddedVideo />
-                {/*<Card className="overflow-hidden shadow-xl bg-white dark:bg-black">
-                  <CardContent>
-                    <video 
-                      ref={videoRef}
-                      width="100%" 
-                      loop 
-                      autoPlay 
-                      muted 
-                      playsInline 
-                      preload="auto"
-                      className="rounded-lg"
-                    >
-                      <source src="./global/videos/placeholder.mp4" type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
-                  </CardContent>
-                </Card>*/}
-              </CustomTabPanel>
-              <CustomTabPanel value={value} index={1}>
-                <Grid container spacing={3}>
-                  {InfoCardData["12x4"].map((item, index) => (
-                    <InfoCard
-                      key={index}
-                      imgSrc={item.imgSrc}
-                      title={item.title}
-                      description={item.description}
-                      xs={item.xs}
-                      md={item.md}
-                    />
-                  ))}
-                  {InfoCardData["12x6"].map((item, index) => (
-                    <InfoCard
-                      key={index}
-                      imgSrc={item.imgSrc}
-                      title={item.title}
-                      description={item.description}
-                      xs={item.xs}
-                      md={item.md}
-                    />
-                  ))}
-                  {InfoCardData["12x12"].map((item, index) => (
-                    <InfoCard
-                      key={index}
-                      imgSrc={item.imgSrc}
-                      title={item.title}
-                      description={item.description}
-                      xs={item.xs}
-                      md={item.md}
-                    />
-                  ))}
-                </Grid>
-              </CustomTabPanel>
-              <CustomTabPanel value={value} index={2}>
-                <Card className="shadow-xl">
-                  <CardContent>
-                    <IntroTable />
-                  </CardContent>
-                </Card>
-              </CustomTabPanel>
-              <CustomTabPanel value={value} index={3}>
-                <ContactCard />
-              </CustomTabPanel>
-            </motion.div>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={value}
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -20, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <CustomTabPanel value={value} index={0}>
+                  <About />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={1}>
+                  <KeyFeatures />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={2}>
+                  <Solutions />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={3}>
+                  <CaseStudies />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={4}>
+                  <Security />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={5}>
+                  <Support />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={6}>
+                  <OnboardingProcess />
+                </CustomTabPanel>
+                <CustomTabPanel value={value} index={7}>
+                  <Updates />
+                </CustomTabPanel>
+              </motion.div>
+            </AnimatePresence>
           </Grid>
         </Grid>
       </div>
     </motion.div>
   );
 };
+
 
 export default IntroSection;
 

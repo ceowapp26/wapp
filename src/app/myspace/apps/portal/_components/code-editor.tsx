@@ -8,7 +8,7 @@ import { tags as t } from '@lezer/highlight';
 import { EditorState, Extension, StateField, StateEffect } from '@codemirror/state';
 import { keymap, EditorView, ViewPlugin, ViewUpdate, Decoration, DecorationSet } from '@codemirror/view';
 import { X, Play, Trash2, Columns2, Bug, Code, Download, Copy, Zap, HelpCircle, ChevronDown, Minimize2, Maximize2, Palette, Type, List as ListIcon, RotateCcw, SpellCheck, Wrench, FolderTree, FileCode, Check, MessageSquarePlus, BotMessageSquare, HandHelping } from 'lucide-react';
-import { Tooltip, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, Popover, PopoverTrigger, PopoverContent, Modal, ModalContent, ModalBody, ModalHeader, Tabs, Tab, Listbox, ListboxItem } from "@nextui-org/react";
+import { Tooltip, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, Popover, PopoverTrigger, PopoverContent, Modal, ModalContent, ModalBody, ModalHeader, Tabs, Tab, Listbox, ListboxItem, useDisclosure } from "@nextui-org/react";
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import CodePopoverMenu from "./code-popover-menu";
 import EditorOptionsMenu from "./editor-options-menu";
@@ -220,7 +220,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   const [isEditorChatbotOpen, setIsEditorChatbotOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [isCommandPopoverOpen, setIsCommandPopoverOpen] = useState(false);
+  const editorCommandModal = useDisclosure();
   const [editorChatbotPosition, setEditorChatbotPosition] = useState({ top: 0, left: 0 });
   const editorContainerRef = useRef(null);
   const editorRef = useRef<CodeEditor.Editor | null>(null);
@@ -308,10 +308,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     setIsSystemModalOpen(prev => !prev);
   };
 
-  const onCommandPopoverOpenChange = () => {
-    setIsCommandPopoverOpen(prev => !prev);
-  };
-
   useEffect(() => {
     const detectedLang = detectLanguage(content);
     const matchedLang = codeLanguages.find(lang => lang.mode === detectedLang) || codeLanguages[0];
@@ -341,7 +337,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [setIsSystemModel, setAiContext, setInputContext, setInputType, setOutputType, setChatConversation, inputModel]);
 
   const handleGenerate = useCallback(async (command) => {
-    setIsCommandPopoverOpen(true);
+    editorCommandModal.onOpen();
     handleSetup();
     if (selectedCode === '' && selectedCode.trim() === '' || generating) return;   
     const newUserMessage = {
@@ -1151,8 +1147,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       />
       <ContentView
         generating={generating}
-        isOpen={isCommandPopoverOpen}
-        onOpenChange={onCommandPopoverOpenChange}
+        isOpen={editorCommandModal.isOpen}
+        onModalClose={editorCommandModal.onClose}
+        onOpenChange={editorCommandModal.onOpenChange}
         generating={generating}
         error={error}
         setError={setError}
