@@ -21,6 +21,7 @@ gsap.registerPlugin(ScrollTrigger);
 const vertexShader = `
   uniform float time;
   uniform vec2 uMouse;
+
   varying vec2 vUv;
 
   float circle(vec2 uv, vec2 circlePosition, float radius) {
@@ -37,7 +38,7 @@ const vertexShader = `
     vec3 newPosition = position;
     newPosition.z += elevation(0.2, .7);
 
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+    csm_Position = newPosition;
     vUv = uv;
   }
 `;
@@ -54,7 +55,7 @@ const fragmentShader = `
 
   void main() {
     vec4 finalTexture = texture2D(uTexture, vUv);
-    gl_FragColor = finalTexture;
+    csm_DiffuseColor = finalTexture;
   }
 `;
 
@@ -142,11 +143,11 @@ function AnimatedText() {
     materialRef.current.uniforms.uMouse.value.y = mouseLerped.current.y;
   });
   
-  return (
+ return (
     <>
-      <Html zIndexRange={[1, 10]} prepend fullscreen>
-        <div ref={(el) => setDomEl(el)} className="h-full w-full flex items-center justify-center">
-          <p className="text-6xl font-bold text-white text-center" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
+      <Html zIndexRange={[-1, -10]} prepend fullscreen>
+        <div ref={(el) => setDomEl(el)} className="absolute top-0 left-0 h-full w-full flex items-center justify-center">
+          <p className="text-8xl text-black" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.5)' }}>
             EXPLORING <br />
             THE FUTURE <br />
             OF AI
@@ -163,7 +164,10 @@ function AnimatedText() {
           uniforms={uniforms}
           flatShading
           silent
+          transparent={true}
+          opacity={0.5}
         />
+        <Lights />
       </mesh>
     </>
   );
@@ -173,10 +177,11 @@ function TextScene() {
   return (
     <>
       <Leva collapsed={false} flat={true} hidden />
-      <div className="absolute top-0 left-0 h-screen w-screen">
+      <div className="absolute top-0 left-0 h-screen w-full">
         <Canvas
           dpr={[1, 2]}
           gl={{
+            alpha: true,
             antialias: true,
             preserveDrawingBuffer: true,
           }}
@@ -184,12 +189,9 @@ function TextScene() {
             fov: 55,
             near: 0.1,
             far: 200,
-            position: [0, 0, 5],
           }}
         >
-          <color attach="background" args={['#111']} />
           <AnimatedText />
-          <OrbitControls enableZoom={false} enablePan={false} />
         </Canvas>
       </div>
     </>
@@ -201,6 +203,7 @@ function ResourceModel() {
     <Canvas 
       camera={{ position: [0, 0, -100], fov: 50 }}
       gl={{
+        alpha: true,
         antialias: true,
         preserveDrawingBuffer: true,
       }}
@@ -383,7 +386,7 @@ export default function ResourcePage() {
   ];
 
   return (
-    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+    <div className={`min-h-screen mt-8 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
       <motion.div
         className="fixed top-0 left-0 right-0 h-2 bg-blue-600 z-50"
         style={{ scaleX: scrollYProgress }}
@@ -391,8 +394,12 @@ export default function ResourcePage() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="h-screen relative mb-16">
-          <TextScene />
-          <ResourceModel />
+          <div className="absolute inset-0">
+            <ResourceModel />
+          </div>
+          <div className="absolute inset-0">
+            <TextScene />
+          </div>
         </div>
         {resourceSections.map((section) => (
           <motion.section
@@ -476,4 +483,8 @@ function getDescription(sectionId, item) {
 
   return descriptions[sectionId][item] || 'Description not available';
 }
+
+
+
+
 
