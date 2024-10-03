@@ -208,7 +208,7 @@ const RenderComponent = ({ initialCode, theme, scope }) => {
     setIsLoading(true);
     setError(null);
     const _detectedFramework = detectFramework(code);
-    const detectedFramework = detectedFramework ? detectedFramework.toLowerCase() : null;
+    const detectedFramework = _detectedFramework ? _detectedFramework.toLowerCase() : null;
 
     setFramework(detectedFramework);
     if (unsupportedFrameworks.includes(detectedFramework)) {
