@@ -4,6 +4,7 @@ import Header from '@/components/header';
 import SidebarWrapper from './_components/sidebar';
 import { useStoreUser } from "@/hooks/use-store-user";
 import { Spinner } from "@/components/spinner";
+import { redirect } from "next/navigation";
 import PaymentFormProvider from '@/components/forms/payment/form-provider';
 import { SidebarContext } from "@/context/sidebar-context";
 
