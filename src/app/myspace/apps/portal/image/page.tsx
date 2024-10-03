@@ -30,7 +30,7 @@ const StyledWrapper = styled('div')({
   flexDirection: 'column',
   backgroundColor: '#fffbeb',
   overflowY: 'auto',
-  paddingTop: '250px',
+  paddingTop: '10px',
   position: 'relative',
   transition: 'all 0.3s ease',
 });

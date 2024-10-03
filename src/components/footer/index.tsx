@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react';
 import { SocialIcon } from 'react-social-icons';
 import { Grid, Typography, Container, Box, InputAdornment, TextField } from '@mui/material';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useGSAP } from "@gsap/react";
 import { Decal, Float, OrbitControls, Preload, useTexture, Text, Billboard, Sphere, MeshDistortMaterial, useGLTF, Environment, ContactShadows } from '@react-three/drei';
 import { Center, Instance, Instances } from "@react-three/drei";
@@ -12,13 +12,14 @@ import * as THREE from "three";
 import { CustomMaterial } from "./material";
 import { Canvas } from '@react-three/fiber';
 import SearchIcon from '@mui/icons-material/Search';
+import { ArrowRight, ChevronDown, ChevronUp } from 'react-feather'; 
 
 const SocialLink = ({ href, network, bgColor }) => (
   <motion.div
     whileHover={{ scale: 1.1 }}
     whileTap={{ scale: 0.95 }}
   >
-    <Link href={href} passHref>
+    <Link target="_blank" href={href} passHref>
       <motion.div
         className="inline-block w-12 h-12 rounded-full bg-gray-800 shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden"
         whileHover={{
@@ -33,6 +34,7 @@ const SocialLink = ({ href, network, bgColor }) => (
           style={{ backgroundColor: bgColor }}
         />
         <SocialIcon
+          target="_blank"          
           url={href}
           network={network}
           bgColor="transparent"
@@ -51,11 +53,11 @@ const SocialLinks = () => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, staggerChildren: 0.1 }}
   >
-    <SocialLink href="https://linkedin.com" network="linkedin" bgColor="#0077B5" />
-    <SocialLink href="https://github.com" network="github" bgColor="#333" />
-    <SocialLink href="https://facebook.com" network="facebook" bgColor="#1877F2" />
-    <SocialLink href="https://youtube.com" network="youtube" bgColor="#FF0000" />
-    <SocialLink href="https://twitter.com" network="twitter" bgColor="#1DA1F2" />
+    <SocialLink href="https://www.linkedin.com/in/nguyen-dat-5b1812324/" network="linkedin" bgColor="#0077B5" />
+    <SocialLink href="https://github.com/ceowapp" network="github" bgColor="#333" />
+    <SocialLink href="https://www.facebook.com/people/WApp-Inc/61564944704482/" network="facebook" bgColor="#1877F2" />
+    <SocialLink href="https://www.youtube.com/@wappadmin-k3q" network="youtube" bgColor="#FF0000" />
+    <SocialLink href="https://x.com/ceowapp" network="twitter" bgColor="#1DA1F2" />
   </motion.div>
 );
 
@@ -258,6 +260,88 @@ const FooterLink = ({ href, children }) => (
   </motion.li>
 );
 
+const ExpandableFooterLinks = () => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const services = [
+    "WApp Document Editor",
+    "WApp Code Editor",
+    "WApp Image Editor",
+    "WApp Video Editor",
+    "WApp Audio Editor",
+    "WApp Central Hub",
+    "WApp Book",
+    "WApp Music",
+    "WApp AI Tranining",
+    "WApp Marketing",
+    "WApp Ecommerce",
+  ];
+
+  return (
+    <motion.div layout>
+      <ul className="text-left space-y-2">
+        {services.slice(0, 6).map((service, index) => (
+          <FooterLink key={index} href="/myspace/apps">
+            {service}
+          </FooterLink>
+        ))}
+      </ul>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.ul
+            className="text-left space-y-2 mt-2"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            {services.slice(6).map((service, index) => (
+              <FooterLink key={index + 6} href="/myspace/apps">
+                {service}
+              </FooterLink>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+      <motion.button
+        className="mt-4 text-indigo-400 hover:text-indigo-300 transition-colors duration-300 flex items-center"
+        onClick={() => setIsExpanded(!isExpanded)}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <span className="mr-2">{isExpanded ? 'Collapse' : 'Expand'}</span>
+        <motion.div
+          initial={false}
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        </motion.div>
+      </motion.button>
+    </motion.div>
+  );
+};
+
+const TelamonixLink = () => (
+  <motion.li
+    className="py-2 mt-6"
+    whileHover={{ scale: 1.05 }}
+    whileTap={{ scale: 0.95 }}
+  >
+    <Link target="_blank" href="https://telamonix.vercel.app/" passHref>
+      <motion.div className="flex items-center justify-between bg-indigo-600 text-white px-6 py-2 rounded-full shadow-lg hover:bg-indigo-700 transition-colors duration-300">
+        <span className="mr-2">Telamonix Services</span>
+        <motion.div
+          initial={{ x: 0 }}
+          animate={{ x: [0, 5, 0] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+        >
+          <ArrowRight className="w-6 h-6" />
+        </motion.div>
+      </motion.div>
+    </Link>
+  </motion.li>
+);
+
 const Footer = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -286,22 +370,50 @@ const Footer = () => {
               <FooterLink href="/tos">Terms</FooterLink>
               <FooterLink href="/tos">Privacy</FooterLink>
             </ul>
-           <div className="footer-link footer-link-quickaccess">
-            <a href="#" className="slant">Explore</a>
-            <a href="#" className="liquid">Visit</a>
-          </div>
+             <form onSubmit={handleSearchSubmit} className="flex text-gray-50 justify-center mt-16">
+              <TextField
+                variant="outlined"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon className="text-gray-400" />
+                    </InputAdornment>
+                  ),
+                  className: "bg-gray-800 text-white rounded-full border-gray-600 hover:border-gray-400 transition-colors duration-300",
+                  sx: {
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.3)',
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.5)',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    '& input::placeholder': {
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      opacity: 1,
+                    },
+                  },
+                }}
+                className="w-full text-white max-w-md"
+              />
+            </form>
+            <div className="footer-link footer-link-quickaccess">
+              <a href="#" className="slant">Explore</a>
+              <a href="#" className="liquid">Visit</a>
+            </div>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
             <Typography variant="h6" component="h3" gutterBottom className="text-left font-bold text-indigo-400">
-              SERVICES
+              PRODUCTS
             </Typography>
             <ul className="text-left space-y-2">
-              <FooterLink href="/myspace/apps">WApp-Doc</FooterLink>
-              <FooterLink href="/myspace/apps">WApp-Book</FooterLink>
-              <FooterLink href="/myspace/apps">WApp-Music</FooterLink>
-              <FooterLink href="/myspace/apps">WApp-Portal</FooterLink>
-              <FooterLink href="/myspace/apps">WApp-Marketing</FooterLink>
-              <FooterLink href="/myspace/apps">WApp-Ecommerce</FooterLink>
+              <ExpandableFooterLinks />
+              <TelamonixLink />
             </ul>
           </Grid>
           <Grid item xs={12} sm={6} md={3}>
@@ -328,40 +440,6 @@ const Footer = () => {
             </Box>
           </Grid>
         </Grid>
-        <Box className="mb-6 mt-6 mobileXL:mt-28">
-          <form onSubmit={handleSearchSubmit} className="flex text-gray-50 justify-center">
-            <TextField
-              variant="outlined"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon className="text-gray-400" />
-                  </InputAdornment>
-                ),
-                className: "bg-gray-800 text-white rounded-full border-gray-600 hover:border-gray-400 transition-colors duration-300",
-                sx: {
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
-                  },
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.5)',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: 'rgba(255, 255, 255, 0.7)',
-                  },
-                  '& input::placeholder': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    opacity: 1,
-                  },
-                },
-              }}
-              className="w-full text-white max-w-md"
-            />
-          </form>
-        </Box>
         <Box className="relative flex items-center justify-center mt-12 mobileL:absolute mobileL:bottom-96 mobileL:right-6 mobileXL:bottom-52 mobileXL:right-16">
           <Box style={{ width: '200px', height: '200px' }}>
             <Canvas camera={{ position: [0, 0, 30], fov: 90 }}>
@@ -386,3 +464,5 @@ const Footer = () => {
 }
 
 export default Footer;
+
+

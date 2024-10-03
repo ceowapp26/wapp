@@ -792,7 +792,7 @@ const ProductModal = ({ title, content, isOpen, onOpenChange, onClose }) => {
           },
         }
       }}
-      className="bg-gradient-to-br from-purple-700 to-indigo-900"
+      className="bg-gradient-to-br from-purple-700 to-indigo-900 z-[99999]"
     >
       <ModalContent>
        {(onClose) => (

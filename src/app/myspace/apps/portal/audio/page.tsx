@@ -31,6 +31,7 @@ const StyledWrapper = styled('div')({
   backgroundColor: '#fffbeb',
   overflowY: 'auto',
   position: 'relative',
+  paddingTop: '10px',
   transition: 'all 0.3s ease',
 });
 
