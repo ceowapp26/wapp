@@ -25,6 +25,7 @@ import {
 
 export const renderScopes = {
   Home,
+  Zap,
   User,
   Settings,
   Search,
