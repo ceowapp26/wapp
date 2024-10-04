@@ -1,9 +1,10 @@
 import React, { useState, memo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
-import { Code, FileText, Image, Music, Video, BookOpen, ShoppingCart, TrendingUp, Cpu, Database, Wifi, Palette } from 'lucide-react';
+import { Code, FileText, Image, Music, Video, BookOpen, ShoppingCart, TrendingUp, Cpu, Database, Wifi, Palette, Headphones, ListMusic } from 'lucide-react';
 import { Card, CardHeader, CardBody, CardFooter, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Tabs, Tab, Input, Textarea, Select, SelectItem } from "@nextui-org/react";
 import NextImage from 'next/image';
+import Link from 'next/link'
 
 const products = [
   { id: "code", title: 'Code Editor', description: 'Powerful web-based IDE with advanced features', icon: Code, videoId: 'dQw4w9WgXcQ' },
@@ -12,6 +13,7 @@ const products = [
   { id: "audio", title: 'Audio Editor', description: 'Mix, master, and produce high-quality audio', icon: Music, videoId: 'dQw4w9WgXcQ' },
   { id: "video", title: 'Video Editor', description: 'Create cinematic videos with ease', icon: Video, videoId: 'dQw4w9WgXcQ' },
   { id: "book", title: 'Book App', description: 'Your personal digital library and reading companion', icon: BookOpen, videoId: 'dQw4w9WgXcQ' },
+  { id: "music", title: 'Music App', description: 'Discover and enjoy music with AI-powered features', icon: Headphones, videoId: 'dQw4w9WgXcQ' },
   { id: "ecommerce", title: 'Ecommerce App', description: 'Build and manage your online store', icon: ShoppingCart, videoId: 'dQw4w9WgXcQ' },
   { id: "marketing", title: 'Marketing App', description: 'Boost your brand with powerful marketing tools', icon: TrendingUp, videoId: 'dQw4w9WgXcQ' },
   { id: "training", title: 'AI Training', description: 'Train and deploy custom AI models', icon: Cpu, videoId: 'dQw4w9WgXcQ' },
@@ -127,7 +129,7 @@ const ProductContent = memo(({ productId }) => {
             <Textarea
               placeholder="Type or say 'Hey AI, help me write an introduction about...' "
               minRows={5}
-              className="w-full p-4 bg-white/10 rounded-lg border border-gray-600 text-white"
+              className="w-full p-4 bg-white/10 rounded-lg border border-gray-600 text-gray-700/90 dark:text-gray-300/90"
             />
           </motion.div>
         </div>
@@ -178,7 +180,7 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Describe the image you want to create..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Button color="primary">Generate Image</Button>
           </motion.div>
@@ -231,11 +233,11 @@ const ProductContent = memo(({ productId }) => {
             <Textarea
               placeholder="Enter the text you want to convert to speech..."
               minRows={3}
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Select
               label="Choose a voice"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             >
               <SelectItem key="en-US-female">English (US) - Female</SelectItem>
               <SelectItem key="en-US-male">English (US) - Male</SelectItem>
@@ -293,7 +295,7 @@ const ProductContent = memo(({ productId }) => {
             <Textarea
               placeholder="Describe the video you want to create..."
               minRows={3}
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Button color="primary">Generate Video</Button>
           </motion.div>
@@ -345,9 +347,61 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Enter your favorite book or author..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Button color="primary">Get AI Recommendations</Button>
+          </motion.div>
+        </div>
+      </motion.div>
+    ),
+    music: (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-6"
+      >
+        <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">AI-Powered Music Companion</h3>
+        <p className="text-lg">Explore the world of music with our AI-enhanced music app:</p>
+        <motion.ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[
+            "Personalized playlist generation",
+            "AI-driven music recommendations",
+            "Mood-based song suggestions",
+            "Smart lyrics analysis",
+            "Virtual concert experiences",
+            "AI-assisted music production tools",
+            "Cross-platform music synchronization",
+            "Advanced audio equalizer",
+            "AI-powered genre classification",
+            "Collaborative playlist creation",
+            "Music history and trivia integration",
+            "AI DJ for seamless transitions",
+          ].map((feature, index) => (
+            <motion.li 
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="flex items-center space-x-2"
+            >
+              <ListMusic className="h-5 w-5 text-purple-500" />
+              <span>{feature}</span>
+            </motion.li>
+          ))}
+        </motion.ul>
+        <div className="mt-8">
+          <h4 className="text-xl font-semibold mb-3">Discover your next favorite track</h4>
+          <motion.div 
+            className="bg-gray-800 p-4 rounded-lg"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <Input
+              placeholder="Enter your favorite artist or song..."
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
+            />
+            <Button color="primary">Get AI Music Suggestions</Button>
           </motion.div>
         </div>
       </motion.div>
@@ -397,9 +451,9 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Search for products..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
-            <div className="flex space-x-2 mb-4">
+            <div className="flex space-x-2 mb-4 text-gray-700/90 dark:text-gray-300/90">
               <Select label="Category">
                 <SelectItem key="electronics">Electronics</SelectItem>
                 <SelectItem key="clothing">Clothing</SelectItem>
@@ -463,11 +517,11 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Enter your product or service..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Select
               label="Content Type"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             >
               <SelectItem key="social-post">Social Media Post</SelectItem>
               <SelectItem key="email">Email Campaign</SelectItem>
@@ -524,7 +578,7 @@ const ProductContent = memo(({ productId }) => {
           >
             <Select
               label="Choose Model Type"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             >
               <SelectItem key="classification">Classification</SelectItem>
               <SelectItem key="regression">Regression</SelectItem>
@@ -532,9 +586,9 @@ const ProductContent = memo(({ productId }) => {
               <SelectItem key="cv">Computer Vision</SelectItem>
             </Select>
             <Input
-              type="file"
+              type="text"
               label="Upload Training Data"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <Button color="primary">Begin Training</Button>
           </motion.div>
@@ -586,7 +640,7 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Search your files..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90 dark:text-gray-300/90"
             />
             <div className="flex space-x-2">
               <Button color="primary">Upload Files</Button>
@@ -603,7 +657,7 @@ const ProductContent = memo(({ productId }) => {
         transition={{ duration: 0.5 }}
         className="space-y-6"
       >
-        <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-600">Comprehensive AI Services</h3>
+        <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-600">Comprehensive Services</h3>
         <p className="text-lg">Leverage our full suite of AI-powered services to transform your business:</p>
         <motion.ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[
@@ -633,7 +687,7 @@ const ProductContent = memo(({ productId }) => {
           ))}
         </motion.ul>
         <div className="mt-8">
-          <h4 className="text-xl font-semibold mb-3">Get Started with AI Services</h4>
+          <h4 className="text-xl font-semibold mb-3">Get Started with Telamonix Services</h4>
           <motion.div 
             className="bg-gray-800 p-4 rounded-lg"
             whileHover={{ scale: 1.02 }}
@@ -641,14 +695,16 @@ const ProductContent = memo(({ productId }) => {
           >
             <Select
               label="Choose a Service"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             >
               <SelectItem key="consulting">AI Strategy Consulting</SelectItem>
               <SelectItem key="development">Custom AI Development</SelectItem>
               <SelectItem key="analytics">Data Analytics Services</SelectItem>
               <SelectItem key="automation">AI-Powered Automation</SelectItem>
             </Select>
-            <Button color="primary">Request Consultation</Button>
+            <Link href="https://telamonix.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <Button color="primary">Request Consultation</Button>
+            </Link>
           </motion.div>
         </div>
       </motion.div>
@@ -698,18 +754,20 @@ const ProductContent = memo(({ productId }) => {
           >
             <Input
               placeholder="Describe your design concept..."
-              className="w-full mb-4"
+              className="w-full mb-4 text-gray-700/90"
             />
             <Select
               label="Choose Design Type"
-              className="mb-4"
+              className="mb-4 text-gray-700/90 dark:text-gray-300/90"
             >
               <SelectItem key="logo">Logo Design</SelectItem>
               <SelectItem key="web">Web Design</SelectItem>
               <SelectItem key="print">Print Design</SelectItem>
               <SelectItem key="ui">UI/UX Design</SelectItem>
             </Select>
-            <Button color="primary">Generate Design</Button>
+            <Link href="https://telamonix.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <Button color="primary">Request Consultation</Button>
+            </Link>
           </motion.div>
         </div>
       </motion.div>
@@ -734,15 +792,16 @@ const ProductCard = ({ product, index }) => {
         <Card isPressable onPress={handleOpen} className="w-full h-[300px] overflow-hidden group">
           <CardHeader className="absolute z-10 top-1 flex-col items-start">
             <p className="text-sm dark:text-gray-50/85 text-gray-900/90 uppercase font-bold">{product.title}</p>
-            <h4 className="dark:text-gray-100/90 text-gray-700/90 font-medium text-xl text-start py-2">{product.description}</h4>
+            <h4 className="dark:text-gray-300/90 text-gray-700/90 font-medium text-xl text-start py-2">{product.description}</h4>
           </CardHeader>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
           <NextImage
             alt={product.title}
             className="z-0 w-full h-full object-cover transition-transform duration-300 opacity-20 group-hover:scale-110"
             src={`/global/images/product/${product.id.toLowerCase()}.png`}
-            layout="fill"
-            objectFit="cover"
+            style={{objectFit:"cover"}}
+            fill={true}
+            layout={'fill'}
           />
           <CardFooter className="absolute bg-black/40 bottom-0 z-20 border-t-1 border-default-600 dark:border-default-100">
             <div className="flex flex-grow gap-2 items-center">
@@ -795,7 +854,12 @@ const ProductModal = ({ title, content, isOpen, onOpenChange, onClose }) => {
           },
         }
       }}
-      className="bg-gradient-to-br from-purple-700 to-indigo-900 z-[99999]"
+      classNames={{
+        wrapper: 'z-[99999] pt-8',
+        backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20",
+        base: 'bg-gradient-to-br from-purple-700 to-indigo-900',
+        closeButton: 'hover:bg-white/5 active:bg-white/10',
+      }}
     >
       <ModalContent>
        {(onClose) => (
