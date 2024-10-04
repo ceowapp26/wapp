@@ -53,9 +53,9 @@ const SocialLinks = () => (
   >
     <SocialLink href="https://www.linkedin.com/in/nguyen-dat-5b1812324/" network="linkedin" bgColor="#0077B5" />
     <SocialLink href="https://github.com/ceowapp" network="github" bgColor="#333" />
-    <SocialLink href="https://www.facebook.com/people/WApp-Inc/61564944704482/" network="facebook" bgColor="#1877F2" />
-    <SocialLink href="https://www.youtube.com/@wappadmin-k3q" network="youtube" bgColor="#FF0000" />
-    <SocialLink href="https://x.com/ceowapp" network="twitter" bgColor="#1DA1F2" />
+    <SocialLink href="https://www.facebook.com/wappinc" network="facebook" bgColor="#1877F2" />
+    <SocialLink href="https://www.youtube.com/@telamonix" network="youtube" bgColor="#FF0000" />
+    <SocialLink href="https://x.com/CEOTelamonix" network="twitter" bgColor="#1DA1F2" />
   </motion.div>
 );
 

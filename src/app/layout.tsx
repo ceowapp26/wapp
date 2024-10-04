@@ -28,16 +28,16 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        media: "(prefers-color-scheme: light)",
-        url: "/global/company_logos/wapp-logo.png",
-        href: "//global/company_logos/wapp-logo.png",
+        url: '/favicon.ico',
+        media: '(prefers-color-scheme: light)',
       },
       {
-        media: "(prefers-color-scheme: dark)",
-        url: "/global/company_logos/wapp-logo.png",
-        href: "/global/company_logos/wapp-logo.png",
-      }
-    ]
+        url: '/favicon.ico',
+        media: '(prefers-color-scheme: dark)',
+      },
+    ],
+    apple: '/apple-icon.jpg',
+    shortcut: '/icon.jpg',
   }
 };
 
