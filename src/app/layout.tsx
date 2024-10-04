@@ -29,13 +29,13 @@ export const metadata: Metadata = {
     icon: [
       {
         media: "(prefers-color-scheme: light)",
-        url: "/logo.svg",
-        href: "/logo.svg",
+        url: "/global/company_logos/wapp-logo.png",
+        href: "//global/company_logos/wapp-logo.png",
       },
       {
         media: "(prefers-color-scheme: dark)",
-        url: "/logo-dark.svg",
-        href: "/logo-dark.svg",
+        url: "/global/company_logos/wapp-logo.png",
+        href: "/global/company_logos/wapp-logo.png",
       }
     ]
   }

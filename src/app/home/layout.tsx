@@ -13,6 +13,8 @@ const HomeLayout = ({
   children: React.ReactNode;
 }) => {
   const { isLoading, isAuthenticated, role } = useStoreUser();
+
+  if (!isLoading && !isAuthenticated) return;
   
   if (isLoading) {
     return (
@@ -37,7 +39,6 @@ const HomeLayout = ({
 }
  
 export default HomeLayout;
-
 
 
 

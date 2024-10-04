@@ -1,3 +1,4 @@
+"use client"
 import React, { useState, useEffect } from "react";
 import { Sidebar } from "./sidebar.styles";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +42,7 @@ const SidebarWrapper = () => {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  const handleSignOut = () => signOut(() => router.push('/'));
+  const handleSignOut = () => signOut(() => router.push('/auth/sign-in'));
 
   const sidebarVariants = {
     open: { 
@@ -152,4 +153,3 @@ const SidebarWrapper = () => {
 };
 
 export default SidebarWrapper;
-

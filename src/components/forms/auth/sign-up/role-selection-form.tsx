@@ -24,8 +24,8 @@ const RoleSelectionForm = ({ register, setUserRole, userRole }: Props) => {
         userRole={userRole}
         value="individual"
         title="Im am an individual user."
-        text="Looking to learn more about wapp."
-      />
+        text="Setting up account for personal use."
+       />
       <UserRoleBanner
         register={register}
         setUserRole={setUserRole}
@@ -33,14 +33,14 @@ const RoleSelectionForm = ({ register, setUserRole, userRole }: Props) => {
         value="owner"
         title="Im am a business owner."
         text="Setting up account for my company."
-      />
+       />
       <UserRoleBanner
         register={register}
         setUserRole={setUserRole}
         userRole={userRole}
         value="developer"
         title="I am a developer"
-        text="Looking to collaborate."
+        text="Setting up account for project development."
       />
       <UserRoleBanner
         register={register}
@@ -48,7 +48,7 @@ const RoleSelectionForm = ({ register, setUserRole, userRole }: Props) => {
         userRole={userRole}
         value="student"
         title="Im a student"
-        text="Looking to study."
+        text="Setting up account for educational purposes."
       />
       <ButtonHandler />
     </React.Fragment>

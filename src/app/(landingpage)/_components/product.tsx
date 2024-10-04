@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
 import { Code, FileText, Image, Music, Video, BookOpen, ShoppingCart, TrendingUp, Cpu, Database, Wifi, Palette } from 'lucide-react';
 import { Card, CardHeader, CardBody, CardFooter, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Tabs, Tab, Input, Textarea, Select, SelectItem } from "@nextui-org/react";
+import NextImage from 'next/image';
 
 const products = [
   { id: "code", title: 'Code Editor', description: 'Powerful web-based IDE with advanced features', icon: Code, videoId: 'dQw4w9WgXcQ' },
@@ -732,14 +733,16 @@ const ProductCard = ({ product, index }) => {
       >
         <Card isPressable onPress={handleOpen} className="w-full h-[300px] overflow-hidden group">
           <CardHeader className="absolute z-10 top-1 flex-col items-start">
-            <p className="text-sm text-gray-900/85 uppercase font-bold">{product.title}</p>
-            <h4 className="text-gray-700/90 font-medium text-xl text-start py-2">{product.description}</h4>
+            <p className="text-sm dark:text-gray-50/85 text-gray-900/90 uppercase font-bold">{product.title}</p>
+            <h4 className="dark:text-gray-100/90 text-gray-700/90 font-medium text-xl text-start py-2">{product.description}</h4>
           </CardHeader>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
-          <img
+          <NextImage
             alt={product.title}
             className="z-0 w-full h-full object-cover transition-transform duration-300 opacity-20 group-hover:scale-110"
             src={`/global/images/product/${product.id.toLowerCase()}.png`}
+            layout="fill"
+            objectFit="cover"
           />
           <CardFooter className="absolute bg-black/40 bottom-0 z-20 border-t-1 border-default-600 dark:border-default-100">
             <div className="flex flex-grow gap-2 items-center">

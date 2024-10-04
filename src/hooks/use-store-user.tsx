@@ -1,6 +1,7 @@
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState, useCallback } from "react";
 import { useConvexAuth } from "convex/react";
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import { Id } from "../convex/_generated/dataModel";
@@ -11,6 +12,7 @@ import { useAuthContextHook } from '@/context/auth-context-provider';
 import { _defaultPlan } from "@/constants/payments";
 
 export function useStoreUser() {
+  const router = useRouter();
   const { user } = useUser();
   const { isLoading, isAuthenticated } = useConvexAuth();
   const { userType } = useAuthContextHook();
@@ -24,6 +26,15 @@ export function useStoreUser() {
   const runAfterAuthChange = useCallback(async () => {
     await reset();
   }, [reset]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/');
+        setStoredUserId(null);
+      }
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   useEffect(() => {
     const createOrUpdateUser = async () => {
@@ -59,7 +70,6 @@ export function useStoreUser() {
           } else {
             id = existingUser._id;
           }
-
           setStoredUserId(id);
           localStorage.removeItem("tempEmail");
         } catch (error) {
@@ -77,3 +87,7 @@ export function useStoreUser() {
     role: userRole,
   };
 }
+
+
+
+

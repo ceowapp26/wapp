@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { SwitchLeftSidebar } from './_components/switch-sidebar';
 import { PortalModalProvider } from './_components/modal-provider';
 import { useConvexAuth } from "convex/react";
+import { useStoreUser } from "@/hooks/use-store-user";
 import { redirect } from "next/navigation";
 import { Spinner } from "@/components/spinner";
 import { useInitializeNewChat } from '@/hooks/use-initialize-newchat';
@@ -23,7 +24,7 @@ const ChatManagementModal = dynamic(() => import('@/components/apps/modals/chat-
 const FolderManagementModal = dynamic(() => import('@/components/apps/modals/folder-management-modal'), { ssr: false });
 
 const PortalLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isLoading, isAuthenticated, role } = useStoreUser();
   const initializeNewChat = useInitializeNewChat();
   const setChats = usePortalStore((state) => state.setChats);
   const setFolders = usePortalStore((state) => state.setFolders);
@@ -225,6 +226,8 @@ const PortalLayout = ({ children }: { children: React.ReactNode }) => {
     setArchivedFolders, 
     setSyncWithCloudWarning
   ]);
+
+  if (!isAuthenticated && !isLoading) return;
 
   if (isLoading) {
     return (

@@ -130,7 +130,6 @@ const ExploreSection = () => {
             <AnimatedTypography 
               variant={isMobile ? "body1" : "h5"} 
               sx={{
-                marginLeft: '100px',
                 mb: { xs: 3, sm: 4, md: 6 }, 
                 fontWeight: 'light',
                 fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' },

@@ -3,13 +3,16 @@ import React, { useEffect, useState } from "react";
 import { useConvexAuth } from "convex/react";
 import { redirect } from "next/navigation";
 import { Spinner } from "@/components/spinner";
+import { useStoreUser } from "@/hooks/use-store-user";
 
 const BlogLayout = ({
   children
 }: {
   children: React.ReactNode;
 }) => {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isAuthenticated, isLoading } = useStoreUser();
+
+  if (!isAuthenticated && !isLoading) return;
 
   if (isLoading) {
     return (

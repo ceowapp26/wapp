@@ -9,13 +9,14 @@ import PaymentFormProvider from '@/components/forms/payment/form-provider';
 import { SidebarContext } from "@/context/sidebar-context";
 
 const SettingsLayout = ({ children }: { children: React.ReactNode }) => {
- const { isLoading, isAuthenticated, role } = useStoreUser();
- const [sidebarOpen, setSidebarOpen] = useState<bolean>(false);
- const handleToggleSidebar = () => {
+  const { isLoading, isAuthenticated, role } = useStoreUser();
+  const [sidebarOpen, setSidebarOpen] = useState<bolean>(false);
+  const handleToggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  
+  if (!isAuthenticated && !isLoading) return;
+
   if (isLoading) {
     return (
       <div className="min-h-screen h-full flex items-center justify-center">

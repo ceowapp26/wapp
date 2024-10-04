@@ -122,10 +122,10 @@ const FaqItem = ({ sectionTitle, question, answer, details }) => {
           >
             {question}
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" className="dark:text-gray-100" paragraph>
             {answer}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" className="dark:text-gray-200" color="text.secondary">
             {details}
           </Typography>
         </Box>
@@ -161,10 +161,11 @@ const FaqSection = () => {
         <Typography 
           variant={isMobile ? "body1" : "h5"} 
           align="center" 
+          className="pb-6"
           color="text.secondary" 
           paragraph
         >
-          Explore the world of AI through our comprehensive FAQ
+          Discover everything you need to know about WAPP through comprehensive FAQs.
         </Typography>
       </motion.div>
       <Grid container justifyContent="center" alignItems="stretch" spacing={isMobile ? 2 : 3}>

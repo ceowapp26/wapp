@@ -45,13 +45,13 @@ const Layout = ({ children }: Props) => {
             </h2>
             <div className="space-y-6">
               <p className="text-iridium text-xl leading-relaxed">
-                Wapp is your all-in-one platform, designed to streamline your business operations and boost productivity.
+                Wapp is an all-in-one platform, designed to streamline your daily tasks and boost productivity.
               </p>
               <div className="space-y-4">
                 <h3 className="text-gravel text-2xl font-semibold">Who We Serve:</h3>
                 <ul className="list-disc list-inside text-iridium space-y-2">
-                  <li>Small Business Owners</li>
-                  <li>Freelancers</li>
+                  <li>Individual Users</li>
+                  <li>Small Businesses</li>
                   <li>Large Enterprises</li>
                 </ul>
               </div>

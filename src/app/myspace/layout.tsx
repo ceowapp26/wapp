@@ -88,6 +88,8 @@ const RenderLayout: React.FC<LayoutProps> = ({ children, appName }) => {
     });
   }, [appArray, dispatch]);
 
+  if (!isAuthenticated && !isLoading) return;
+
   if (isLoading) {
     return (
       <div className="min-h-screen h-full flex items-center justify-center">

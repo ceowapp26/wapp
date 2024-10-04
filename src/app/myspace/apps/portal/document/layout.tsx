@@ -15,13 +15,14 @@ import { debounce } from 'lodash';
 import { SnippetInterface } from '@/types/snippet';
 import Warning from "@/components/apps/modals/warning-modal";
 import { usePathname } from 'next/navigation';
+import { useStoreUser } from "@/hooks/use-store-user";
 import dynamic from 'next/dynamic';
 
 const DocumentMetadataModal = dynamic(() => import('@/components/apps/document/modals/document-metadata-modal'), { ssr: false });
 const DocumentManagementModal = dynamic(() => import('@/components/apps/document/modals/document-management-modal'), { ssr: false });
 
 const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useConvexAuth();
+  const { isLoading, isAuthenticated, role } = useStoreUser();
   const setSnippets = useDocumentStore((state) => state.setSnippets);
   const [syncWithCloudWarning, setSyncWithCloudWarning] = useState(false);
   const { isAppbarCollapsed, activeDocument, setActiveDocument } = useMyspaceContext();
@@ -103,6 +104,8 @@ const DocumentLayout = ({ children }: { children: React.ReactNode }) => {
     setSnippets, 
     setSyncWithCloudWarning
   ]);
+
+  if (!isLoading && !isAuthenticated) return;
 
   if (isLoading) {
     return (

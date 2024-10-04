@@ -14,6 +14,8 @@ const AdminLayout = ({
 }) => {
   const { isLoading, isAuthenticated } = useStoreUser();
   
+  if (!isLoading && !isAuthenticated) return;
+
   if (isLoading) {
     return (
       <div className="min-h-screen h-full flex items-center justify-center">
