@@ -56,11 +56,16 @@ module.exports = {
     extend: {
       screens: {
         mobileS: { max: '320px' },
+        mobileMinM: { min: '320px' },
         mobileM: { max: '375px' },
+        mobileMinML: { min: '475px' },
         mobileML: { max: '475px' },
+        mobileMinL: { min: '480px' },
         mobileL: { max: '480px' },
+        mobileMinXL: { max: '640px' },
         mobileXL: { max: '640px' },
         tablet: { max: '768px' },
+        tabletMinXL: { min: '900px' },
         tabletXL: { max: '1080px' },
         laptop: { max: '1024px' },
         laptopMB: { min: '1280px' },

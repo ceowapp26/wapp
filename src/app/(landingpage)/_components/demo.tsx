@@ -12,7 +12,7 @@ const TextAnimation = () => {
   const textRef = useRef(null);
 
   useEffect(() => {
-    const texts = ['Watch Our Demo', 'WApp Platform', 'WApp Portal', 'WApp Marketing', 'WApp Ecommerce',  'WApp Book',  'WApp Music'];
+    const texts = ['Watch Our Demo', 'WAPP Platform', 'WAPP Code Editor', 'WAPP Document Editor', 'WAPP Image Editor', 'WAPP Audio Editor', 'WAPP Video Editor', 'WAPP Marketing', 'WAPP Ecommerce',  'WAPP Book',  'WAPP Music', 'WAPP Central Hub', 'WAPP AI Training'];
     const tl = gsap.timeline({ repeat: -1 });
 
     texts.forEach((text) => {
@@ -36,7 +36,7 @@ const TextAnimation = () => {
     };
   }, []);
 
-  return <span ref={textRef} className="text-6xl bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 text-center font-bold mb-8"></span>;
+  return <span ref={textRef} className="text-6xl bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-violet-500 text-center font-bold mb-10 py-4"></span>;
 };
 
 const CustomButton = ({ direction = 'right', onClick }) => {
@@ -139,7 +139,7 @@ const VideoCarousel = ({ videos }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center w-full max-w-7xl mx-auto px-4 md:px-6 lg:px-8 overflow-hidden" style={{ height: `${videoHeight}px`}}>
+    <div className="relative flex items-center justify-center w-full max-w-screen-2xl mx-auto px-2 md:px-4 lg:px-6 overflow-hidden" style={{ height: `${videoHeight}px`}}>
       <div ref={carouselRef} className="flex justify-center items-center">
         <AnimatePresence initial={false}>
           {videos.map((video, index) => (
@@ -173,15 +173,16 @@ const VideoCarousel = ({ videos }) => {
 
 const DemoSection = () => {
   const videos = [
-    { src: "https://www.youtube.com/embed/5ffEkUho9tE?si=wWKndqr9UD8wzcs-", title: "Text Editor" },
-    { src: "https://www.youtube.com/embed/5ffEkUho9tE?si=wWKndqr9UD8wzcs-", title: "Code Editor" },
-    { src: "https://www.youtube.com/embed/5ffEkUho9tE?si=wWKndqr9UD8wzcs-", title: "Video Editor" },
-    { src: "https://www.youtube.com/embed/5ffEkUho9tE?si=wWKndqr9UD8wzcs-", title: "Watch Our Demo" },
+    { src: "https://www.youtube.com/embed/r0aAkMMhOo0?si=6PUVAgrP_C45Tbtm", title: "WAPP Platform" },
+    { src: "https://www.youtube.com/embed/5ffEkUho9tE?si=7IHllk2MguT_Vs1u", title: "Code Editor" },
+    { src: "https://www.youtube.com/embed/hpxw37I6LbM?si=JuFpMKAJnfmJpBKb", title: "Central Hub" },
+    { src: "https://www.youtube.com/embed/r0aAkMMhOo0?si=6PUVAgrP_C45Tbtm", title: "Document Editor" },
+    { src: "https://www.youtube.com/embed/r0aAkMMhOo0?si=6PUVAgrP_C45Tbtm", title: "Watch Our Demo" },
   ];
 
   return (
-    <section className="bg-gradient-to-b dark:from-gray-50 dark:to-white from-gray-900 to-gray-800 py-16 h-screen">
-      <div className="container flex flex-col items-center justify-center mx-auto px-4 md:px-6 lg:px-8 h-full">
+    <section className="bg-gradient-to-b dark:from-gray-50 dark:to-white from-gray-900 to-gray-800 py-10 h-screen">
+      <div className="container flex flex-col items-center justify-center mx-auto px-2 md:px-4 lg:px-6 h-full">
         <TextAnimation />
         <VideoCarousel videos={videos} />
       </div>

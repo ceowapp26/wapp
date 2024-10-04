@@ -400,7 +400,7 @@ const Footer = () => {
                 className="w-full text-white max-w-md"
               />
             </form>
-            <div className="footer-link footer-link-quickaccess">
+            <div className="footer-link footer-link-quickaccess mb-8">
               <a href="#" className="slant">Explore</a>
               <a href="#" className="liquid">Visit</a>
             </div>
@@ -438,7 +438,7 @@ const Footer = () => {
             </Box>
           </Grid>
         </Grid>
-        <Box className="relative flex items-center justify-center mt-12 mobileL:absolute mobileL:bottom-96 mobileL:right-6 mobileXL:bottom-52 mobileXL:right-16">
+        <Box className="relative flex items-center justify-center mt-12 mobileMinL:absolute mobileMinL:bottom-96 mobileMinL:right-8 tabletMinXL:bottom-56 tabletMinXL:right-16">
           <Box style={{ width: '200px', height: '200px' }}>
             <Canvas camera={{ position: [0, 0, 30], fov: 90 }}>
               <ambientLight intensity={0.5} />
@@ -451,7 +451,7 @@ const Footer = () => {
             </Canvas>
           </Box>
         </Box>
-        <Box className="border-t border-gray-700 mt-12 pt-8 text-center">
+        <Box className="border-t border-gray-700 mt-16 pt-12 text-center">
           <Typography variant="body2" className="text-gray-400">
             &copy; {new Date().getFullYear()} WApp. All rights reserved.
           </Typography>
