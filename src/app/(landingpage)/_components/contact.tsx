@@ -112,7 +112,7 @@ const ContactSection = () => {
           transition={{ delay: 0.4, duration: 0.5 }}
           className="row-span-1 flex flex-col items-center justify-center p-4 sm:p-6"
         >
-          <h1 className="dark:text-white text-black text-4xl sm:text-6xl md:text-8xl uppercase m-2 font-extrabold relative">
+          <h1 className="dark:text-white text-black mobileL:dark:text-black text-4xl sm:text-6xl md:text-8xl uppercase m-2 font-extrabold relative">
             <span className="relative z-10 top-7 sm:top-12">JOIN US</span>
             <div className="relative w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-full bg-gradient-radial from-white via-aqua to-darkblue -top-8 sm:-top-10 md:-top-20 left-1 sm:left-2 md:left-4 animate-pulse"></div>
           </h1>
